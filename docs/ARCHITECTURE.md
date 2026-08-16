@@ -9,9 +9,12 @@
 | Company-paid mileage and gross estimate | Mileage & Pay Tracker |
 | Order/receipt history | Gmail labels and archived threads |
 | Behaviour and invariants | This repository and installed Ops Brief skill |
+| ChatGPT Project bootstrap | `project/INSTRUCTIONS.md.tmpl` |
 | Schedule | Exactly two ChatGPT automations |
 
 Mutable state is never copied into scheduled prompts or Git. The scheduled jobs only select AM or PM and invoke the policy.
+
+The project-instructions template is deliberately a thin bootstrap rather than a second policy implementation. A deterministic fingerprint covers the template, skill, engines, schemas, and operating contract so CI forces an explicit instructions review after policy-source changes.
 
 ## Brief transaction
 
@@ -34,4 +37,3 @@ The post-mutation shipment read is the only shipment state allowed in the render
 - A failed non-authoritative evidence source is `Degraded`; the brief still completes.
 - A failed source is attempted once per run. There are no recursive agents, retry loops, or supporting scheduled jobs.
 - Ambiguous shipment evidence never changes multiple rows; it becomes an explicit exception.
-

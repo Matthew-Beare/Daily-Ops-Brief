@@ -63,6 +63,14 @@ Read `references/email-reconciliation.md` before processing order mail, changing
 - Never create AM/PM child jobs, supporting scheduled jobs, retries, or duplicate schedules. Segment workflow inside the skill references instead.
 - A scheduled run must not edit, create, duplicate, reschedule, inspect, or repair automations.
 
+## Project-instruction synchronization
+
+- Treat the version-controlled `project/INSTRUCTIONS.md.tmpl` as the complete ChatGPT Project bootstrap contract when the Daily-Ops-Brief repository is available.
+- After every lasting policy, workflow, authority, schedule, or output-contract change, review that full template and refresh its policy-source fingerprint. Temporary Sheet state does not trigger this review.
+- If the project-instructions contract changed, return the entire rendered replacement under the exact heading `PROJECT INSTRUCTIONS UPDATE`; never return a partial patch or make the user splice text.
+- If the project-instructions contract did not change, state `Project instructions unchanged.`
+- Do not claim that repository code silently changed the ChatGPT Project instruction field. Code versions, renders, and verifies the replacement; the user must paste it unless the current surface exposes an explicit project-instructions write tool.
+
 ## Continuation and recovery
 
 Treat clear equivalents of “continue Daily Briefs,” “we’re here now,” “the old thread got too long,” or “pick up the briefs here” as bootstrap commands. Inspect the automation list and both live Sheets, apply the routing above, and continue without making the user restate prior state.

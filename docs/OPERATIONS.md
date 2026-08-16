@@ -44,7 +44,12 @@ Evidence precedence is explicit user statement, carrier delivery, carrier except
 
 A clear request from any supported Chat, Work, project, voice, or dictation surface to add, update, complete, pause, or remove an item from the Daily Brief/Ops list is a write command to the canonical Ops Status Register. Never claim success if that write fails, and never leave the only copy in conversational memory.
 
+## Project instructions
+
+`project/INSTRUCTIONS.md.tmpl` is the complete, version-controlled ChatGPT Project bootstrap contract. Keep it thin: it invokes the skill and names authorities and hard boundaries; detailed policy remains in the skill, engines, and schemas.
+
+Every lasting policy-source change requires an explicit instructions review and refreshed fingerprint. CI rejects stale fingerprints. When the contract changes, render and return the complete replacement block; never provide a partial patch. Temporary operational state never belongs in project instructions.
+
 ## Output order
 
 Render only nonempty sections in this order: Weather, Route Weather, Shipments, Upcoming Appointments, Important Email, Ops Status, Miles & Pay, Important/Action Required, Trip Status.
-

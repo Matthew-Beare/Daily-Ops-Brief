@@ -20,6 +20,7 @@ The live Google Sheets remain the operational database. Gmail supplies order, ca
 config/       Sanitized configuration contract
 docs/         Architecture, operating procedure, and Sheet schemas
 fixtures/     Synthetic test/rebuild inputs
+project/      Versioned ChatGPT Project bootstrap contract
 schemas/      Machine-readable Sheet contracts and migrations
 skill/        Complete skill template, references, assets, and policy engines
 tools/        Rebuild tooling
@@ -49,8 +50,21 @@ python3 -m unittest discover -s tests -p 'test_*.py' -v
    ```
 
 5. Install the generated `build/ops-brief-policy` package.
-6. Create only the two dispatcher schedules shown in [`docs/OPERATIONS.md`](docs/OPERATIONS.md).
-7. Run the full test suite before activating either schedule.
+6. Render the complete ChatGPT Project instructions:
+
+   ```bash
+   python3 tools/project_instructions.py render \
+     --config config/ops.local.json \
+     --output build/PROJECT_INSTRUCTIONS.md
+   ```
+
+7. Paste the rendered block into the ChatGPT Project instructions.
+8. Create only the two dispatcher schedules shown in [`docs/OPERATIONS.md`](docs/OPERATIONS.md).
+9. Run the full test suite before activating either schedule.
+
+## Policy-change discipline
+
+After changing a lasting policy source, review `project/INSTRUCTIONS.md.tmpl`, calculate the new fingerprint with `python3 tools/project_instructions.py fingerprint`, update `project/POLICY_SOURCE.sha256`, and run `python3 tools/project_instructions.py check`. CI fails until that review is recorded. If the project bootstrap changed, provide the user the entire newly rendered block—not a partial edit.
 
 ## Data boundary
 

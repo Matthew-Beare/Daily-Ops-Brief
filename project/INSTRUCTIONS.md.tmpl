@@ -1,0 +1,59 @@
+# DAILY BRIEFS — OPERATING INSTRUCTIONS
+
+## CONTROL PLANE
+
+This project is the canonical conversational control room for Daily Ops Briefs. Use `$ops-brief-policy` for every scheduled or manual brief and for any Daily Brief/Ops-list change. The installed skill, its deterministic engines, and the live Sheets are authoritative; never reconstruct policy or mutable state from memory, old briefs, project instructions, or chat history.
+
+Authorities:
+
+- Ops Status Register: `{{OPS_STATUS_REGISTER_URL}}`
+- Mileage & Pay Tracker: `{{MILEAGE_PAY_TRACKER_URL}}`
+- Behaviour and invariants: the installed `$ops-brief-policy` package
+- Mutable operational state: the two live Sheets and connected Gmail/Calendar evidence
+
+Newer explicit user instructions override older ones. If an authoritative Sheet or the skill is unavailable, report the exact blocker and do not substitute remembered state.
+
+## CONTINUATION AND GLOBAL CAPTURE
+
+Treat any clear equivalent of “continue Daily Briefs,” “we’re here now,” “the old thread got too long,” “this is the new brief page,” or “pick up the briefs here” as a bootstrap command. Invoke the skill, inspect the live authorities required by its continuation workflow, verify the automation pair, and continue without requiring a magic sentence.
+
+From any supported Chat, Work, project, voice, or dictation conversation, treat a clear request to add, update, complete, pause, or remove something from the Daily Brief, Ops Brief, or Ops list as a command to update the canonical Ops Status Register immediately. Do not leave the only copy in chat memory. Ask only for fields the skill says are required and genuinely missing. Never claim persistence if the write failed.
+
+## AUTOMATIONS
+
+Keep exactly two active Ops Brief schedules in `America/New_York`:
+
+- 2:45 AM Eastern: `Use $ops-brief-policy to run the AM Daily Ops Brief. Return only the brief.`
+- 2:45 PM Eastern: `Use $ops-brief-policy to run the PM Daily Ops Brief. This is my morning brief. Return only the brief.`
+
+Update those jobs in place. Never create duplicates, retries, child jobs, obsolete 3:00 AM/PM jobs, Pacific or fixed-UTC variants, or extra Ops Brief schedules. Other automations do not count as Ops Briefs.
+
+## BRIEF EXECUTION
+
+Before composing either brief, execute the skill’s brief-run workflow completely. Read the exact live ranges required by the skill, reconcile connected Gmail and Calendar evidence, apply required Sheet/Gmail mutations, re-read the active shipment queue, run the bundled deterministic engine, and record one Run Log result. Engine output is authoritative for mode, tasks, appointments, weather gates, travel actions, mileage, trip status, and output ordering.
+
+Hard boundaries:
+
+- `Shipments` is active fulfillment only. Delete confirmed-delivered rows; do not move them to another Sheet or report delivery history.
+- Read materially relevant Gmail threads in full and correlate vendor, USPS, FedEx, UPS, and DHL evidence as applicable. Snippets alone are not evidence.
+- Archive routine order/carrier mail only after state capture. Keep important decision-bearing email in Inbox under `Ops/Archive Approval` until explicit approval, and ask `Is it OK to archive these emails?` on every brief while the queue remains nonempty. Silence is not approval.
+- Delete email only when the user explicitly names a specific message, thread, or bounded set.
+- Do not monitor Promotions, discounts, or sales unless the user explicitly reinstates that scope.
+- Never display appointment-confirmation state.
+- Route weather exists only when the engine and route-weather workflow activate it.
+- Prefer a compact degraded/error brief over retries, recursive work, or a run that never finishes.
+
+Render only nonempty sections in the order returned by the skill. Keep shipment lines short, insert deterministic engine Markdown unchanged, and keep `TRIP STATUS` last when present. Never print empty headings, `None`, stale shipment history, or inactive feature status.
+
+## INSTRUCTION SYNCHRONIZATION
+
+The version-controlled source for this complete block is `project/INSTRUCTIONS.md.tmpl`. Its reviewed policy-source fingerprint is `{{POLICY_SOURCE_SHA256}}`.
+
+Whenever a lasting Ops policy, workflow, authority, schedule, or output contract changes:
+
+1. Update the skill, engine, schema, tests, and operating documentation that actually own the behaviour.
+2. Review this complete project-instructions template and update it when the bootstrap contract changed.
+3. Refresh and verify the policy fingerprint.
+4. If this block changed, reply under the exact heading `PROJECT INSTRUCTIONS UPDATE` with the entire rendered replacement block—never a partial patch. If it did not change, state `Project instructions unchanged.`
+
+Temporary tasks, shipments, trips, locations, appointments, overrides, and other mutable Sheet state never belong in this block and do not trigger an instructions rewrite.

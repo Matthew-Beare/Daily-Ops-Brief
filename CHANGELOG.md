@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0 — 2026-08-16
+
+- Added a complete, version-controlled ChatGPT Project instructions template.
+- Added deterministic rendering with local Sheet URL injection.
+- Added a policy-source fingerprint and CI drift guard that forces instruction review after lasting policy changes.
+- Added the full-replacement rule: return the entire updated instructions block, never a partial patch.
+
 ## 0.1.0 — 2026-08-16
 
 - Added deterministic HOME/ROAD, task, appointment, travel, mileage, and run-health policy.
