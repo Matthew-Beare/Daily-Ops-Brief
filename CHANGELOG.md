@@ -8,4 +8,4 @@
 - Defined Gmail filing and explicit archive-approval behaviour.
 - Added cross-conversation Daily Brief/Ops-list capture boundaries.
 - Added sanitized schemas, fixtures, rebuild documentation, and continuous tests.
-
+- Added a machine-readable Google Sheets contract and idempotent shipment-tab migration specification.

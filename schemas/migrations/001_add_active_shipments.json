@@ -1,0 +1,41 @@
+{
+  "migration_id": "001_add_active_shipments",
+  "schema_version": 1,
+  "target": "ops_status_register",
+  "idempotency_key": "sheet:Shipments:v1",
+  "preconditions": [
+    "Create the tab only when Shipments is absent.",
+    "When Shipments exists, verify the exact v1 header before any write.",
+    "Never overwrite or rename a nonconforming existing tab automatically."
+  ],
+  "operations": [
+    {
+      "type": "ensure_sheet",
+      "title": "Shipments",
+      "rows": 500,
+      "columns": 14,
+      "frozen_rows": 1
+    },
+    {
+      "type": "set_headers",
+      "range": "Shipments!A1:N1",
+      "values": ["Shipment ID", "Vendor", "Order Number", "Item", "Carrier", "Tracking Number", "Package Count", "Order Date", "Shipped Date", "ETA (ET)", "Status", "Last Progress (ET)", "Notes", "Updated (ET)"]
+    },
+    {
+      "type": "set_validation",
+      "range": "Shipments!K2:K500",
+      "allowed_values": ["Awaiting Shipment", "Shipped", "Exception"],
+      "reject_invalid": true
+    },
+    {
+      "type": "create_filter",
+      "range": "Shipments!A1:N500"
+    },
+    {
+      "type": "set_semantics",
+      "history": "active_only_delete_delivered",
+      "one_row_per": "fulfillment_or_tracking_number"
+    }
+  ]
+}
+

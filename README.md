@@ -20,6 +20,7 @@ The live Google Sheets remain the operational database. Gmail supplies order, ca
 config/       Sanitized configuration contract
 docs/         Architecture, operating procedure, and Sheet schemas
 fixtures/     Synthetic test/rebuild inputs
+schemas/      Machine-readable Sheet contracts and migrations
 skill/        Complete skill template, references, assets, and policy engines
 tools/        Rebuild tooling
 tests/        Unit tests
@@ -36,7 +37,7 @@ python3 -m unittest discover -s tests -p 'test_*.py' -v
 
 ## Rebuild
 
-1. Create the two Google Sheets and tabs documented in [`docs/SHEET_SCHEMA.md`](docs/SHEET_SCHEMA.md).
+1. Create the two Google Sheets and tabs documented in [`docs/SHEET_SCHEMA.md`](docs/SHEET_SCHEMA.md) and codified in `schemas/google-sheets.json`.
 2. Copy `config/ops.example.json` to `config/ops.local.json` and set the two spreadsheet IDs. The local file is ignored by Git.
 3. Create the Gmail labels listed in [`docs/OPERATIONS.md`](docs/OPERATIONS.md).
 4. Render an installable skill package:

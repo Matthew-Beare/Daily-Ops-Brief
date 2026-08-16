@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "timezone": "America/New_York",
+  "spreadsheets": {
+    "ops_status_register": {
+      "tabs": {
+        "Tasks": {
+          "range": "A1:L500",
+          "primary_key": "Task ID",
+          "headers": ["Task ID", "Tier", "Classification", "Subsystem", "Task", "Status", "Visibility", "Active From", "Active Through", "Recurrence / State Rule", "Notes", "Updated (ET)"],
+          "validation": {
+            "Tier": ["Persistent", "High", "Medium", "Low"],
+            "Visibility": ["Home", "Road", "Both"]
+          },
+          "history": "retain_rows"
+        },
+        "Control": {
+          "range": "A1:I200",
+          "primary_key": "Record ID",
+          "headers": ["Record ID", "Type", "Item", "State", "Starts At (ET)", "Expires At (ET)", "Notes", "Status", "Updated (ET)"],
+          "history": "retain_rows"
+        },
+        "Routes": {
+          "range": "A1:L500",
+          "primary_key": "Route ID",
+          "headers": ["Route ID", "Endpoint A", "Endpoint B", "Route A → B", "Route B → A", "Avg A → B (hrs)", "Avg B → A (hrs)", "Operation Profile", "Status", "Notes", "Created (ET)", "Updated (ET)"],
+          "history": "retain_rows"
+        },
+        "Trips": {
+          "range": "A1:O1000",
+          "primary_key": "Trip ID",
+          "headers": ["Trip ID", "Route ID", "Origin", "Destination", "Departure (ET)", "ETA (ET)", "ETA Source", "Current Location", "Location Time (ET)", "Weather Watch", "Watch Expires (ET)", "Status", "Route Override", "Notes", "Updated (ET)"],
+          "history": "retain_rows"
+        },
+        "Travel Settings": {
+          "range": "A1:F100",
+          "primary_key": "Setting ID",
+          "headers": ["Setting ID", "Setting", "Value", "Notes", "Status", "Updated (ET)"],
+          "history": "retain_rows"
+        },
+        "Shipments": {
+          "range": "A1:N500",
+          "primary_key": "Shipment ID",
+          "headers": ["Shipment ID", "Vendor", "Order Number", "Item", "Carrier", "Tracking Number", "Package Count", "Order Date", "Shipped Date", "ETA (ET)", "Status", "Last Progress (ET)", "Notes", "Updated (ET)"],
+          "validation": {
+            "Status": ["Awaiting Shipment", "Shipped", "Exception"]
+          },
+          "unique_when_present": ["Tracking Number"],
+          "history": "active_only_delete_delivered"
+        },
+        "Run Log": {
+          "range": "A1:M1000",
+          "primary_key": "Run ID",
+          "headers": ["Run ID", "Scheduled Date (ET)", "Slot", "Started (ET)", "Completed (ET)", "Policy Version", "Mode", "Status", "Input Health", "External Evidence", "Mutations", "Action Count", "Error / Notes"],
+          "validation": {
+            "Slot": ["AM", "PM"],
+            "Status": ["OK", "Degraded", "Error"]
+          },
+          "history": "upsert_by_run_id"
+        }
+      }
+    },
+    "mileage_pay_tracker": {
+      "tabs": {
+        "Mileage Log": {
+          "range": "A4:O504",
+          "header_row": 4,
+          "primary_key": "Entry ID",
+          "headers": ["Entry ID", "Week Ending (Thu)", "Trip ID", "Route ID", "Departure (ET)", "Arrival (ET)", "Origin", "Destination", "Company-Paid Miles", "Rate / Mile", "Gross Pay Estimate", "Miles Source", "Status", "Notes", "Updated (ET)"],
+          "validation": {
+            "Status": ["Planned", "Estimated", "Final", "Voided"]
+          },
+          "history": "retain_rows"
+        },
+        "Settings": {
+          "range": "A3:B8",
+          "header_row": 3,
+          "primary_key": "Setting",
+          "headers": ["Setting", "Value"],
+          "history": "retain_rows"
+        }
+      }
+    }
+  }
+}
+
