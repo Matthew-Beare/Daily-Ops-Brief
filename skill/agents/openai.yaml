@@ -6,8 +6,8 @@ interface:
   brand_color: '#2563EB'
   default_prompt: Use $ops-brief-policy to run or maintain my Daily Ops Briefs from
     the live register, active shipment queue, reconciled inbox evidence, mileage tracker,
-    deterministic policy, and connected evidence. Persist clear Ops-list requests from
-    any conversation to the canonical register.
+    deterministic policy, and connected evidence. Persist clear Ops-list requests
+    from any conversation to the canonical register.
 policy:
   products:
   - chatgpt
