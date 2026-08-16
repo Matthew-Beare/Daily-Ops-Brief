@@ -20,7 +20,8 @@ The live Google Sheets remain the operational database. Gmail supplies order, ca
 config/       Sanitized configuration contract
 docs/         Architecture, operating procedure, and Sheet schemas
 fixtures/     Synthetic test/rebuild inputs
-policy/       Deterministic policy engines
+skill/        Complete skill template, references, assets, and policy engines
+tools/        Rebuild tooling
 tests/        Unit tests
 .github/      Continuous integration
 ```
@@ -38,11 +39,18 @@ python3 -m unittest discover -s tests -p 'test_*.py' -v
 1. Create the two Google Sheets and tabs documented in [`docs/SHEET_SCHEMA.md`](docs/SHEET_SCHEMA.md).
 2. Copy `config/ops.example.json` to `config/ops.local.json` and set the two spreadsheet IDs. The local file is ignored by Git.
 3. Create the Gmail labels listed in [`docs/OPERATIONS.md`](docs/OPERATIONS.md).
-4. Install the Ops Brief skill using the operating contract in this repository.
-5. Create only the two dispatcher schedules shown in [`docs/OPERATIONS.md`](docs/OPERATIONS.md).
-6. Run the full test suite before activating either schedule.
+4. Render an installable skill package:
+
+   ```bash
+   python3 tools/render_skill.py \
+     --config config/ops.local.json \
+     --output build/ops-brief-policy
+   ```
+
+5. Install the generated `build/ops-brief-policy` package.
+6. Create only the two dispatcher schedules shown in [`docs/OPERATIONS.md`](docs/OPERATIONS.md).
+7. Run the full test suite before activating either schedule.
 
 ## Data boundary
 
 Do not commit live Sheet exports, email bodies, Gmail IDs, addresses, account numbers, credentials, calendar contents, rendered personal briefs, or local configuration. Private Git is still durable history, not a secrets or personal-records vault.
-

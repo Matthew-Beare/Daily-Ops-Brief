@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 
 
-MODULE_PATH = Path(__file__).resolve().parents[1] / "policy" / "reconcile_shipments.py"
+MODULE_PATH = Path(__file__).resolve().parents[1] / "skill" / "scripts" / "reconcile_shipments.py"
 SPEC = importlib.util.spec_from_file_location("reconcile_shipments", MODULE_PATH)
 assert SPEC and SPEC.loader
 reconciler = importlib.util.module_from_spec(SPEC)

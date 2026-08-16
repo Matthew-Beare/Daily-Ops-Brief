@@ -1,0 +1,17 @@
+interface:
+  display_name: Ops Brief Policy
+  short_description: Reconciled daily briefs, inbox, shipments, travel, and mileage
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+  brand_color: '#2563EB'
+  default_prompt: Use $ops-brief-policy to run or maintain my Daily Ops Briefs from
+    the live register, active shipment queue, reconciled inbox evidence, mileage tracker,
+    deterministic policy, and connected evidence. Persist clear Ops-list requests from
+    any conversation to the canonical register.
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true

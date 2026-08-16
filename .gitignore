@@ -6,5 +6,5 @@ __pycache__/
 .env
 config/ops.local.json
 artifacts/
+build/
 live-data/
-
