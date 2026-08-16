@@ -1,0 +1,21 @@
+{
+  "timezone": "America/New_York",
+  "ops_status_register_id": "SET_ME",
+  "mileage_pay_tracker_id": "SET_ME",
+  "schedules": {
+    "am": "02:45",
+    "pm": "14:45"
+  },
+  "gmail_labels": {
+    "receipts": "Receipts",
+    "automotive_receipts": "Receipts/Automotive",
+    "awaiting_shipment": "Orders/Awaiting Shipment",
+    "shipped": "Orders/Shipped",
+    "archive_approval": "Ops/Archive Approval"
+  },
+  "features": {
+    "promotion_monitoring": false,
+    "sales_alerts": false
+  }
+}
+

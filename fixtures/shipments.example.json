@@ -1,0 +1,32 @@
+{
+  "now": "2026-08-16T05:00:00-04:00",
+  "shipments": [
+    {
+      "Shipment ID": "SHIP-001",
+      "Vendor": "Example Vendor",
+      "Order Number": "EXAMPLE-100",
+      "Item": "Example part",
+      "Carrier": "FedEx",
+      "Tracking Number": "EXAMPLETRACKING100",
+      "Package Count": "1",
+      "Order Date": "8/10/2026",
+      "Shipped Date": "8/12/2026",
+      "ETA (ET)": "8/17/2026",
+      "Status": "Shipped",
+      "Last Progress (ET)": "8/15/2026 8:30 PM ET",
+      "Notes": "Synthetic fixture only.",
+      "Updated (ET)": "8/15/2026 8:35 PM ET"
+    }
+  ],
+  "evidence": [
+    {
+      "source": "carrier",
+      "event": "in_transit",
+      "tracking_number": "EXAMPLETRACKING100",
+      "eta": "8/17/2026",
+      "event_at": "8/16/2026 12:46 AM ET",
+      "notes": "Synthetic carrier progress."
+    }
+  ]
+}
+
