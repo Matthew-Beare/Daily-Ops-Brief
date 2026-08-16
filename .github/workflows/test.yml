@@ -18,5 +18,9 @@ jobs:
           python-version: '3.12'
       - name: Check project-instruction policy sync
         run: python3 tools/project_instructions.py check
+      - name: Validate starter feature manifests
+        run: python3 starter/tools/validate_feature_manifest.py
       - name: Run deterministic policy tests
         run: python3 -m unittest discover -s tests -p 'test_*.py' -v
+      - name: Run isolated starter tests
+        run: python3 -m unittest discover -s starter/tests -p 'test_*.py' -v

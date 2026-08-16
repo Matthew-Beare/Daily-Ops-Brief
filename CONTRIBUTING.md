@@ -18,9 +18,13 @@ Run before every pull request:
 
 ```bash
 python3 tools/project_instructions.py check
+python3 starter/tools/validate_feature_manifest.py
 python3 -m unittest discover -s tests -p 'test_*.py' -v
+python3 -m unittest discover -s starter/tests -p 'test_*.py' -v
 ```
 
 After any lasting policy-source change, review `project/INSTRUCTIONS.md.tmpl` and update `project/POLICY_SOURCE.sha256` with the value printed by `python3 tools/project_instructions.py fingerprint`. A fingerprint refresh attests that the complete project-instructions contract was reviewed; it is not a substitute for changing the text when the bootstrap contract changed.
 
 Do not commit live operational data. Use synthetic fixtures and placeholders.
+
+Treat `starter/` as an isolated export source. A starter change must not alter production `skill/`, project instructions, schedules, or live schemas. Portable starter features must pass the manifest validator and contain no personal or workplace-protected data.

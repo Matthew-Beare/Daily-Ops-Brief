@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0 — 2026-08-16
+
+- Added a quarantined, forkable `starter/` that production never imports or schedules.
+- Added a discovery interview beginning with current AI use, recurring friction, and automation candidates.
+- Added conditional appointment, hiking, training, meal-planning, privacy, and permission discovery modules.
+- Added a portable feature-manifest schema, validator, synthetic fixture, and isolation tests.
+- Defined fork-and-pull-request collaboration without weakening Matthew’s production policy.
+
 ## 0.2.0 — 2026-08-16
 
 - Added a complete, version-controlled ChatGPT Project instructions template.
