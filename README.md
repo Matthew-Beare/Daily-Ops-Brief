@@ -23,6 +23,7 @@ fixtures/     Synthetic test/rebuild inputs
 project/      Versioned ChatGPT Project bootstrap contract
 schemas/      Machine-readable Sheet contracts and migrations
 skill/        Complete skill template, references, assets, and policy engines
+starter/      Quarantined forkable discovery scaffold; never used by production
 tools/        Rebuild tooling
 tests/        Unit tests
 .github/      Continuous integration
@@ -65,6 +66,10 @@ python3 -m unittest discover -s tests -p 'test_*.py' -v
 ## Policy-change discipline
 
 After changing a lasting policy source, review `project/INSTRUCTIONS.md.tmpl`, calculate the new fingerprint with `python3 tools/project_instructions.py fingerprint`, update `project/POLICY_SOURCE.sha256`, and run `python3 tools/project_instructions.py check`. CI fails until that review is recorded. If the project bootstrap changed, provide the user the entire newly rendered block—not a partial edit.
+
+## Forkable starter
+
+`starter/` is a separate, inert scaffold for interviewing and building another person’s assistant from their own problems. It begins with “How do you currently use AI?”, branches into relevant feature discovery, and includes a portable feature-manifest contract. Production rendering and policy fingerprinting deliberately exclude it; see [`starter/README.md`](starter/README.md).
 
 ## Data boundary
 

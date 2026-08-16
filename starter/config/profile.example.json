@@ -1,0 +1,31 @@
+{
+  "profile_version": 1,
+  "identity": {
+    "display_name": "SET_ME",
+    "timezone": "SET_ME"
+  },
+  "discovery": {
+    "current_ai_uses": [],
+    "recurring_friction": [],
+    "automation_candidates": [],
+    "never_actions": []
+  },
+  "brief": {
+    "enabled": false,
+    "schedule": [],
+    "sections": [],
+    "interrupt_only_for": []
+  },
+  "authorities": {
+    "tasks": "SET_ME",
+    "appointments": "SET_ME",
+    "email": "SET_ME"
+  },
+  "permissions": {
+    "read": [],
+    "automatic_writes": [],
+    "approval_required": [],
+    "forbidden": []
+  },
+  "selected_features": []
+}

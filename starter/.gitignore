@@ -1,0 +1,4 @@
+config/profile.local.json
+build/
+__pycache__/
+*.py[cod]
