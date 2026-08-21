@@ -1,0 +1,114 @@
+{
+  "version": 1,
+  "instructions": "Ask only unanswered questions. Required unknowns come first; group no more than five related questions at a time.",
+  "sections": [
+    {
+      "id": "identity_time",
+      "title": "Identity and time",
+      "questions": [
+        {"id": "system_name", "required": true, "prompt": "What should this personal-ops system be called?"},
+        {"id": "canonical_timezone", "required": true, "prompt": "Which IANA timezone is authoritative even while you travel?"},
+        {"id": "day_boundary", "required": false, "prompt": "Does your operational day use a non-midnight boundary because of night work?"},
+        {"id": "brief_slots", "required": true, "prompt": "Which exact local times should deliver briefs?"},
+        {"id": "slot_names", "required": false, "prompt": "Do AM/PM labels match your sleep schedule, or should a slot have a custom name?"}
+      ]
+    },
+    {
+      "id": "work_life",
+      "title": "Work and life model",
+      "questions": [
+        {"id": "job_pattern", "required": true, "prompt": "What is your job, shift pattern, and normal workweek?"},
+        {"id": "travel_pattern", "required": false, "prompt": "Do you travel for work, and what departures or returns repeat?"},
+        {"id": "home_road_modes", "required": false, "prompt": "Should tasks change visibility between HOME, ROAD, WORK, or another mode?"},
+        {"id": "household_context", "required": false, "prompt": "Which household members affect shared purchases, calendars, or task ownership?"},
+        {"id": "vehicles", "required": false, "prompt": "Which vehicles or equipment need their own task and document branches?"},
+        {"id": "education", "required": false, "prompt": "Which current courses, certifications, or study tracks need exact folders?"},
+        {"id": "recurring_responsibilities", "required": false, "prompt": "Which recurring responsibilities are easy to forget?"}
+      ]
+    },
+    {
+      "id": "output",
+      "title": "Brief output",
+      "questions": [
+        {"id": "length", "required": true, "prompt": "How short should the normal brief be?"},
+        {"id": "priority_model", "required": true, "prompt": "Which priorities or tiers should tasks use?"},
+        {"id": "persistent_items", "required": false, "prompt": "Do some items remain visible until explicitly completed?"},
+        {"id": "nag_rules", "required": false, "prompt": "What must never be repeated after acknowledgement or confirmation?"},
+        {"id": "degraded_output", "required": false, "prompt": "How should a brief report an unavailable dependency?"},
+        {"id": "tone", "required": false, "prompt": "What tone, terminology, or forbidden filler should the brief use?"}
+      ]
+    },
+    {
+      "id": "state",
+      "title": "State and data",
+      "questions": [
+        {"id": "canonical_store", "required": true, "prompt": "Where should mutable tasks and controls live?"},
+        {"id": "existing_store", "required": false, "prompt": "Does an existing Sheet, database, or app already contain authoritative state?"},
+        {"id": "history_rule", "required": true, "prompt": "Should completed and removed rows be retained for history?"},
+        {"id": "required_fields", "required": true, "prompt": "Which fields are mandatory before a task can be stored?"},
+        {"id": "sensitive_fields", "required": false, "prompt": "Which data must never enter prompts, repositories, or shared files?"},
+        {"id": "retention", "required": false, "prompt": "How long should logs, receipts, and archived records be retained?"}
+      ]
+    },
+    {
+      "id": "integrations",
+      "title": "Integrations",
+      "questions": [
+        {"id": "email", "required": false, "prompt": "Which email account supplies actionable messages, shipments, and receipts?"},
+        {"id": "calendar", "required": false, "prompt": "Which calendar is authoritative for appointments and reminders?"},
+        {"id": "drive", "required": false, "prompt": "Which Drive or cloud storage should hold evidence and documents?"},
+        {"id": "github", "required": false, "prompt": "Which private repository should version policy and recovery material?"},
+        {"id": "task_apps", "required": false, "prompt": "Which existing task apps or automations must be inspected before creating duplicates?"},
+        {"id": "finance", "required": false, "prompt": "Is spending analysis email-detected only, or is an account-level source connected?"},
+        {"id": "inventory", "required": false, "prompt": "Should receipts update a tool, vehicle, warranty, or asset inventory?"},
+        {"id": "weather_maps", "required": false, "prompt": "Should route or severe-weather evidence be used, and under which gate?"}
+      ]
+    },
+    {
+      "id": "drive_taxonomy",
+      "title": "Drive taxonomy",
+      "questions": [
+        {"id": "top_domains", "required": false, "prompt": "Which few top-level domains should exist?"},
+        {"id": "personal_records", "required": false, "prompt": "Which issued licenses, resumes, and employment records belong under Personal?"},
+        {"id": "education_depth", "required": false, "prompt": "Should education file by institution, exact course/certification, then material type?"},
+        {"id": "recipe_library", "required": false, "prompt": "Should recipes be consolidated into a searchable heading-based library?"},
+        {"id": "unnamed_files", "required": false, "prompt": "May contents be read to name and categorize untitled or ambiguous files?"},
+        {"id": "duplicates", "required": false, "prompt": "Should versions be preserved, archived, or deduplicated after confirmation?"},
+        {"id": "shared_files", "required": false, "prompt": "Should non-movable shared sources be copied into owned organized folders?"}
+      ]
+    },
+    {
+      "id": "automation",
+      "title": "Automation design",
+      "questions": [
+        {"id": "existing_tasks", "required": true, "prompt": "Which scheduled tasks already exist, including paused duplicates?"},
+        {"id": "active_limit", "required": false, "prompt": "Does the account have an active-task limit that favors multi-time RRULE dispatch?"},
+        {"id": "failure_policy", "required": true, "prompt": "What should happen if a required connector is unavailable?"},
+        {"id": "notification_silence", "required": false, "prompt": "Which condition watches should stay silent when nothing changed?"},
+        {"id": "rollback", "required": true, "prompt": "Which scheduled-task mutations require snapshot-and-rollback?"},
+        {"id": "manual_run", "required": false, "prompt": "Should the same policy support manual runs from any conversation?"}
+      ]
+    },
+    {
+      "id": "private_devices",
+      "title": "Private devices and security",
+      "questions": [
+        {"id": "local_devices", "required": false, "prompt": "Does any requested workflow depend on a phone, NAS, home server, or LAN-only service?"},
+        {"id": "bridge", "required": false, "prompt": "What explicit bridge or sync mechanism is authorized for private-device access?"},
+        {"id": "least_privilege", "required": true, "prompt": "What is the narrowest permission each integration needs?"},
+        {"id": "secrets", "required": true, "prompt": "Where will credentials live so they are never pasted into chat or committed?"},
+        {"id": "destructive_actions", "required": true, "prompt": "Which deletes, archives, sends, or overwrites require confirmation?"}
+      ]
+    },
+    {
+      "id": "evolution",
+      "title": "Review and evolution",
+      "questions": [
+        {"id": "review_cadence", "required": false, "prompt": "How often should policy noise, stale state, and duplicate tasks be reviewed?"},
+        {"id": "success_metrics", "required": false, "prompt": "How will you judge whether the system saves time and catches the right things?"},
+        {"id": "change_control", "required": true, "prompt": "Who may approve lasting policy, schema, schedule, or integration changes?"},
+        {"id": "recovery_owner", "required": false, "prompt": "Who should be able to recover the system if the primary chat thread is gone?"}
+      ]
+    }
+  ]
+}
