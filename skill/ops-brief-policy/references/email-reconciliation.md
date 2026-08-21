@@ -5,7 +5,7 @@ Load this reference completely for order mail, active shipments, inbox filing, a
 ## Authoritative state
 
 - `Shipments!A1:N500` in the Ops Status Register is the active shipment queue, not a purchase ledger.
-- `Order Events!A1:O1000` in the Purchase & Receipt Archive is append-only lifecycle history. `Classification Queue!A1:L500` is unresolved purchase input.
+- `Order Events!A1:Q1000` in the Purchase & Receipt Archive is append-only lifecycle history; columns P/Q are `Related Receipt ID` and `Replacement Group ID`. `Classification Queue!A1:L500` is unresolved purchase input.
 - Its exact columns are `Shipment ID`, `Vendor`, `Order Number`, `Item`, `Carrier`, `Tracking Number`, `Package Count`, `Order Date`, `Shipped Date`, `ETA (ET)`, `Status`, `Last Progress (ET)`, `Notes`, and `Updated (ET)`.
 - Allowed active statuses are `Awaiting Shipment`, `Shipped`, and `Exception`.
 - Keep one row per fulfillment or tracking number. Split packages may create multiple rows for one order.

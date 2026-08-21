@@ -8,7 +8,7 @@ LyfeOS 0.0.1 keeps one transaction identity while allowing many tags, assets, ev
 |---|---|---|---|
 | Transaction | `Orders - Database` | `Receipt ID` | One row and one counted total per underlying purchase |
 | Transaction item | `Receipt Details - Expandable` | Receipt ID plus item/SKU/position | Searchable line items and fitment |
-| Order event | `Order Events` | `Event ID` | Append-only lifecycle plus reciprocal related Receipt IDs and replacement group |
+| Order event | `Order Events` (P/Q: related Receipt/group) | `Event ID` | Append-only lifecycle plus reciprocal related Receipt IDs and replacement group |
 | Expense allocation | `Expense Ledger` | `Allocation ID` | Cost-owner split whose rows sum to the transaction total |
 | Classification case | `Classification Queue` | `Queue ID` | Unknown product, category, vehicle, or owner awaiting user input |
 | Active fulfillment | Ops `Shipments` | `Shipment ID` | Undelivered work queue only |

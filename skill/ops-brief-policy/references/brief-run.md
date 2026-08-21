@@ -17,7 +17,7 @@ Read `Shipments!A1:N500` before Gmail reconciliation. After all required shipmen
 
 Read these Purchase & Receipt Archive ranges once:
 
-- `Order Events!A1:O1000`
+- `Order Events!A1:Q1000`
 - `Classification Queue!A1:L500`
 
 Use the latest prior successful `Completed (ET)` value from Run Log as the delivery-event cutoff. If the receipt workbook is unavailable, mark the brief `Degraded`, skip delivery-once and classification rendering, and continue with the active shipment queue.

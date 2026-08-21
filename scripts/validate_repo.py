@@ -69,6 +69,7 @@ def validate(root: Path) -> list[str]:
     require("remaining_item" in email_policy, "email policy lacks surviving-item cancellation evidence", errors)
     require("Replacement Group ID" in receipt_policy, "receipt policy lacks linked replacement-order handling", errors)
     require("replacement_order_number" in email_policy, "email policy lacks replacement shipment evidence", errors)
+    require("Order Events!A1:Q1000" in email_policy, "email policy does not read replacement-link columns", errors)
     require("without asking for a separate Git confirmation" in maintenance, "state maintenance lacks automatic Git synchronization", errors)
     require("automatically commit/push" in project, "project contract lacks automatic durable Git synchronization", errors)
     require("To consolidate a healthy legacy AM/PM pair" in maintenance, "state maintenance lacks the migration transaction", errors)
