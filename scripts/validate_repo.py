@@ -15,6 +15,7 @@ from policy_fingerprint import compute
 REQUIRED = (
     "README.md",
     "project/INSTRUCTIONS.md.tmpl",
+    "docs/lyfeos-data-model.md",
     "starter/README.md",
     "starter/config.example.json",
     "starter/questions.json",
@@ -45,6 +46,12 @@ def validate(root: Path) -> list[str]:
     require("BYHOUR=2,14;BYMINUTE=45;BYSECOND=0" in project, "project contract is missing the twice-daily RRULE", errors)
     require("exactly one active Ops Brief automation" in skill, "skill invariant is not the one-task design", errors)
     require("receipt-ingestion.md" in skill, "skill does not route receipt ingestion", errors)
+    require("Purchase & Receipt Archive" in project, "project contract is missing purchase authority", errors)
+    require("Receipt & Order Lifecycle" in project, "project contract is missing the consolidated receipt lifecycle task", errors)
+    require("BYHOUR=1,13;BYMINUTE=45" in project, "project contract is missing the receipt lifecycle RRULE", errors)
+    require("Audit gate" in project, "project contract is missing the receipt integrity gate", errors)
+    require("Order Events" in skill, "skill does not preserve lifecycle history", errors)
+    require("Classification Queue" in skill, "skill does not route unknown purchase classification", errors)
     require("To consolidate a healthy legacy AM/PM pair" in maintenance, "state maintenance lacks the migration transaction", errors)
     require("Keep exactly two active Ops Brief" not in project + skill + maintenance, "legacy two-task invariant remains", errors)
 

@@ -12,9 +12,10 @@ Keep mutable state in the two live Sheets, policy in the bundled engine, and sch
 - Timezone: `America/New_York`.
 - Ops Status Register: `https://docs.google.com/spreadsheets/d/10WMU_hDMfSJcACel--8LekT7So5MXKgWuLVxvnSCPNU/edit`.
 - Mileage & Pay Tracker: `https://docs.google.com/spreadsheets/d/1OUzdjZaVTidLnMX2xuIZ3mRVDOF5oAfT8-pdl6KfUfI/edit`.
+- Purchase & Receipt Archive: `https://docs.google.com/spreadsheets/d/1pHkTdCxmdBdZjnVu97FkpkiSjysLkhjuTEcfcEXzmW8/edit`.
 - Engine: `scripts/ops_policy.py`.
 - Shipment reconciler: `scripts/reconcile_shipments.py`.
-- The `Shipments` tab is an active queue only. Gmail receipts are the delivery/order history.
+- The `Shipments` tab is an active queue only. Durable purchase and lifecycle history belongs in the Purchase & Receipt Archive; Gmail remains the source evidence.
 - If either Sheet is unavailable, report `Action Required — <sheet name> unavailable.` Never substitute remembered or previously rendered state.
 
 ## Route the request
@@ -34,7 +35,8 @@ Keep mutable state in the two live Sheets, policy in the bundled engine, and sch
 - Never hard-code task-specific exceptions; use the live row fields and engine result.
 - Never display appointment-confirmation state. It is hidden anti-nag state only.
 - Reconcile Gmail against the active `Shipments` queue before rendering either brief. Read complete materially relevant threads; snippets alone are not evidence.
-- Delete delivered items from the active `Shipments` queue immediately. Do not render, retain, or re-report delivery history in the brief.
+- Delete delivered items from the active `Shipments` queue immediately. Report a newly observed delivery once from `Order Events`, then never re-report it.
+- Never guess an unknown purchase classification. Keep it in `Classification Queue` and ask for the smallest useful choice in the next brief.
 - Keep important email in Inbox under `Ops/Archive Approval` until the user approves archiving. Silence is not approval.
 - Do not monitor promotions or sales unless the user explicitly reinstates that scope.
 - For a lasting Ops policy change, provide the complete revised project-instructions block when the bootstrap contract changes; never provide a partial instructions patch.

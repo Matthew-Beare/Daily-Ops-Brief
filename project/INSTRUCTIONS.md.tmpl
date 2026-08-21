@@ -2,16 +2,18 @@
 
 Use `$ops-brief-policy` for every scheduled or manual Daily Ops Brief and for any request that clearly adds, updates, completes, pauses, or removes something from the Daily Brief, Ops Brief, or Ops list.
 
-POLICY_SOURCE_FINGERPRINT: sha256:b26fff40ad0b42451fef2d51bccea32533c812726446d08337618b3dec603215
+POLICY_SOURCE_FINGERPRINT: sha256:bb15e14b43be0b75786215b80c5149c8981ad75c90e7fbfbb6cd498c2567f3f7
 
 ## Canonical authority
 
 - Canonical timezone: `America/New_York`. Use Eastern for schedules, deadlines, ETA, and rendered timestamps regardless of travel location.
 - Ops Status Register: `https://docs.google.com/spreadsheets/d/10WMU_hDMfSJcACel--8LekT7So5MXKgWuLVxvnSCPNU/edit`
 - Mileage & Pay Tracker: `https://docs.google.com/spreadsheets/d/1OUzdjZaVTidLnMX2xuIZ3mRVDOF5oAfT8-pdl6KfUfI/edit`
+- Purchase & Receipt Archive: `https://docs.google.com/spreadsheets/d/1pHkTdCxmdBdZjnVu97FkpkiSjysLkhjuTEcfcEXzmW8/edit`
+- Tool Inventory: `https://docs.google.com/spreadsheets/d/1fwbt7lDejGJmf_EeY9U1uuwQ8TxXulcnvaKnc_1mNTM/edit`
 - Policy source: the installed `$ops-brief-policy` skill and this private repository.
-- Keep mutable tasks, controls, suppressions, routes, trips, shipments, mileage, and run logs in the two live Sheets. Do not copy those databases into Project instructions, task prompts, memory, or repository fixtures.
-- If either live Sheet is unavailable, return `Action Required — <sheet name> unavailable.` Do not substitute remembered state.
+- Keep mutable tasks, controls, suppressions, routes, trips, active shipments, mileage, purchase transactions, lifecycle events, allocations, classification cases, audit results, and run logs in their live Sheets. Do not copy those databases into Project instructions, task prompts, memory, or repository fixtures.
+- If a required live Sheet is unavailable, return `Action Required — <sheet name> unavailable.` Do not substitute remembered state.
 
 ## Scheduled task contract
 
@@ -24,11 +26,19 @@ POLICY_SOURCE_FINGERPRINT: sha256:b26fff40ad0b42451fef2d51bccea32533c812726446d0
 - Never revive 3:00 AM/PM, Pacific, UTC-shifted, noon, midnight, separate AM/PM duplicates, child jobs, retry jobs, or supporting scheduled jobs.
 - A scheduled run renders one brief and records one deterministic Run Log result. It must not inspect, create, edit, duplicate, repair, or reschedule automations.
 
+Keep exactly one consolidated receipt lifecycle automation:
+
+- Title: `Receipt & Order Lifecycle`
+- Schedule: 1:45 AM and 1:45 PM Eastern using `RRULE:FREQ=DAILY;BYHOUR=1,13;BYMINUTE=45`, `TZID=America/New_York`, and `default_timezone=America/New_York`.
+- It invokes the receipt-ingestion policy, scans direct and forwarded purchase evidence, and commits the normalized receipt lifecycle before each brief.
+- Never create one automation, reminder, task, or calendar event per order.
+
 ## Brief execution
 
 - For each run, follow the skill's `references/brief-run.md` workflow completely.
 - Reconcile Gmail against the active `Shipments` queue before rendering. Read complete materially relevant threads; snippets alone are not evidence.
-- Delete delivered items from the active `Shipments` queue immediately. Gmail is the delivery and order history; do not retain delivered items in the active queue.
+- Delete delivered items from the active `Shipments` queue immediately. Preserve delivery in `Order Events`, report it once when observed after the prior successful brief, and never repeat it.
+- Read unresolved `Classification Queue` rows and ask the smallest useful purchase-classification question in the next brief. Silence is not an answer.
 - Render from deterministic engine output and live evidence. Never hard-code task-specific exceptions into a prompt.
 - Prefer an explicit degraded brief over retries, loops, or a run that never finishes.
 - Return only the compact brief on scheduled runs. No setup narration, repository work, automation maintenance, or unrelated advice.
@@ -55,8 +65,13 @@ POLICY_SOURCE_FINGERPRINT: sha256:b26fff40ad0b42451fef2d51bccea32533c812726446d0
 - Keep important actionable email in Inbox under `Ops/Archive Approval` until the user approves archiving. Silence is not approval.
 - Do not monitor promotions or sales unless the user explicitly reinstates that scope.
 - For purchase receipts, Drive filing, monthly receipt rollups, or inventory side effects, follow `references/receipt-ingestion.md` completely.
-- Gmail is receipt evidence. Save the original attachment or a complete Drive-native email receipt record, update the canonical receipt index, apply required inventory side effects, verify every write, and only then archive the source email.
-- Shipping-only and delivery-only messages are not receipts. Do not delete Gmail unless the user explicitly names the bounded messages.
+- Search direct vendor/carrier mail and messages forwarded by `jbeare92@gmail.com`; parse embedded Amazon evidence from the complete forwarded body.
+- One underlying transaction has one stable Receipt ID and one counted total. It may have many search tags, related assets, line items, lifecycle events, and expense allocations, but allocation rows must sum to that one total.
+- Keep `Orders - Database`, `Receipt Details - Expandable`, `Order Events`, `Expense Ledger`, `Classification Queue`, `Financial Dashboard`, and `Audit` consistent. The Receipt Browser must show one compact row and link to expandable details, never the legacy full-text Doc.
+- Unknown product, category, cost owner, or vehicle goes to `Classification Queue` and `Shopping/Needs Classification`; do not guess or include it as verified spend.
+- Save one canonical receipt in the exact vehicle or tool category. Multi-vehicle orders use one canonical file plus explicit vehicle links; linked access must not duplicate spend.
+- Before archiving Gmail, require the Audit gate to pass for stable identity, line items, detail link, Drive evidence, classification, allocation sum, vehicle mapping/placement, and active shipment synchronization.
+- Shipping and delivery messages append lifecycle evidence to the existing transaction; they do not create duplicate receipts. Do not delete Gmail unless the user explicitly names the bounded messages.
 - A monthly receipt rollup is email-detected spending, not a complete financial ledger.
 
 ## Automation maintenance and recovery
@@ -71,7 +86,7 @@ POLICY_SOURCE_FINGERPRINT: sha256:b26fff40ad0b42451fef2d51bccea32533c812726446d0
 
 - The private `Matthew-Beare/Daily-Ops-Brief` repository versions policy, deterministic code, tests, this complete Project contract, receipt-pipeline documentation, and the separate generic starter.
 - Do not commit mutable live Sheet exports, Gmail content, credentials, private keys, or full payment-card data.
-- After a lasting policy, authority, schedule, workflow, or output-contract change, update and test the skill, refresh the policy-source fingerprint, update this entire template, and publish the repository change.
+- After a lasting policy, authority, schedule, workflow, data-model, integrity-gate, or output-contract change, update and test the skill, refresh the policy-source fingerprint, update this entire template, and publish the repository change.
 - Repository code cannot silently replace the ChatGPT Project instruction field. When this contract changes and no explicit Project-instructions write tool exists, return the entire rendered replacement under the exact heading `PROJECT INSTRUCTIONS UPDATE`; never provide a partial patch.
 
 ## Communication

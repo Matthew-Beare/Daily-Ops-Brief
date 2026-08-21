@@ -15,6 +15,13 @@ Read these exact Ops Status Register core ranges once:
 
 Read `Shipments!A1:N500` before Gmail reconciliation. After all required shipment mutations, read `Shipments!A1:N500` exactly once more; that second read is authoritative for the rendered shipment section. Do not render from the pre-reconciliation read.
 
+Read these Purchase & Receipt Archive ranges once:
+
+- `Order Events!A1:O1000`
+- `Classification Queue!A1:L500`
+
+Use the latest prior successful `Completed (ET)` value from Run Log as the delivery-event cutoff. If the receipt workbook is unavailable, mark the brief `Degraded`, skip delivery-once and classification rendering, and continue with the active shipment queue.
+
 Read these exact Mileage & Pay Tracker ranges once:
 
 - `'Mileage Log'!A4:O504`
@@ -63,7 +70,9 @@ Perform one bounded pass per applicable external source. Run only the planned qu
 - Surface only material medical, financial, employment, WGU, VA/USAJOBS, vendor, appointment, subscription, fraud, or security changes.
 - Normalize materially relevant order/carrier facts and run `python3 scripts/reconcile_shipments.py reconcile --input <json-file> --pretty` with the pre-reconciliation `Shipments` values. Apply its active-row upserts and delivered-row deletions to the Sheet, then perform the Gmail filing transaction in the email-reconciliation workflow.
 - Explicit user delivery statements outrank carrier evidence; carrier delivery/progress evidence outranks vendor status. Never infer delivery from age, an ETA, or a vendor's shipped notice.
-- Re-read `Shipments!A1:N500` after mutations. Show only active rows as `Item — ETA <date>` or `Item — No ETA`; add status only for a material exception. Never show a delivered item, even once.
+- Re-read `Shipments!A1:N500` after mutations. Show active rows as `Item — ETA <date>` or `Item — No ETA`; add status only for a material exception.
+- From `Order Events`, show each credible delivery observed after the previous successful brief exactly once as `Delivered — <item>`. Do not retain it in the active queue or show it on later briefs.
+- From `Classification Queue`, render unresolved rows under `ACTION REQUIRED` as compact questions with exact vendor/order/item and the smallest useful choices. Do not infer an answer from silence.
 - Search `in:inbox label:"Ops/Archive Approval"` after filing. Group related messages into concise decisions under `IMPORTANT EMAIL`, retain them in Inbox, and end that section with the exact line `Is it OK to archive these emails?`. If the user did not answer the prior brief, repeat the queue unchanged. Do not treat silence as approval.
 - Do not search promotions, calculate discounts, or monitor sales.
 - Exclude obvious wife-only cosmetics/beauty purchases from shared Amazon results. Include ambiguous/shared goods and surface wife-only items only for household-level exceptions.
@@ -92,7 +101,7 @@ Render only nonempty sections in this order:
 
 1. `WEATHER`
 2. `ROUTE WEATHER`
-3. `SHIPMENTS`
+3. `SHIPMENTS` (active shipments plus newly observed deliveries exactly once)
 4. `UPCOMING APPOINTMENTS`
 5. `IMPORTANT EMAIL`
 6. `OPS STATUS`

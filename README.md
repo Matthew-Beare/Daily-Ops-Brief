@@ -1,8 +1,8 @@
 # Daily Ops Brief
 
-Daily Ops Brief is a private, version-controlled control-room policy for two concise daily briefings, persistent task capture, shipment reconciliation, ROAD/HOME mode, route and mileage state, and evidence-backed receipt ingestion.
+Daily Ops Brief is a private, version-controlled control-room policy for two concise daily briefings, persistent task capture, shipment reconciliation, ROAD/HOME mode, route and mileage state, and the LyfeOS 0.0.1 purchase lifecycle.
 
-The current deployment uses **one active ChatGPT task** that dispatches twice per day at 2:45 AM and 2:45 PM in `America/New_York`. The PM run is the user's morning brief. Mutable state stays in the live Google Sheets; the repository holds policy, deterministic code, tests, templates, and recovery instructions.
+The current deployment uses **one Ops Brief task** at 2:45 AM/PM and **one consolidated receipt lifecycle task** at 1:45 AM/PM in `America/New_York`. No purchase gets its own task or calendar event. Mutable state stays in the live Google Sheets; the repository holds policy, deterministic code, tests, templates, and recovery instructions.
 
 ## Current deployment
 
@@ -11,7 +11,8 @@ The current deployment uses **one active ChatGPT task** that dispatches twice pe
 - Ops state: live Ops Status Register Google Sheet
 - Mileage state: live Mileage & Pay Tracker Google Sheet
 - Receipt evidence: Gmail plus the Drive receipt archive
-- Scheduled entry point: one exact twice-daily task
+- Purchase state: normalized Purchase & Receipt Archive with an integrity gate
+- Scheduled entry points: one brief dispatcher and one consolidated receipt lifecycle task
 - Repository state: policy and templates only; no copied task, route, trip, shipment, or mileage database
 
 Canonical task fields:
@@ -67,6 +68,8 @@ Do not commit `config.local.json` or a rendered file containing private identifi
 5. Update existing scheduled tasks in place when possible.
 6. Treat private-device access as a separate integration problem; a cloud task cannot silently reach an unconnected local device.
 7. Improve policy through reviewed, tested repository changes—not by inflating task prompts.
+8. Treat one purchase as one stable transaction with many tags/links, never duplicated spend.
+9. Block Gmail archival when the cross-system Audit gate fails.
 
 ## Security
 

@@ -5,6 +5,7 @@ Load this reference completely for order mail, active shipments, inbox filing, a
 ## Authoritative state
 
 - `Shipments!A1:N500` in the Ops Status Register is the active shipment queue, not a purchase ledger.
+- `Order Events!A1:O1000` in the Purchase & Receipt Archive is append-only lifecycle history. `Classification Queue!A1:L500` is unresolved purchase input.
 - Its exact columns are `Shipment ID`, `Vendor`, `Order Number`, `Item`, `Carrier`, `Tracking Number`, `Package Count`, `Order Date`, `Shipped Date`, `ETA (ET)`, `Status`, `Last Progress (ET)`, `Notes`, and `Updated (ET)`.
 - Allowed active statuses are `Awaiting Shipment`, `Shipped`, and `Exception`.
 - Keep one row per fulfillment or tracking number. Split packages may create multiple rows for one order.
@@ -40,10 +41,11 @@ Within the same class, the newer credible event wins. A stale vendor `Shipped` m
 1. Build normalized evidence from complete threads and any explicit user statement.
 2. Run `python3 scripts/reconcile_shipments.py reconcile --input <json-file> --pretty`.
 3. Apply active-row creates/updates using stable `SHIP-###` IDs.
-4. Delete each row returned as delivered from the active `Shipments` queue. Do not move it to another Sheet or render it as delivery history.
-5. File the correlated Gmail messages according to the rules below.
-6. Re-read `Shipments!A1:N500`. Render only this post-mutation active state.
-7. Record only stable shipment/task IDs and concise counts in the Run Log. Never log Gmail message/thread IDs or message bodies.
+4. Append each material transition idempotently to `Order Events`. Preserve explicit user corrections beside earlier email evidence.
+5. Delete each row returned as delivered from the active `Shipments` queue.
+6. File the correlated Gmail messages according to the rules below.
+7. Re-read `Shipments!A1:N500`. Render active state from this post-mutation read; render delivery exactly once only when its `Order Events` observed time is later than the previous successful brief.
+8. Record only stable shipment/task/event IDs and concise counts in the Run Log. Never log Gmail message/thread IDs or message bodies.
 
 Any required Sheet or Gmail mutation failure makes the brief run `Error`; report the failed operation once and do not claim reconciliation completed.
 
@@ -53,8 +55,10 @@ Use these labels when available, creating only `Ops/Archive Approval` if missing
 
 - `Receipts`
 - `Receipts/Automotive`
+- `Receipts/Tools`
 - `Orders/Awaiting Shipment`
 - `Orders/Shipped`
+- `Shopping/Needs Classification`
 - `Ops/Archive Approval`
 
 For a delivered order:
@@ -79,6 +83,13 @@ For important or decision-bearing email:
 - when approval names only a subset, archive and unlabel only that subset.
 
 Routine noise may be archived after it is processed. Never delete email merely to clean Inbox. Delete only a specific message/thread or bounded set the user explicitly orders deleted, and report the completed scope.
+
+For an unknown purchase:
+
+- apply `Shopping/Needs Classification`;
+- add or update one unresolved `Classification Queue` row;
+- do not file it into a guessed Drive folder or verified expense allocation;
+- after the user resolves it, file and allocate it, mark the queue row `Resolved`, and remove the Gmail label.
 
 ## Excluded scope
 

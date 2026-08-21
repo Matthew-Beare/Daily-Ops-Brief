@@ -1,15 +1,20 @@
 # Receipt Pipeline
 
-Receipt ingestion is transactional:
+Receipt ingestion and lifecycle reconciliation are one transaction:
 
 1. Read the complete Gmail evidence and classify the transaction.
 2. Deduplicate against the canonical receipt index and Drive destination.
-3. Save the original attachment or a complete Drive-native email receipt record.
-4. Create or update the canonical receipt-index row with its evidence link.
-5. Apply supported side effects, such as a deduplicated Tool Inventory upsert.
-6. Verify every downstream write.
-7. Only then archive or label the Gmail source as requested.
+3. Save or update one canonical, mobile-readable receipt with a compact summary and expandable details.
+4. Upsert one transaction row and searchable line items under a stable Receipt ID.
+5. Append the lifecycle event instead of overwriting history.
+6. Allocate the single transaction total across cost owners without double counting.
+7. Synchronize the active shipment queue, Gmail labels, Drive vehicle/tool links, and supported Tool Inventory side effects.
+8. Queue unknown classifications for the next brief instead of guessing.
+9. Rebuild the Audit gate and require every applicable check to pass.
+10. Only then archive routine Gmail source threads.
 
-If a downstream step fails, the source email remains unarchived and the exact incomplete stage is reported. Shipping and delivery messages do not become receipt records merely because they reference an order.
+If a downstream step fails, the source email remains unarchived and the exact Receipt ID/remediation is written to Audit. Shipping and delivery messages enrich the transaction's Order Events; they do not create duplicate receipts.
 
 The monthly spending report is bounded to email-detected purchases. It is not represented as a complete bank, card, or household ledger.
+
+The user-facing front end is the Receipt Browser plus expandable detail ranges, not the legacy full-text Doc. Search tags remain visible and searchable while the long line-item body stays minimized.
