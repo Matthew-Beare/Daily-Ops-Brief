@@ -15,7 +15,9 @@ Receipt ingestion and lifecycle reconciliation are one transaction:
 
 If a downstream step fails, the source email remains unarchived and the exact Receipt ID/remediation is written to Audit. Shipping and delivery messages enrich the transaction's Order Events; they do not create duplicate receipts.
 
-Cancellation is a lifecycle transition, not deletion. A request remains `Exception` with unchanged financials until confirmation. A confirmed full cancellation leaves the receipt searchable, excludes its financial rows from spend, and removes its active fulfillment. A confirmed partial cancellation retains the cancelled line as excluded history, applies only merchant-confirmed revised totals to the surviving allocation, and rewrites `Shipments` to the surviving item. Returns do not reduce spend until exact refund evidence exists; refunds are linked negative adjustments or confirmed revised net totals and are counted once.
+Cancellation is a lifecycle transition, not deletion. A request remains `Exception` with unchanged financials until confirmation. A confirmed full cancellation leaves the receipt searchable, excludes supported financial rows from spend, and removes its active fulfillment. A confirmed partial cancellation retains the cancelled line as excluded history, applies only merchant-confirmed revised totals to the surviving allocation, and rewrites `Shipments` to the surviving item. Returns do not reduce spend until exact refund evidence exists; refunds are linked negative adjustments or confirmed revised net totals and are counted once.
+
+A same-order revision stays under one Receipt ID. A true replacement creates a new Receipt ID and reciprocal `Replaced By`/`Replacement For` events with one Replacement Group ID. The original is removed from active fulfillment only when cancellation is confirmed; otherwise it remains `Exception` beside the new active order. The Audit gate verifies reciprocal links, independent totals/allocations, and the shipment handoff.
 
 The monthly spending report is bounded to email-detected purchases. It is not represented as a complete bank, card, or household ledger.
 

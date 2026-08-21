@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any
 
 
-POLICY_VERSION = "1.1.0"
+POLICY_VERSION = "1.2.0"
 ACTIVE_STATUSES = {"Awaiting Shipment", "Shipped", "Exception"}
 HEADERS = [
     "Shipment ID",
@@ -224,6 +224,12 @@ CANCELLATION_REQUEST_EVENTS = {
     "partialcancellationrequested",
     "partialcancelrequested",
 }
+REPLACEMENT_EVENTS = {
+    "replacementconfirmed",
+    "orderreplacementconfirmed",
+    "orderreplaced",
+    "replaced",
+}
 
 
 def _is_cancelled(event: dict[str, str]) -> bool:
@@ -236,6 +242,14 @@ def _is_partial_cancellation(event: dict[str, str]) -> bool:
 
 def _is_cancellation_requested(event: dict[str, str]) -> bool:
     return _event_name(event) in CANCELLATION_REQUEST_EVENTS
+
+
+def _is_replacement(event: dict[str, str]) -> bool:
+    return _event_name(event) in REPLACEMENT_EVENTS
+
+
+def _is_truthy(value: Any) -> bool:
+    return _key(value) in {"1", "true", "yes", "confirmed"}
 
 
 def _is_terminal(event: dict[str, str]) -> bool:
@@ -288,7 +302,7 @@ def _priority(event: dict[str, str]) -> int:
     if source in {"vendor", "merchant", "retailer"}:
         if _is_delivered(event):
             return 300
-        if _is_cancelled(event) or _is_partial_cancellation(event):
+        if _is_cancelled(event) or _is_partial_cancellation(event) or _is_replacement(event):
             return 275
         if name in {"exception", "delayed", "lost", "held", "returntosender"}:
             return 250
@@ -416,6 +430,25 @@ def _new_row(shipment_id: str) -> dict[str, str]:
     return row
 
 
+def _replacement_active_event(event: dict[str, str]) -> dict[str, str]:
+    return {
+        "_evidence_index": event["_evidence_index"],
+        "source": event.get("source", ""),
+        "event": _value(event, "replacement_status") or "Awaiting Shipment",
+        "vendor": _value(event, "replacement_vendor", "vendor"),
+        "ordernumber": _value(event, "replacement_order_number"),
+        "item": _value(event, "replacement_item"),
+        "carrier": _value(event, "replacement_carrier"),
+        "trackingnumber": _value(event, "replacement_tracking_number"),
+        "packagecount": _value(event, "replacement_package_count"),
+        "orderdate": _value(event, "replacement_order_date"),
+        "shippeddate": _value(event, "replacement_shipped_date"),
+        "eta": _value(event, "replacement_eta", "eta"),
+        "observedat": _value(event, "observed_at", "event_at"),
+        "notes": _value(event, "replacement_notes", "notes"),
+    }
+
+
 def _public_row(row: dict[str, str]) -> dict[str, str]:
     return {field: row.get(field, "") for field in FIELDS}
 
@@ -439,6 +472,7 @@ def reconcile(payload: dict[str, Any]) -> dict[str, Any]:
             "delete_ids": [],
             "unresolved": [],
             "ignored": [],
+            "replacement_links": [],
         }
 
     now = _text(payload.get("now")) or datetime.now(timezone.utc).isoformat()
@@ -447,12 +481,100 @@ def reconcile(payload: dict[str, Any]) -> dict[str, Any]:
     delete_ids: list[str] = []
     unresolved: list[dict[str, str]] = []
     ignored: list[dict[str, str]] = []
+    replacement_links: list[dict[str, str]] = []
     closed_fingerprints: set[str] = set()
 
     events.sort(key=lambda event: (_priority(event), _event_time(event), event["_evidence_index"]))
     for event in events:
         event_index = event["_evidence_index"]
         event_name = _event_name(event)
+        if _is_replacement(event):
+            replacement_order = _value(event, "replacement_order_number")
+            replacement_item = _value(event, "replacement_item")
+            if not replacement_order or not replacement_item:
+                unresolved.append(
+                    {
+                        "evidence": event_index,
+                        "reason": "Confirmed replacement requires replacement_order_number and replacement_item.",
+                    }
+                )
+                continue
+            original_order = _value(event, "order_number")
+            if original_order and _identity(original_order) == _identity(replacement_order):
+                unresolved.append(
+                    {
+                        "evidence": event_index,
+                        "reason": "Replacement order matches the original; use same-order revision handling.",
+                    }
+                )
+                continue
+            original_candidates = _candidate_rows(rows, event)
+            if len(original_candidates) > 1 and not _is_order_scope(event):
+                unresolved.append(
+                    {
+                        "evidence": event_index,
+                        "reason": "Ambiguous original replacement match; no active row was changed.",
+                    }
+                )
+                continue
+
+            replacement_event = _replacement_active_event(event)
+            replacement_status = _active_status(replacement_event)
+            if replacement_status is None:
+                unresolved.append(
+                    {
+                        "evidence": event_index,
+                        "reason": "Replacement status must be Awaiting Shipment, Shipped, or Exception.",
+                    }
+                )
+                continue
+            replacement_candidates = _candidate_rows(rows, replacement_event)
+            if len(replacement_candidates) > 1:
+                unresolved.append(
+                    {
+                        "evidence": event_index,
+                        "reason": "Ambiguous replacement shipment match; no active row was changed.",
+                    }
+                )
+                continue
+
+            cancellation_confirmed = _is_truthy(event.get("originalcancelconfirmed"))
+            if original_candidates:
+                originals = original_candidates if _is_order_scope(event) else original_candidates[:1]
+                if cancellation_confirmed:
+                    for original in originals:
+                        delete_ids.append(original["shipment_id"])
+                        closed_fingerprints.update(_fingerprints(original))
+                        rows.remove(original)
+                else:
+                    for original in originals:
+                        original["status"] = "Exception"
+                        original["updated_et"] = now
+                        note = "Replacement ordered; original cancellation unconfirmed."
+                        original["notes"] = f"{original['notes']} {note}".strip()
+                        upsert_ids.add(original["shipment_id"])
+
+            if replacement_candidates:
+                replacement_row = replacement_candidates[0]
+            else:
+                shipment_id = _next_id(rows, allocated)
+                allocated.add(shipment_id)
+                replacement_row = _new_row(shipment_id)
+                rows.append(replacement_row)
+            _apply_event(replacement_row, replacement_event, now, replacement_status)
+            upsert_ids.add(replacement_row["shipment_id"])
+            replacement_links.append(
+                {
+                    "evidence": event_index,
+                    "original_order_number": original_order,
+                    "replacement_order_number": replacement_order,
+                    "original_receipt_id": _value(event, "original_receipt_id", "receipt_id"),
+                    "replacement_receipt_id": _value(event, "replacement_receipt_id"),
+                    "replacement_group_id": _value(event, "replacement_group_id"),
+                    "state": "confirmed" if cancellation_confirmed else "pending_original_cancellation",
+                }
+            )
+            continue
         if _is_partial_cancellation(event):
             remaining_item = _value(event, "remaining_item")
             if not remaining_item:
@@ -547,6 +669,7 @@ def reconcile(payload: dict[str, Any]) -> dict[str, Any]:
         "delete_ids": list(dict.fromkeys(delete_ids)),
         "unresolved": unresolved,
         "ignored": ignored,
+        "replacement_links": replacement_links,
         "errors": [],
     }
 

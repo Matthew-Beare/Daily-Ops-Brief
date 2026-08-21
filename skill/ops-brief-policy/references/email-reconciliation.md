@@ -17,7 +17,7 @@ Load this reference completely for order mail, active shipments, inbox filing, a
 2. Search new material since the last completed brief, or 24 hours when no completed run exists.
 3. Search each active row by exact tracking number and exact order number. Inspect USPS, FedEx, UPS, DHL, and vendor mail as applicable.
 4. Read every materially relevant thread in full. A subject or snippet can select a thread, but cannot establish final state.
-5. Normalize one evidence event per fulfillment. Include source, event, vendor, order number, item, carrier, tracking number, package count, event time, observed time, ETA, and concise notes when available. For cancellation evidence also include `scope` (`order` or fulfillment), `cancelled_item`, `remaining_item`, `remaining_status`, original total, revised total, and cancelled/refunded amount when the source states them.
+5. Normalize one evidence event per fulfillment. Include source, event, vendor, order number, item, carrier, tracking number, package count, event time, observed time, ETA, and concise notes when available. For cancellation evidence also include `scope` (`order` or fulfillment), `cancelled_item`, `remaining_item`, `remaining_status`, original total, revised total, and cancelled/refunded amount when the source states them. For a replacement include `replacement_order_number`, `replacement_item`, replacement shipment fields when known, both Receipt IDs when resolved, a shared `replacement_group_id`, and whether original cancellation is confirmed.
 6. Match in this order:
    - exact tracking number;
    - exact vendor plus order number when unique;
@@ -31,6 +31,13 @@ Load this reference completely for order mail, active shipments, inbox filing, a
 - A confirmed full cancellation is terminal for the matched fulfillment. Use `scope: order` only when evidence explicitly cancels the entire order; then remove all active rows for that order after appending the durable event.
 - A confirmed partial cancellation must name the surviving `remaining_item`. Rewrite the active row to only that item and its supported active status; retain the cancelled line in the receipt database, not the active shipment queue. If the remaining item is not explicit, leave the row unchanged and surface the ambiguity.
 - Cancellation, return, and refund financial effects are committed through the receipt-ingestion workflow. The shipment reconciler never invents revised totals, fees, taxes, or refund amounts.
+
+## Replacement handling
+
+- Do not call a revised line under the same merchant order number a replacement transaction; keep it under the same Receipt ID and use partial-cancellation/revision handling.
+- A true replacement has a distinct merchant order number or separately evidenced transaction. Resolve both Receipt IDs, persist reciprocal `Replaced By` and `Replacement For` events, and use one shared Replacement Group ID before changing the active queue.
+- If original cancellation is confirmed, delete the original active row or order-scope rows and upsert the replacement. If cancellation is not confirmed, keep the original as `Exception` and also upsert the replacement; never silently assume the old charge vanished.
+- Missing replacement order number, replacement item, reciprocal Receipt ID, or ambiguous original match is unresolved. Preserve existing rows and surface one precise question instead of overwriting history.
 
 ## Evidence precedence
 
@@ -48,8 +55,8 @@ Within the same class, the newer credible event wins. A stale vendor `Shipped` m
 1. Build normalized evidence from complete threads and any explicit user statement.
 2. Run `python3 scripts/reconcile_shipments.py reconcile --input <json-file> --pretty`.
 3. Apply active-row creates/updates using stable `SHIP-###` IDs.
-4. Append each material transition idempotently to `Order Events`. Preserve explicit user corrections beside earlier email evidence.
-5. Delete each row returned as delivered or fully cancelled from the active `Shipments` queue. For a confirmed partial cancellation, keep one rewritten row containing only the surviving fulfillment.
+4. Append each material transition idempotently to `Order Events`. For replacements, append and verify both reciprocal relationship events before deleting an original active row. Preserve explicit user corrections beside earlier email evidence.
+5. Delete each row returned as delivered, fully cancelled, or confirmed replaced from the active `Shipments` queue. For a confirmed partial cancellation, keep one rewritten row containing only the surviving fulfillment. For an unconfirmed replacement, retain the original as `Exception` and the replacement as a separate active row.
 6. File the correlated Gmail messages according to the rules below.
 7. Re-read `Shipments!A1:N500`. Render active state from this post-mutation read; render delivery exactly once only when its `Order Events` observed time is later than the previous successful brief.
 8. Record only stable shipment/task/event IDs and concise counts in the Run Log. Never log Gmail message/thread IDs or message bodies.

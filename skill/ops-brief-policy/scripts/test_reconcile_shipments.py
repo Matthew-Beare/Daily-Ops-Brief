@@ -310,6 +310,103 @@ class ReconcileShipmentTests(unittest.TestCase):
         self.assertEqual(result["delete_ids"], [])
         self.assertEqual(result["active_rows"][0]["status"], "Exception")
 
+    def test_confirmed_replacement_atomically_closes_original_and_creates_new(self):
+        result = reconciler.reconcile(
+            payload(
+                [row(tracking="", status="Exception")],
+                [
+                    {
+                        "source": "user",
+                        "event": "order_replaced",
+                        "scope": "order",
+                        "vendor": "Example Vendor",
+                        "order_number": "ORDER-1",
+                        "original_cancel_confirmed": True,
+                        "replacement_order_number": "ORDER-2",
+                        "replacement_item": "Replacement part",
+                        "replacement_status": "Awaiting Shipment",
+                        "original_receipt_id": "RCPT-001",
+                        "replacement_receipt_id": "RCPT-002",
+                        "replacement_group_id": "REPL-001",
+                    }
+                ],
+            )
+        )
+        self.assertEqual(result["delete_ids"], ["SHIP-001"])
+        self.assertEqual(len(result["active_rows"]), 1)
+        self.assertEqual(result["active_rows"][0]["order_number"], "ORDER-2")
+        self.assertEqual(result["active_rows"][0]["item"], "Replacement part")
+        self.assertEqual(result["replacement_links"][0]["state"], "confirmed")
+        self.assertEqual(result["replacement_links"][0]["replacement_receipt_id"], "RCPT-002")
+
+    def test_unconfirmed_replacement_keeps_original_exception_and_new_active(self):
+        result = reconciler.reconcile(
+            payload(
+                [row(tracking="", status="Awaiting Shipment")],
+                [
+                    {
+                        "source": "vendor",
+                        "event": "replacement_confirmed",
+                        "vendor": "Example Vendor",
+                        "order_number": "ORDER-1",
+                        "replacement_order_number": "ORDER-2",
+                        "replacement_item": "Replacement part",
+                    }
+                ],
+            )
+        )
+        self.assertEqual(result["delete_ids"], [])
+        self.assertEqual(len(result["active_rows"]), 2)
+        by_order = {item["order_number"]: item for item in result["active_rows"]}
+        self.assertEqual(by_order["ORDER-1"]["status"], "Exception")
+        self.assertEqual(by_order["ORDER-2"]["status"], "Awaiting Shipment")
+        self.assertEqual(
+            result["replacement_links"][0]["state"],
+            "pending_original_cancellation",
+        )
+
+    def test_replacement_requires_new_order_and_item(self):
+        result = reconciler.reconcile(
+            payload(
+                [row(tracking="", status="Exception")],
+                [
+                    {
+                        "source": "user",
+                        "event": "order_replaced",
+                        "vendor": "Example Vendor",
+                        "order_number": "ORDER-1",
+                    }
+                ],
+            )
+        )
+        self.assertEqual(result["active_rows"][0]["order_number"], "ORDER-1")
+        self.assertEqual(
+            result["unresolved"][0]["reason"],
+            "Confirmed replacement requires replacement_order_number and replacement_item.",
+        )
+
+    def test_same_order_replacement_is_routed_to_revision(self):
+        result = reconciler.reconcile(
+            payload(
+                [row(tracking="", status="Exception")],
+                [
+                    {
+                        "source": "user",
+                        "event": "order_replaced",
+                        "vendor": "Example Vendor",
+                        "order_number": "ORDER-1",
+                        "replacement_order_number": "ORDER-1",
+                        "replacement_item": "Surviving part",
+                    }
+                ],
+            )
+        )
+        self.assertEqual(len(result["active_rows"]), 1)
+        self.assertEqual(
+            result["unresolved"][0]["reason"],
+            "Replacement order matches the original; use same-order revision handling.",
+        )
+
     def test_raw_sheet_schema_round_trips_in_canonical_order(self):
         values = [reconciler.HEADERS, list(row().values())]
         result = reconciler.reconcile(

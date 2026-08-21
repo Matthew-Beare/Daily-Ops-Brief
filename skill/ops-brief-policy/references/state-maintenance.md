@@ -62,10 +62,12 @@ Read `references/email-reconciliation.md` before processing order mail, changing
 - Never create AM/PM child jobs, supporting scheduled jobs, retries, or duplicate schedules. Segment workflow inside the skill references instead.
 - A scheduled run must not edit, create, duplicate, reschedule, inspect, or repair automations.
 
-## Project-instruction synchronization
+## Repository and project-instruction synchronization
 
 - Treat the version-controlled `project/INSTRUCTIONS.md.tmpl` as the complete ChatGPT Project bootstrap contract when the Daily-Ops-Brief repository is available.
-- After every lasting policy, workflow, authority, schedule, or output-contract change, review that full template and refresh its policy-source fingerprint. Temporary Sheet state does not trigger this review.
+- The user's standing authorization covers scoped commits and pushes of non-secret policy, schema, tests, onboarding, recovery, and bootstrap files to the configured private repository. After every lasting policy, schema, workflow, authority, schedule, onboarding, or output-contract change, update the installed skill and repository copy, run validation, refresh the fingerprint/template, commit, push, and verify the remote head and CI without asking for a separate Git confirmation. Temporary Sheet state does not trigger a repository write.
+- Never auto-merge a pull request, make a repository public, publish a release, or commit mutable Sheet exports, Gmail content, receipts, credentials, tokens, keys, or full payment data without separate explicit authority.
+- If the configured repository or GitHub write path is unavailable, preserve the validated local change and report `Action Required — repository synchronization unavailable`; never claim the lasting change is fully saved.
 - If the project-instructions contract changed, return the entire rendered replacement under the exact heading `PROJECT INSTRUCTIONS UPDATE`; never return a partial patch or make the user splice text.
 - If the project-instructions contract did not change, state `Project instructions unchanged.`
 - Do not claim that repository code silently changed the ChatGPT Project instruction field. Code versions, renders, and verifies the replacement; the user must paste it unless the current surface exposes an explicit project-instructions write tool.

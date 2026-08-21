@@ -1,39 +1,42 @@
 # Generic First-Boot Starter
 
-This directory is a reusable onboarding kit. It is not a copy of the current user's live setup.
+This reusable onboarding kit builds a new user's LyfeOS without copying the current user's data, schedules, accounts, assets, or rules. The human entry point is [`START_HERE.md`](START_HERE.md); JSON, templates, scripts, tests, and Git stay behind the interface.
 
-The human entry point is [`START_HERE.md`](START_HERE.md). A new user pastes its first-boot prompt into ChatGPT and completes setup conversationally. JSON, templates, scripts, and Git are the developer/recovery layer, not the onboarding interface.
+## Stock product
 
-## Goal
+Every first boot provisions three stock behaviours, configured to the user's named timezone and chosen cadence:
 
-Build a small, auditable personal-ops system from a structured interview and live capability audit. The result should use one authoritative mutable state store, minimal scheduled dispatchers, explicit privacy boundaries, and a private version-controlled recovery path.
+1. concise manual and scheduled briefs;
+2. one consolidated order/receipt lifecycle with shipment, delivery, exception, cancellation, replacement, return, and refund handling;
+3. a searchable, collapsible recipe library with a filterable title/ingredient/tag index;
+4. a conditional per-user HOME/ROAD layer for driving/travel/overnight roles, bypassed for non-travel work.
+
+These modules are stock; their accounts, exact times, notification mode, taxonomy, and retention rules are not assumed.
 
 ## First-boot workflow
 
-1. Start with `START_HERE.md`; ask only its four kickoff questions.
-2. Produce a Minimum Useful Setup before optional deep discovery.
-3. Load `questions.json` only as a staged follow-up and skip anything already answered reliably.
-4. Ask no more than four related questions at a time; do not force every optional question into one sitting.
-5. Explain each integration read before using it, then inspect connected email, calendar, Drive, Sheets, and GitHub harmlessly. A listed connector is not proof that authorization works.
-6. Privately inspect existing scheduled tasks before proposing a new or rebuilt one. Prefer an in-place update or consolidation over duplicates and require approval before mutation.
-7. Agree on the single mutable state authority and the smallest useful Drive hierarchy.
-8. Keep configuration behind the scenes. A developer may fill `config.example.json` into an untracked `config.local.json` and render `INSTRUCTIONS.md.tmpl` with `scripts/bootstrap.py`.
-9. Create or adapt a policy skill; keep scheduled prompts as tiny dispatchers.
-10. Validate deterministic policy and recovery material before publishing or enabling scheduled writes.
+1. Ask only the four kickoff questions in `START_HERE.md`: name, authoritative timezone, exact job title/duties/shift/travel pattern, and exact brief/order cadence plus notification mode.
+2. Produce a Minimum Useful Setup and manual sample before optional discovery.
+3. Ask no more than four related follow-ups at a time from `questions.json`.
+4. Explain harmless connector reads, then verify connected email, calendar, Drive, Sheets, GitHub, and existing automations.
+5. Select or create a private repository and obtain one standing authorization for automatic durable versioning.
+6. Commit and push the sanitized initial policy, schema, tests, bootstrap, and recovery material; verify the remote head before enabling scheduled writes.
+7. Agree on one mutable-state authority and the smallest useful Drive hierarchy.
+8. Inspect active/paused tasks, show exact schedules/prompts, and obtain explicit approval for the initial automation mutations.
+9. Create/adapt policy and tests; keep scheduled prompts as tiny dispatchers.
+10. After standing Git authorization, automatically validate, commit, push, and remotely verify every lasting feature/schema/workflow/schedule/policy/onboarding change. Do not ask again whether to push.
 
-## Integration caveats
+## Boundaries
 
-- A cloud task cannot silently reach a private phone, NAS, home server, desktop, LAN, or local database. That requires an explicit bridge or sync design.
-- Never request passwords or raw access tokens in chat. Use connected apps or a secret manager appropriate to the integration.
-- A connector can be installed but disconnected. Test with harmless reads.
-- Scheduled execution may not be instantaneous. Design briefs to tolerate modest delivery delay and to use the actual run time.
-- Repository changes do not silently replace a ChatGPT Project's instruction field. Provide the complete replacement when no direct write tool exists.
-- Never expose raw HTML, JSON, Markdown, or source-code link cards as the active Drive interface. Use native Workspace documents, Sheets views, or supported shortcuts for user-facing navigation.
+- Never inherit another user's timezone, schedule, or mode state. Household members get separate controls even when evidence is shared.
+- Never create one automation per order. Consolidate checks and notifications at the chosen cadence.
+- Same-order revisions remain one transaction; true replacements use two linked Receipt IDs and never erase the original.
+- One recipe body may have many categories/tags; preserve searchable text and provenance instead of duplicating it.
+- Never request or commit passwords, tokens, keys, full card data, Gmail bodies, receipts, or mutable exports.
+- Automatic Git push does not authorize auto-merge, public publishing, releases, or force-pushes.
+- A cloud task cannot reach an unconnected private device or LAN service without an explicit bridge.
+- User-facing Drive navigation must use readable native surfaces, not raw HTML/JSON/Markdown cards.
 
-## Improve without prompt bloat
+## Developer/recovery layer
 
-- Put mutable facts in the live state store.
-- Put durable policy in the skill and tests.
-- Put setup/recovery instructions in the private repository.
-- Record lessons as schema or policy changes, not paragraphs pasted into an automation prompt.
-- Review duplicates, failed dependencies, stale overrides, and noisy output periodically.
+A developer may copy `config.example.json` to untracked `config.local.json` and render `INSTRUCTIONS.md.tmpl` with `scripts/bootstrap.py`. Durable facts belong in policy/schema/tests; mutable facts stay in the authoritative state store.

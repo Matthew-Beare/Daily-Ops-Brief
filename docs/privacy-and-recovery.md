@@ -14,4 +14,6 @@
 3. Validate the checked-in skill and its policy fingerprint.
 4. Repair or rebuild only the bounded component the user authorized.
 5. Verify the remote repository and scheduled-task state.
-6. Return the complete Project-instructions replacement when the bootstrap contract changed.
+6. After one-time private-repository authorization, automatically validate, commit, push, and verify every lasting feature/schema/workflow/schedule/policy/onboarding change; do not ask again whether to push.
+7. Never auto-merge, publish publicly, force-push, or commit mutable data/secrets under that standing authorization.
+8. Return the complete Project-instructions replacement when the bootstrap contract changed.

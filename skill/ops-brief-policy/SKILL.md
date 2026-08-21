@@ -36,8 +36,10 @@ Keep mutable state in the two live Sheets, policy in the bundled engine, and sch
 - Never display appointment-confirmation state. It is hidden anti-nag state only.
 - Reconcile Gmail against the active `Shipments` queue before rendering either brief. Read complete materially relevant threads; snippets alone are not evidence.
 - Delete delivered items from the active `Shipments` queue immediately. Report a newly observed delivery once from `Order Events`, then never re-report it.
+- Treat a replacement with a new merchant order number as a new Receipt ID linked bidirectionally to the original; never overwrite the cancelled order. A same-order revision stays under the original Receipt ID.
 - Never guess an unknown purchase classification. Keep it in `Classification Queue` and ask for the smallest useful choice in the next brief.
 - Keep important email in Inbox under `Ops/Archive Approval` until the user approves archiving. Silence is not approval.
 - Do not monitor promotions or sales unless the user explicitly reinstates that scope.
 - For a lasting Ops policy change, provide the complete revised project-instructions block when the bootstrap contract changes; never provide a partial instructions patch.
+- Treat versioning as part of every lasting policy, schema, workflow, schedule, onboarding, or output-contract change: update tests and fingerprints, commit and push the configured private repository, and verify the remote result without waiting for a separate Git prompt. Never auto-merge, publish publicly, or commit mutable data or secrets.
 - Prefer an explicit degraded brief over retries, loops, or a run that never finishes.

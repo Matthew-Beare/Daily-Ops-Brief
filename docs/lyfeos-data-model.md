@@ -8,7 +8,7 @@ LyfeOS 0.0.1 keeps one transaction identity while allowing many tags, assets, ev
 |---|---|---|---|
 | Transaction | `Orders - Database` | `Receipt ID` | One row and one counted total per underlying purchase |
 | Transaction item | `Receipt Details - Expandable` | Receipt ID plus item/SKU/position | Searchable line items and fitment |
-| Order event | `Order Events` | `Event ID` | Append-only ordered, shipped, delivered, exception, cancellation, return, and refund history |
+| Order event | `Order Events` | `Event ID` | Append-only lifecycle plus reciprocal related Receipt IDs and replacement group |
 | Expense allocation | `Expense Ledger` | `Allocation ID` | Cost-owner split whose rows sum to the transaction total |
 | Classification case | `Classification Queue` | `Queue ID` | Unknown product, category, vehicle, or owner awaiting user input |
 | Active fulfillment | Ops `Shipments` | `Shipment ID` | Undelivered work queue only |
@@ -25,7 +25,8 @@ LyfeOS 0.0.1 keeps one transaction identity while allowing many tags, assets, ev
 6. The Ops shipment queue contains only `Awaiting Shipment`, `Shipped`, or `Exception`. Delivery is stored in Order Events and reported once.
 7. Unknown classification is queued and omitted from verified allocation until the user resolves it.
 8. A vehicle-specific receipt must have both correct data tags and a canonical file or link in that vehicle's receipt folder.
-9. Gmail is archived only after every required layer agrees and the Audit gate passes.
+9. A true replacement has two Receipt IDs, reciprocal `Replaced By`/`Replacement For` events, and one shared Replacement Group ID; same-order revisions remain one Receipt ID.
+10. Gmail is archived only after every required layer agrees and the Audit gate passes.
 
 ## Lifecycle financial semantics
 
@@ -34,6 +35,7 @@ LyfeOS 0.0.1 keeps one transaction identity while allowing many tags, assets, ev
 - Confirmed partial cancellation: retain the cancelled item as excluded history, update current totals only from merchant evidence, and keep only surviving fulfillment active.
 - Return: preserve spend until refund evidence exists.
 - Refund: preserve the gross transaction and append the exact refund as a linked negative adjustment or confirmed net-total revision; dashboards count the net effect once.
+- Replacement: never transform the original into the new order. Link two transactions bidirectionally; preserve the original cancellation/refund financial state and balance the replacement independently. Until original cancellation is confirmed, keep the original fulfillment in `Exception` while tracking the replacement separately.
 
 ## Known vehicle mappings
 

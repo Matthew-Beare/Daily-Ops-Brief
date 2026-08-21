@@ -45,7 +45,7 @@ The validation command also verifies that the policy fingerprint embedded in the
 
 ## Generic first boot
 
-The `starter/` directory is intentionally separate from the current user's deployment. Its human entry point is `starter/START_HERE.md`: a short copy/paste first-boot conversation that creates a Minimum Useful Setup before deeper discovery. It explains permissions before harmless connector reads, keeps writes and automation changes approval-gated, and never exposes JSON or terminal work unless the new user chooses developer mode.
+The `starter/` directory is intentionally separate from the current user's deployment. Its human entry point is `starter/START_HERE.md`. Stock first boot includes configurable briefs, consolidated order notifications/lifecycle, a searchable collapsible recipe library, a job-routed per-user HOME/ROAD layer for recurring travel roles, and a mandatory private-Git recovery checkpoint. It asks the new user's authoritative timezone, exact local cadence, and notification mode instead of inheriting this deployment's schedule.
 
 For a new user, start with:
 
@@ -73,10 +73,12 @@ Do not commit `config.local.json` or a rendered file containing private identifi
 4. Commit downstream records before archiving source email.
 5. Update existing scheduled tasks in place when possible.
 6. Treat private-device access as a separate integration problem; a cloud task cannot silently reach an unconnected local device.
-7. Improve policy through reviewed, tested repository changes—not by inflating task prompts.
+7. After standing authorization, automatically validate, commit, push, and remotely verify every lasting policy/schema/workflow/onboarding change; never wait for another Git prompt.
 8. Treat one purchase as one stable transaction with many tags/links, never duplicated spend.
 9. Block Gmail archival when the cross-system Audit gate fails.
 10. Keep user-facing Drive navigation native and readable; raw HTML/JSON/Markdown artifacts belong only in backups or developer sources.
+11. Preserve true replacement orders as distinct, bidirectionally linked Receipt IDs; same-order revisions remain one Receipt ID.
+12. Automatic push never means auto-merge, public publishing, or committing mutable data/secrets.
 
 ## Security
 
