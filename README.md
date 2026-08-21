@@ -2,7 +2,7 @@
 
 Daily Ops Brief is a private, version-controlled control-room policy for two concise daily briefings, persistent task capture, shipment reconciliation, ROAD/HOME mode, route and mileage state, and the LyfeOS 0.0.1 purchase lifecycle.
 
-The current deployment uses **one Ops Brief task** at 2:45 AM/PM and **one consolidated receipt lifecycle task** at 1:45 AM/PM in `America/New_York`. No purchase gets its own task or calendar event. Mutable state stays in the live Google Sheets; the repository holds policy, deterministic code, tests, templates, and recovery instructions.
+The current deployment uses **one exact-schedule Ops Brief task** at 2:45 AM/PM and **one exact-schedule consolidated receipt lifecycle task** at 1:45 AM/PM in `America/New_York`. No purchase gets its own task or calendar event. Mutable state stays in the live Google Sheets; the repository holds policy, deterministic code, tests, templates, and recovery instructions.
 
 ## Current deployment
 

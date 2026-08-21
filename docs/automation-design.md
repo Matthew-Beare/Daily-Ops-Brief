@@ -34,6 +34,8 @@ RRULE:FREQ=DAILY;BYHOUR=1,13;BYMINUTE=45
 END:VEVENT
 ```
 
+Set `timing_mode=exact_schedule`. The lifecycle run is intentionally one hour before the corresponding brief; allowing it to drift into the brief window creates a race between reconciliation and reporting.
+
 It scans direct merchant/carrier mail and forwarded Amazon evidence from `jbeare92@gmail.com`, updates the normalized receipt tables, synchronizes active Ops shipments and Gmail labels, refreshes Drive filing and inventory side effects, and rebuilds the Audit gate. It never creates per-order tasks, reminders, or calendar events.
 
 The lifecycle task commits only when Gmail, Drive, Orders, Details, Order Events, Expense Ledger, Classification Queue, Audit, and any required Shipment/Tool Inventory side effect agree. A failed check leaves the source thread unarchived and produces one actionable failure.

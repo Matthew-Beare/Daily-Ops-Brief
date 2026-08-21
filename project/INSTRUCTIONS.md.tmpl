@@ -29,7 +29,7 @@ POLICY_SOURCE_FINGERPRINT: sha256:bb15e14b43be0b75786215b80c5149c8981ad75c90e7fb
 Keep exactly one consolidated receipt lifecycle automation:
 
 - Title: `Receipt & Order Lifecycle`
-- Schedule: 1:45 AM and 1:45 PM Eastern using `RRULE:FREQ=DAILY;BYHOUR=1,13;BYMINUTE=45`, `TZID=America/New_York`, and `default_timezone=America/New_York`.
+- Schedule: 1:45 AM and 1:45 PM Eastern using `RRULE:FREQ=DAILY;BYHOUR=1,13;BYMINUTE=45`, `TZID=America/New_York`, `default_timezone=America/New_York`, and `timing_mode=exact_schedule`.
 - It invokes the receipt-ingestion policy, scans direct and forwarded purchase evidence, and commits the normalized receipt lifecycle before each brief.
 - Never create one automation, reminder, task, or calendar event per order.
 
