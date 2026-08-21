@@ -25,6 +25,8 @@ REQUIRED = (
     "skill/ops-brief-policy/references/state-maintenance.md",
 )
 
+MAX_PROJECT_INSTRUCTIONS_CHARS = 4_000
+
 
 def require(condition: bool, message: str, errors: list[str]) -> None:
     if not condition:
@@ -41,6 +43,12 @@ def validate(root: Path) -> list[str]:
     project = (root / "project/INSTRUCTIONS.md.tmpl").read_text(encoding="utf-8")
     skill = (root / "skill/ops-brief-policy/SKILL.md").read_text(encoding="utf-8")
     maintenance = (root / "skill/ops-brief-policy/references/state-maintenance.md").read_text(encoding="utf-8")
+
+    require(
+        len(project) <= MAX_PROJECT_INSTRUCTIONS_CHARS,
+        f"project contract exceeds {MAX_PROJECT_INSTRUCTIONS_CHARS} characters: {len(project)}",
+        errors,
+    )
 
     require("Keep exactly one active Ops Brief automation" in project, "project contract does not require one active Ops Brief automation", errors)
     require("BYHOUR=2,14;BYMINUTE=45;BYSECOND=0" in project, "project contract is missing the twice-daily RRULE", errors)
