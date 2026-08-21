@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any
 
 
-POLICY_VERSION = "1.0.0"
+POLICY_VERSION = "1.1.0"
 ACTIVE_STATUSES = {"Awaiting Shipment", "Shipped", "Exception"}
 HEADERS = [
     "Shipment ID",
@@ -206,8 +206,53 @@ def _is_delivered(event: dict[str, str]) -> bool:
     return _event_name(event) in {"delivered", "received", "userdelivered", "pickedup"}
 
 
+FULL_CANCELLATION_EVENTS = {
+    "cancelled",
+    "canceled",
+    "ordercancelled",
+    "ordercanceled",
+    "cancellationconfirmed",
+    "cancelconfirmed",
+}
+PARTIAL_CANCELLATION_EVENTS = {
+    "partialcancellationconfirmed",
+    "partialcancelconfirmed",
+}
+CANCELLATION_REQUEST_EVENTS = {
+    "cancellationrequested",
+    "cancelrequested",
+    "partialcancellationrequested",
+    "partialcancelrequested",
+}
+
+
+def _is_cancelled(event: dict[str, str]) -> bool:
+    return _event_name(event) in FULL_CANCELLATION_EVENTS
+
+
+def _is_partial_cancellation(event: dict[str, str]) -> bool:
+    return _event_name(event) in PARTIAL_CANCELLATION_EVENTS
+
+
+def _is_cancellation_requested(event: dict[str, str]) -> bool:
+    return _event_name(event) in CANCELLATION_REQUEST_EVENTS
+
+
+def _is_terminal(event: dict[str, str]) -> bool:
+    return _is_delivered(event) or _is_cancelled(event)
+
+
+def _is_order_scope(event: dict[str, str]) -> bool:
+    return _key(event.get("scope")) in {"order", "entireorder", "fullorder"}
+
+
 def _active_status(event: dict[str, str]) -> str | None:
     name = _event_name(event)
+    if _is_partial_cancellation(event):
+        status = _text(event.get("remainingstatus")) or "Awaiting Shipment"
+        return status if status in ACTIVE_STATUSES else None
+    if _is_cancellation_requested(event):
+        return "Exception"
     if name in {"order", "ordered", "confirmed", "orderconfirmed", "awaitingshipment"}:
         return "Awaiting Shipment"
     if name in {
@@ -224,8 +269,6 @@ def _active_status(event: dict[str, str]) -> str | None:
         "lost",
         "held",
         "returntosender",
-        "cancelled",
-        "canceled",
     }:
         return "Exception"
     return None
@@ -245,7 +288,11 @@ def _priority(event: dict[str, str]) -> int:
     if source in {"vendor", "merchant", "retailer"}:
         if _is_delivered(event):
             return 300
+        if _is_cancelled(event) or _is_partial_cancellation(event):
+            return 275
         if name in {"exception", "delayed", "lost", "held", "returntosender"}:
+            return 250
+        if _is_cancellation_requested(event):
             return 250
         return 200
     return 100
@@ -406,15 +453,27 @@ def reconcile(payload: dict[str, Any]) -> dict[str, Any]:
     for event in events:
         event_index = event["_evidence_index"]
         event_name = _event_name(event)
+        if _is_partial_cancellation(event):
+            remaining_item = _value(event, "remaining_item")
+            if not remaining_item:
+                unresolved.append(
+                    {
+                        "evidence": event_index,
+                        "reason": "Confirmed partial cancellation requires remaining_item.",
+                    }
+                )
+                continue
+            event = dict(event)
+            event["item"] = remaining_item
         status = _active_status(event)
-        if not _is_delivered(event) and status is None:
+        if not _is_terminal(event) and status is None:
             unresolved.append(
                 {"evidence": event_index, "reason": f"Unsupported event: {event_name or '<blank>'}."}
             )
             continue
 
         candidates = _candidate_rows(rows, event)
-        if len(candidates) > 1:
+        if len(candidates) > 1 and not (_is_cancelled(event) and _is_order_scope(event)):
             unresolved.append(
                 {
                     "evidence": event_index,
@@ -423,17 +482,28 @@ def reconcile(payload: dict[str, Any]) -> dict[str, Any]:
             )
             continue
 
-        if _is_delivered(event):
+        if _is_terminal(event):
             if candidates:
-                row = candidates[0]
-                delete_ids.append(row["shipment_id"])
-                closed_fingerprints.update(_fingerprints(row))
+                terminal_rows = candidates if _is_cancelled(event) and _is_order_scope(event) else candidates[:1]
+                for row in terminal_rows:
+                    delete_ids.append(row["shipment_id"])
+                    closed_fingerprints.update(_fingerprints(row))
+                    rows.remove(row)
                 closed_fingerprints.update(_fingerprints(event))
-                rows.remove(row)
             elif _fingerprints(event) & closed_fingerprints:
                 ignored.append({"evidence": event_index, "reason": "Duplicate terminal evidence."})
             else:
-                ignored.append({"evidence": event_index, "reason": "Delivered with no active row."})
+                terminal_name = "Delivered" if _is_delivered(event) else "Cancelled"
+                ignored.append({"evidence": event_index, "reason": f"{terminal_name} with no active row."})
+            continue
+
+        if _is_partial_cancellation(event) and not candidates:
+            unresolved.append(
+                {
+                    "evidence": event_index,
+                    "reason": "Confirmed partial cancellation has no unique active row.",
+                }
+            )
             continue
 
         if candidates:

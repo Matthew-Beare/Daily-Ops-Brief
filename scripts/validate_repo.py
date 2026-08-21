@@ -43,6 +43,8 @@ def validate(root: Path) -> list[str]:
     project = (root / "project/INSTRUCTIONS.md.tmpl").read_text(encoding="utf-8")
     skill = (root / "skill/ops-brief-policy/SKILL.md").read_text(encoding="utf-8")
     maintenance = (root / "skill/ops-brief-policy/references/state-maintenance.md").read_text(encoding="utf-8")
+    receipt_policy = (root / "skill/ops-brief-policy/references/receipt-ingestion.md").read_text(encoding="utf-8")
+    email_policy = (root / "skill/ops-brief-policy/references/email-reconciliation.md").read_text(encoding="utf-8")
 
     require(
         len(project) <= MAX_PROJECT_INSTRUCTIONS_CHARS,
@@ -60,6 +62,10 @@ def validate(root: Path) -> list[str]:
     require("Audit gate" in project, "project contract is missing the receipt integrity gate", errors)
     require("Order Events" in skill, "skill does not preserve lifecycle history", errors)
     require("Classification Queue" in skill, "skill does not route unknown purchase classification", errors)
+    require("Partial Cancellation Confirmed" in receipt_policy, "receipt policy lacks confirmed partial-cancellation handling", errors)
+    require("Cancellation Requested" in receipt_policy, "receipt policy lacks pending-cancellation handling", errors)
+    require("scope: order" in email_policy, "email policy lacks full-order cancellation scope", errors)
+    require("remaining_item" in email_policy, "email policy lacks surviving-item cancellation evidence", errors)
     require("To consolidate a healthy legacy AM/PM pair" in maintenance, "state maintenance lacks the migration transaction", errors)
     require("Keep exactly two active Ops Brief" not in project + skill + maintenance, "legacy two-task invariant remains", errors)
 

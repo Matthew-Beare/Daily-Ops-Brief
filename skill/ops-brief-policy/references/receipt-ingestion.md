@@ -23,6 +23,14 @@ Load this reference completely before ingesting purchase receipts, filing receip
 - Automotive canonical folders are `2015 Subaru WRX VA`, `2025 Honda Civic Type R FL5`, `2000 Mazda Miata NB`, and `2004 Chevrolet Silverado`. Multi-vehicle orders use `Multi-Vehicle Orders` plus link/reference cards. Tool receipts use `Tools/Garage Tools & Mechanics`; a tool may reference a vehicle without becoming a vehicle part.
 - If classification, vehicle, cost owner, or product identity is materially ambiguous, do not guess. Add one unresolved `Classification Queue` row, apply `Shopping/Needs Classification`, exclude it from verified allocations, and let the next brief ask the smallest useful question.
 
+## Cancellation, return, and refund transitions
+
+- Treat a request as pending until the merchant or an explicit authoritative source confirms the financial/fulfillment result. Append `Cancellation Requested` or `Partial Cancellation Requested`, keep the active shipment in `Exception`, and do not change totals or spend flags while the revised charge/refund is unknown.
+- For a confirmed full cancellation before shipment and before a settled charge, append `Cancelled`, retain the original order and searchable details, set the order/details/allocations to cancelled and `Include in Spend = FALSE`, and remove every matching active fulfillment only after the event is durable.
+- For a confirmed partial cancellation, append `Partial Cancellation Confirmed`; retain the cancelled detail/allocation as history with `Include in Spend = FALSE`; update the surviving lines and order financial fields only from the merchant's confirmed revised totals; make included allocations sum to that revised total; and rewrite the active shipment to contain only the surviving fulfillment. If the revised total or surviving item is missing, keep `Exception` and surface one action instead of inventing a tax, fee, refund, or item split.
+- A physical return does not erase spend. Append `Returned` and keep the original financial effect until exact refund evidence arrives. On `Refunded`, record the confirmed amount as a linked negative expense adjustment or confirmed revised net total, preserve gross purchase/refund evidence in `Order Events`, and make dashboards report the net effect exactly once.
+- Never delete an order, detail line, allocation, or prior event because it was cancelled, returned, or refunded. Lifecycle state and spend inclusion change; identity and provenance remain.
+
 ## Commit order
 
 Use this order so Gmail is never cleared before downstream state exists:
@@ -31,7 +39,7 @@ Use this order so Gmail is never cleared before downstream state exists:
 2. Check the canonical index and destination folder for duplicates.
 3. Save the original receipt attachment when one exists. For email-only evidence, create or update one concise, mobile-readable receipt record with a brief summary and expandable full details.
 4. Upsert one `Orders - Database` row and the searchable line items. Point the Receipt Browser's `Show details` link at that receipt's expandable range, never the legacy Doc.
-5. Append each new Ordered/Awaiting Shipment, Shipped, Delivered, Exception, Cancelled, Returned, or Refunded transition to `Order Events`. Idempotency is event ID plus Receipt ID, event type, event time, tracking/package, and source.
+5. Append each new Ordered/Awaiting Shipment, Shipped, Delivered, Exception, Cancellation Requested, Partial Cancellation Confirmed, Cancelled, Returned, or Refunded transition to `Order Events`. Idempotency is event ID plus Receipt ID, event type, event time, tracking/package, and source.
 6. Upsert `Expense Ledger` allocations and verify that allocations for one Receipt ID sum to the one counted transaction total. Do not invent fuel or other unsupported spending.
 7. Synchronize the active Ops `Shipments` queue: Awaiting Shipment and Shipped remain active; Exception remains actionable; Delivered is removed after the event is durably recorded.
 8. Apply supported inventory side effects. For a tool, deduplicate and create or enrich the Tool Inventory row using only evidence-backed attributes. Never guess brand, model, power source, platform, ownership, condition, or classification.

@@ -20,12 +20,20 @@ LyfeOS 0.0.1 keeps one transaction identity while allowing many tags, assets, ev
 1. A Receipt ID occurs exactly once in the transaction table.
 2. Every transaction has at least one searchable detail row, a compact detail link, and canonical Drive evidence.
 3. Tags and related assets are many-to-many metadata; they never duplicate spend.
-4. Expense allocations for one counted Receipt ID sum exactly to its transaction total.
+4. Included expense allocations for one counted Receipt ID sum exactly to its current confirmed net transaction total; cancelled historical allocations remain linked but excluded.
 5. Lifecycle events are appended idempotently; a new status does not erase the prior event.
 6. The Ops shipment queue contains only `Awaiting Shipment`, `Shipped`, or `Exception`. Delivery is stored in Order Events and reported once.
 7. Unknown classification is queued and omitted from verified allocation until the user resolves it.
 8. A vehicle-specific receipt must have both correct data tags and a canonical file or link in that vehicle's receipt folder.
 9. Gmail is archived only after every required layer agrees and the Audit gate passes.
+
+## Lifecycle financial semantics
+
+- Requested cancellation: append an event, keep `Exception`, and preserve the current financial state until confirmation.
+- Confirmed full cancellation before charge: retain the transaction/details, exclude all allocations from spend, and remove active fulfillment.
+- Confirmed partial cancellation: retain the cancelled item as excluded history, update current totals only from merchant evidence, and keep only surviving fulfillment active.
+- Return: preserve spend until refund evidence exists.
+- Refund: preserve the gross transaction and append the exact refund as a linked negative adjustment or confirmed net-total revision; dashboards count the net effect once.
 
 ## Known vehicle mappings
 

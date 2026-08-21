@@ -204,6 +204,112 @@ class ReconcileShipmentTests(unittest.TestCase):
         self.assertEqual(result["delete_ids"], [])
         self.assertEqual(result["ignored"][0]["reason"], "Delivered with no active row.")
 
+    def test_confirmed_full_cancellation_deletes_active_row(self):
+        result = reconciler.reconcile(
+            payload(
+                [row(tracking="")],
+                [
+                    {
+                        "source": "user",
+                        "event": "cancelled",
+                        "vendor": "Example Vendor",
+                        "order_number": "ORDER-1",
+                        "observed_at": "2026-08-16T08:00:00-04:00",
+                    }
+                ],
+            )
+        )
+        self.assertEqual(result["delete_ids"], ["SHIP-001"])
+        self.assertEqual(result["active_rows"], [])
+
+    def test_order_scope_cancellation_deletes_all_split_fulfillments(self):
+        rows = [
+            row(shipment_id="SHIP-001", tracking="TRACK-A"),
+            row(shipment_id="SHIP-002", tracking="TRACK-B"),
+        ]
+        result = reconciler.reconcile(
+            payload(
+                rows,
+                [
+                    {
+                        "source": "user",
+                        "event": "order_cancelled",
+                        "scope": "order",
+                        "vendor": "Example Vendor",
+                        "order_number": "ORDER-1",
+                    }
+                ],
+            )
+        )
+        self.assertEqual(result["delete_ids"], ["SHIP-001", "SHIP-002"])
+        self.assertEqual(result["active_rows"], [])
+
+    def test_partial_cancellation_keeps_only_confirmed_remaining_item_active(self):
+        result = reconciler.reconcile(
+            payload(
+                [row(item="WRX 265 tires + FL5 275 tires", tracking="", status="Exception")],
+                [
+                    {
+                        "source": "user",
+                        "event": "partial_cancellation_confirmed",
+                        "vendor": "Example Vendor",
+                        "order_number": "ORDER-1",
+                        "cancelled_item": "FL5 275 tires",
+                        "remaining_item": "WRX 265 tires",
+                        "remaining_status": "Awaiting Shipment",
+                        "eta": "8/25/2026",
+                        "notes": "FL5 line cancelled before shipment.",
+                    }
+                ],
+            )
+        )
+        self.assertEqual(result["delete_ids"], [])
+        self.assertEqual(len(result["active_rows"]), 1)
+        active = result["active_rows"][0]
+        self.assertEqual(active["item"], "WRX 265 tires")
+        self.assertEqual(active["status"], "Awaiting Shipment")
+        self.assertEqual(active["eta_et"], "8/25/2026")
+
+    def test_partial_cancellation_requires_explicit_remaining_item(self):
+        result = reconciler.reconcile(
+            payload(
+                [row(item="WRX 265 tires + FL5 275 tires", tracking="", status="Exception")],
+                [
+                    {
+                        "source": "vendor",
+                        "event": "partial_cancellation_confirmed",
+                        "vendor": "Example Vendor",
+                        "order_number": "ORDER-1",
+                        "cancelled_item": "FL5 275 tires",
+                    }
+                ],
+            )
+        )
+        self.assertEqual(result["delete_ids"], [])
+        self.assertEqual(result["active_rows"][0]["item"], "WRX 265 tires + FL5 275 tires")
+        self.assertEqual(
+            result["unresolved"][0]["reason"],
+            "Confirmed partial cancellation requires remaining_item.",
+        )
+
+    def test_cancellation_request_stays_actionable_until_confirmed(self):
+        result = reconciler.reconcile(
+            payload(
+                [row(tracking="", status="Awaiting Shipment")],
+                [
+                    {
+                        "source": "user",
+                        "event": "partial_cancellation_requested",
+                        "vendor": "Example Vendor",
+                        "order_number": "ORDER-1",
+                        "notes": "Remove one unavailable line and ship the rest.",
+                    }
+                ],
+            )
+        )
+        self.assertEqual(result["delete_ids"], [])
+        self.assertEqual(result["active_rows"][0]["status"], "Exception")
+
     def test_raw_sheet_schema_round_trips_in_canonical_order(self):
         values = [reconciler.HEADERS, list(row().values())]
         result = reconciler.reconcile(

@@ -15,6 +15,8 @@ Receipt ingestion and lifecycle reconciliation are one transaction:
 
 If a downstream step fails, the source email remains unarchived and the exact Receipt ID/remediation is written to Audit. Shipping and delivery messages enrich the transaction's Order Events; they do not create duplicate receipts.
 
+Cancellation is a lifecycle transition, not deletion. A request remains `Exception` with unchanged financials until confirmation. A confirmed full cancellation leaves the receipt searchable, excludes its financial rows from spend, and removes its active fulfillment. A confirmed partial cancellation retains the cancelled line as excluded history, applies only merchant-confirmed revised totals to the surviving allocation, and rewrites `Shipments` to the surviving item. Returns do not reduce spend until exact refund evidence exists; refunds are linked negative adjustments or confirmed revised net totals and are counted once.
+
 The monthly spending report is bounded to email-detected purchases. It is not represented as a complete bank, card, or household ledger.
 
 The user-facing front end is the Receipt Browser plus expandable detail ranges, not the legacy full-text Doc. Search tags remain visible and searchable while the long line-item body stays minimized.
