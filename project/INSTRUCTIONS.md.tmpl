@@ -1,35 +1,34 @@
 # Daily Ops Brief Project Instructions
 
-Use `$ops-brief-policy` for briefs, Ops maintenance/recovery, receipt lifecycle work, and requests to change the Ops list. The installed skill/private repo are canonical; follow its routed workflow.
+Use `$ops-brief-policy` for briefs, Ops maintenance/recovery, receipt lifecycle work, and requests to change the Ops list. The installed skill and `Matthew-Beare/Daily-Ops-Brief` repo are canonical; follow the skill's routed workflow rather than duplicating policy here.
 
 POLICY_SOURCE_FINGERPRINT: sha256:bb15e14b43be0b75786215b80c5149c8981ad75c90e7fbfbb6cd498c2567f3f7
 
 ## Authority
 
 - Timezone: `America/New_York` for schedules, ETA, and output.
-- Ops Status Register: `https://docs.google.com/spreadsheets/d/10WMU_hDMfSJcACel--8LekT7So5MXKgWuLVxvnSCPNU/edit`
-- Mileage & Pay Tracker: `https://docs.google.com/spreadsheets/d/1OUzdjZaVTidLnMX2xuIZ3mRVDOF5oAfT8-pdl6KfUfI/edit`
-- Purchase & Receipt Archive: `https://docs.google.com/spreadsheets/d/1pHkTdCxmdBdZjnVu97FkpkiSjysLkhjuTEcfcEXzmW8/edit`
-- Mutable tasks, controls, routes, trips, shipments, mileage, purchases, events, allocations, classifications, audits, and logs live only in those Sheets. If required authority is unavailable, return `Action Required — <authority> unavailable`; never substitute memory.
+- Ops Sheet: `10WMU_hDMfSJcACel--8LekT7So5MXKgWuLVxvnSCPNU`
+- Mileage/pay Sheet: `1OUzdjZaVTidLnMX2xuIZ3mRVDOF5oAfT8-pdl6KfUfI`
+- Purchase & Receipt Archive: `1pHkTdCxmdBdZjnVu97FkpkiSjysLkhjuTEcfcEXzmW8`
+- Mutable state lives only in those Sheets. If required authority is unavailable: `Action Required — <authority> unavailable`; never substitute memory.
 
-## Automations
+## Fixed automation contract
 
-- Keep exactly one active Ops Brief automation: `2:45 AM/PM Eastern Ops Brief`; exact `RRULE:FREQ=DAILY;BYHOUR=2,14;BYMINUTE=45;BYSECOND=0`, timezone `America/New_York`. Prompt: `Use $ops-brief-policy to run the Daily Ops Brief for the current America/New_York slot. Use AM before noon and PM at or after noon; the PM brief is my morning brief. Return only the brief.`
+- Keep exactly one active Ops Brief automation: `2:45 AM/PM Eastern Ops Brief`; exact `RRULE:FREQ=DAILY;BYHOUR=2,14;BYMINUTE=45;BYSECOND=0`, timezone `America/New_York`. It invokes the skill, selects AM/PM from local time, treats PM as morning, and returns only the brief.
 - Keep exactly one active `Receipt & Order Lifecycle`: exact 1:45 AM/PM Eastern, `RRULE:FREQ=DAILY;BYHOUR=1,13;BYMINUTE=45`, `timing_mode=exact_schedule`.
 - Never create per-order jobs/events or revive 3:00, Pacific, UTC-shifted, duplicate, child, support, or retry jobs. Scheduled runs never inspect or mutate automations.
 
-## Execution invariants
+## Invariants
 
 - A clear Ops-list change from any supported conversation is an immediate canonical Sheet write; preserve history with `Done` or `Removed`.
-- Briefs use live evidence and deterministic engine output. Read complete relevant Gmail threads and reconcile active `Shipments`. Delivered items leave the queue immediately, persist in `Order Events`, and appear once.
-- Apply HOME/ROAD, appointment, route, weather, mileage/pay, and archive-approval policy from the skill/live rows. Never show hidden appointment-confirmation state. Important actionable mail stays under `Ops/Archive Approval` until explicit approval; never delete mail without an explicit bounded request.
-- Receipt ingestion searches direct evidence and complete Amazon forwards from `jbeare92@gmail.com`. One purchase has one stable Receipt ID/total, searchable details, many tags/assets, append-only events, and allocations summing to that total.
-- Keep Orders, Details, Events, Expense Ledger, Classification Queue, Dashboard, Drive evidence, Shipments, and inventory side effects consistent. Unknown product/category/owner/vehicle is queued and asked once in the next brief; never guess.
-- Store one canonical receipt in the exact vehicle/tool category. Multi-vehicle purchases use links/allocations, never duplicate spend. Before Gmail archival or success, the Audit gate must pass identity, details, UI/Drive links and placement, classification, allocation total, known mappings, and Shipment sync. Failure stays unarchived with one remediation.
+- Briefs use live evidence/engine output. Read complete Gmail evidence; reconcile `Shipments`; remove delivered items, retain `Order Events`, and report once. Apply all other policy from the skill/live rows.
+- Important actionable mail stays under `Ops/Archive Approval` until explicit approval. Never delete Gmail without an explicit bounded request.
+- One purchase has one Receipt ID/total, searchable details, many tags/assets, append-only events, and balanced allocations. Queue unknowns for one next-brief question; never guess.
+- Store one canonical receipt in the exact vehicle/tool category. Multi-vehicle purchases use links/allocations, never duplicate spend. Gmail archival/success requires the Audit gate to pass all database, Drive, classification, allocation, mapping, Shipment, and inventory checks.
 
-## Recovery and versioning
+## Recovery/versioning
 
-- Snapshot automations before mutation, perform harmless dependency reads, verify writes, and roll back failures. Recover from live authorities without making the user restate the system.
-- Version policy/tests/bootstrap in `Matthew-Beare/Daily-Ops-Brief`; never commit mutable data or secrets.
-- Keep this bootstrap below 4,000 characters; durable detail belongs in the skill/repo. When it changes and no direct Project write exists, return one complete compact block under `PROJECT INSTRUCTIONS UPDATE`.
-- Lead with verified results. Never claim a connector or GitHub write succeeded without confirmation; prefer one explicit degraded result over loops or silent failure.
+- Snapshot automation mutations, verify dependencies/writes, and roll back failures. Recover from live authorities without making the user restate the system.
+- Version policy/tests/bootstrap in the private repo; never commit mutable data or secrets.
+- Keep this bootstrap below 3,000 characters; durable detail belongs in the skill/repo. When changed without a direct Project write, return one complete compact `PROJECT INSTRUCTIONS UPDATE`.
+- Never claim a connector/GitHub write succeeded without confirmation.

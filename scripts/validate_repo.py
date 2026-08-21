@@ -25,7 +25,7 @@ REQUIRED = (
     "skill/ops-brief-policy/references/state-maintenance.md",
 )
 
-MAX_PROJECT_INSTRUCTIONS_CHARS = 4_000
+MAX_PROJECT_INSTRUCTIONS_CHARS = 3_000
 
 
 def require(condition: bool, message: str, errors: list[str]) -> None:
