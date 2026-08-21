@@ -36,6 +36,8 @@ Automotive uses one hub per vehicle:
 
 Canonical receipt evidence remains under `LyfeOS/02 Receipts & Purchases/Receipt Archive/02 Receipts by Category`. Vehicle and tool hubs contain links to those canonical records, not duplicate financial copies. Multi-vehicle orders have one canonical receipt plus explicit vehicle references.
 
+Active vehicle/tool hubs use native Google Docs, native Sheets views, or supported Drive shortcuts with human-readable titles. Raw `.html`, JSON, Markdown, or source-code link cards are never the user-facing navigation; if retained for provenance, they live under backups.
+
 The old full-text receipt Doc lives under receipt backups and is never the front end. The 2015 WRX factory service manual and 2022–2024 Civic/FL5 reference manual live inside their exact vehicle `Manuals & Reference` folders.
 
 An issued credential is personal; study material used to earn a credential is education. A filename is not trusted when its content contradicts it. Blank files are named by type and date and retained under `Archive & Backups/Blank Files` rather than left loose.

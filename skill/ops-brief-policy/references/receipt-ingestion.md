@@ -9,6 +9,7 @@ Load this reference completely before ingesting purchase receipts, filing receip
 - `Purchase & Receipt Archive` (ID `1pHkTdCxmdBdZjnVu97FkpkiSjysLkhjuTEcfcEXzmW8`) is the canonical LyfeOS 0.0.1 purchase system. Preserve its identity, validation, formulas, formatting, stable Receipt IDs, and foreign-key relationships.
 - `Orders - Database` stores one row per underlying transaction; `Receipt Details - Expandable` stores searchable line items; `Order Events` stores append-only lifecycle transitions; `Expense Ledger` stores cost allocations; `Classification Queue` stores unresolved user choices; `Financial Dashboard` is a derived email/receipt-detected view.
 - `Legacy - Purchase Receipts Full Text Archive - Search Backup` is backup text only. Never use it as the user-facing receipt view.
+- User-facing Drive navigation must be a native Google Doc, native Sheet view, or supported Drive shortcut with a readable title. Never place raw HTML, JSON, Markdown, or source-code link cards in an active vehicle/tool hub; retain any such artifact only under backups.
 - Tool Inventory spreadsheet ID: `1fwbt7lDejGJmf_EeY9U1uuwQ8TxXulcnvaKnc_1mNTM`. A tool receipt may update this inventory only after the base receipt record is safely stored.
 
 ## Evidence and classification
@@ -37,7 +38,7 @@ Use this order so Gmail is never cleared before downstream state exists:
 
 1. Read and classify the complete receipt evidence.
 2. Check the canonical index and destination folder for duplicates.
-3. Save the original receipt attachment when one exists. For email-only evidence, create or update one concise, mobile-readable receipt record with a brief summary and expandable full details.
+3. Save the original receipt attachment when one exists. For email-only evidence, create or update one concise, mobile-readable receipt record with a brief summary and expandable full details. Any vehicle/tool navigation record must be native and human-readable, never a raw source file.
 4. Upsert one `Orders - Database` row and the searchable line items. Point the Receipt Browser's `Show details` link at that receipt's expandable range, never the legacy Doc.
 5. Append each new Ordered/Awaiting Shipment, Shipped, Delivered, Exception, Cancellation Requested, Partial Cancellation Confirmed, Cancelled, Returned, or Refunded transition to `Order Events`. Idempotency is event ID plus Receipt ID, event type, event time, tracking/package, and source.
 6. Upsert `Expense Ledger` allocations and verify that allocations for one Receipt ID sum to the one counted transaction total. Do not invent fuel or other unsupported spending.

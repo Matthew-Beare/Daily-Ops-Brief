@@ -45,9 +45,15 @@ The validation command also verifies that the policy fingerprint embedded in the
 
 ## Generic first boot
 
-The `starter/` directory is intentionally separate from the current user's deployment. It is designed to interview a new user, inspect existing integrations and scheduled tasks with harmless reads, generate a minimal configuration, render a Project bootstrap contract, and avoid duplicating automations.
+The `starter/` directory is intentionally separate from the current user's deployment. Its human entry point is `starter/START_HERE.md`: a short copy/paste first-boot conversation that creates a Minimum Useful Setup before deeper discovery. It explains permissions before harmless connector reads, keeps writes and automation changes approval-gated, and never exposes JSON or terminal work unless the new user chooses developer mode.
 
-Start with:
+For a new user, start with:
+
+```text
+Open starter/START_HERE.md and paste its first-boot prompt into a new ChatGPT Project or conversation.
+```
+
+The JSON/template path remains available as the deterministic developer and recovery layer after the human setup is settled:
 
 ```bash
 cp starter/config.example.json starter/config.local.json
@@ -70,6 +76,7 @@ Do not commit `config.local.json` or a rendered file containing private identifi
 7. Improve policy through reviewed, tested repository changes—not by inflating task prompts.
 8. Treat one purchase as one stable transaction with many tags/links, never duplicated spend.
 9. Block Gmail archival when the cross-system Audit gate fails.
+10. Keep user-facing Drive navigation native and readable; raw HTML/JSON/Markdown artifacts belong only in backups or developer sources.
 
 ## Security
 

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "instructions": "Ask only unanswered questions. Required unknowns come first; group no more than five related questions at a time.",
+  "instructions": "Ask only unanswered questions after the four-question kickoff in START_HERE.md. Required unknowns come first; group no more than four related questions at a time and build a minimum useful setup before optional deep discovery.",
   "sections": [
     {
       "id": "identity_time",

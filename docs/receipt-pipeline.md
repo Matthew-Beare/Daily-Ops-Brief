@@ -20,3 +20,5 @@ Cancellation is a lifecycle transition, not deletion. A request remains `Excepti
 The monthly spending report is bounded to email-detected purchases. It is not represented as a complete bank, card, or household ledger.
 
 The user-facing front end is the Receipt Browser plus expandable detail ranges, not the legacy full-text Doc. Search tags remain visible and searchable while the long line-item body stays minimized.
+
+Drive navigation must remain native and readable. Vehicle/tool folders may point at the same canonical evidence through a native Google Doc, native Sheet view, or supported shortcut, but never through a raw HTML/JSON/Markdown source card that Drive renders like code.

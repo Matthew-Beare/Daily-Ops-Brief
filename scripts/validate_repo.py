@@ -17,6 +17,7 @@ REQUIRED = (
     "project/INSTRUCTIONS.md.tmpl",
     "docs/lyfeos-data-model.md",
     "starter/README.md",
+    "starter/START_HERE.md",
     "starter/config.example.json",
     "starter/questions.json",
     "starter/INSTRUCTIONS.md.tmpl",
@@ -77,11 +78,19 @@ def validate(root: Path) -> list[str]:
 
     questions = json.loads((root / "starter/questions.json").read_text(encoding="utf-8"))
     config = json.loads((root / "starter/config.example.json").read_text(encoding="utf-8"))
+    start_here = (root / "starter/START_HERE.md").read_text(encoding="utf-8")
     question_rows = [question for section in questions.get("sections", []) for question in section.get("questions", [])]
     ids = [row.get("id") for row in question_rows]
     require(len(question_rows) >= 40, "starter questionnaire is not deep enough", errors)
     require(len(ids) == len(set(ids)), "starter questionnaire contains duplicate IDs", errors)
     require(all(isinstance(key, str) and key.isupper() for key in config), "starter config keys must be uppercase tokens", errors)
+    require("Minimum Useful Setup" in start_here, "starter has no minimum-useful-setup path", errors)
+    require("no more than four" in start_here.lower(), "starter does not bound first-boot question batches", errors)
+    require("explicit approval" in start_here, "starter does not approval-gate consequential actions", errors)
+    require("partial cancellation" in start_here.lower(), "starter lacks order-cancellation lifecycle guidance", errors)
+    require("Start now by asking only the four kickoff questions" in start_here, "starter lacks a deterministic conversational entry point", errors)
+    for private_marker in ("Matthew-Beare", "jbeare92", "1pHkTdCx", "Mazda Miata", "Subaru WRX", "Civic Type R"):
+        require(private_marker not in start_here, f"starter leaks user-specific marker: {private_marker}", errors)
 
     generic_template = (root / "starter/INSTRUCTIONS.md.tmpl").read_text(encoding="utf-8")
     template_tokens = set(re.findall(r"\{\{([A-Z0-9_]+)\}\}", generic_template))

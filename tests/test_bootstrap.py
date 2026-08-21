@@ -33,6 +33,16 @@ class BootstrapTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "must be a scalar"):
                 BOOTSTRAP.load_config(path)
 
+    def test_human_first_boot_is_safe_and_bounded(self) -> None:
+        guide = (ROOT / "starter/START_HERE.md").read_text(encoding="utf-8")
+        self.assertIn("Minimum Useful Setup", guide)
+        self.assertIn("Start now by asking only the four kickoff questions", guide)
+        self.assertIn("explicit approval", guide)
+        self.assertIn("partial cancellation", guide.lower())
+        self.assertNotIn("1pHkTdCx", guide)
+        self.assertNotIn("jbeare92", guide)
+        self.assertLess(len(guide), 9000)
+
 
 if __name__ == "__main__":
     unittest.main()
