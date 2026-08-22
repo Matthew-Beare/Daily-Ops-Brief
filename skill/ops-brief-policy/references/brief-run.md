@@ -29,6 +29,8 @@ Read these exact Mileage & Pay Tracker ranges once:
 
 Read connected Google Calendar far enough ahead to cover the next seven days. Calendar is non-authoritative evidence: after one failed or unavailable call, use an empty appointments list, mark the run `Degraded`, and continue.
 
+Appointment rendering is slot-based and independent of HOME/ROAD mode: the Saturday 2:45 AM brief shows appointments from Saturday through Friday (a half-open seven-calendar-day window); every other 2:45 AM brief shows appointments occurring that calendar day; every 2:45 PM brief shows appointments occurring the following calendar day. This produces the requested day-before and morning-of reminders without exposing confirmation state.
+
 ## Deterministic pass
 
 1. Capture the actual start time in Eastern.

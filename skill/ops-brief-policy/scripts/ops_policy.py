@@ -15,7 +15,7 @@ from typing import Any, Iterable
 from zoneinfo import ZoneInfo
 
 
-POLICY_VERSION = "3.0.0"
+POLICY_VERSION = "3.1.0"
 TZ_NAME = "America/New_York"
 TZ = ZoneInfo(TZ_NAME)
 TIER_ORDER = {"Persistent": 0, "High": 1, "Medium": 2, "Low": 3}
@@ -357,115 +357,38 @@ def resolve_mode_at(
     return selected["_state"], "override", selected, None
 
 
-def _weekly_boundaries(start: datetime, end: datetime) -> list[datetime]:
-    boundaries: list[datetime] = []
-    cursor = start.astimezone(TZ).date() - timedelta(days=1)
-    final = end.astimezone(TZ).date() + timedelta(days=1)
-    while cursor <= final:
-        if cursor.weekday() == 2:
-            boundaries.append(datetime.combine(cursor, time(16, 30), TZ))
-        elif cursor.weekday() == 4:
-            boundaries.append(datetime.combine(cursor, time(12, 0), TZ))
-        cursor += timedelta(days=1)
-    return boundaries
-
-
-def _candidate_boundaries(
-    start: datetime,
-    end: datetime,
-    overrides: list[dict[str, Any]],
-) -> list[datetime]:
-    candidates = set(_weekly_boundaries(start, end))
-    for row in overrides:
-        for key in ("_start", "_expiry"):
-            value = row[key]
-            if value is not None and start <= value <= end:
-                candidates.add(value)
-    return sorted(candidates)
-
-
-def friday_road_transition(
-    moment: datetime,
-    overrides: list[dict[str, Any]],
-) -> tuple[datetime | None, list[str]]:
-    local = moment.astimezone(TZ)
-    if local.weekday() != 4:
-        return None, []
-    day_start = datetime.combine(local.date(), time.min, TZ)
-    day_end = day_start + timedelta(days=1)
-    errors: list[str] = []
-    candidates = [day_start] + _candidate_boundaries(
-        day_start, day_end, overrides
-    )
-    for boundary in sorted(
-        set(value for value in candidates if day_start <= value < day_end)
-    ):
-        before_mode, _, _, before_error = resolve_mode_at(
-            boundary - timedelta(microseconds=1), overrides
-        )
-        after_mode, _, _, after_error = resolve_mode_at(boundary, overrides)
-        if before_error:
-            errors.append(before_error)
-        if after_error:
-            errors.append(after_error)
-        if before_mode == "HOME" and after_mode == "ROAD":
-            return boundary, errors
-    return None, errors
-
-
-def next_home_transition(
-    road_start: datetime,
-    overrides: list[dict[str, Any]],
-) -> tuple[datetime, bool, list[str]]:
-    end = road_start + timedelta(days=14)
-    errors: list[str] = []
-    for boundary in _candidate_boundaries(
-        road_start + timedelta(microseconds=1), end, overrides
-    ):
-        if boundary <= road_start:
-            continue
-        before_mode, _, _, before_error = resolve_mode_at(
-            boundary - timedelta(microseconds=1), overrides
-        )
-        after_mode, _, _, after_error = resolve_mode_at(boundary, overrides)
-        if before_error:
-            errors.append(before_error)
-        if after_error:
-            errors.append(after_error)
-        if before_mode == "ROAD" and after_mode == "HOME":
-            return boundary, False, errors
-    return road_start + timedelta(days=7), True, errors
-
-
 def appointment_window(
     moment: datetime,
     mode: str,
     overrides: list[dict[str, Any]],
 ) -> tuple[dict[str, Any] | None, list[str]]:
     local = moment.astimezone(TZ)
-    transition, errors = friday_road_transition(local, overrides)
-    if transition is not None:
-        home_return, fallback, transition_errors = next_home_transition(
-            transition, overrides
-        )
-        errors.extend(transition_errors)
+    day_start = datetime.combine(local.date(), time.min, TZ)
+
+    # Appointment reminders are slot-based and mode-independent. Saturday AM
+    # is the weekly seven-day preview. Other AM briefs show today; PM briefs
+    # show tomorrow. This yields one day-before reminder and one morning-of
+    # reminder without exposing appointment-confirmation state.
+    if local.weekday() == 5 and local.hour < 12:
         return {
-            "kind": "friday_road_preview",
-            "start": transition.isoformat(),
-            "end": home_return.isoformat(),
-            "used_seven_day_fallback": fallback,
-        }, errors
-    if mode == "HOME":
-        start = datetime.combine(
-            local.date() + timedelta(days=1), time.min, TZ
-        )
-        return {
-            "kind": "home_day_before",
-            "start": start.isoformat(),
-            "end": (start + timedelta(days=1)).isoformat(),
+            "kind": "saturday_seven_day_preview",
+            "start": day_start.isoformat(),
+            "end": (day_start + timedelta(days=7)).isoformat(),
             "used_seven_day_fallback": False,
-        }, errors
-    return None, errors
+        }, []
+
+    if local.hour < 12:
+        start = day_start
+        kind = "morning_of"
+    else:
+        start = day_start + timedelta(days=1)
+        kind = "day_before"
+    return {
+        "kind": kind,
+        "start": start.isoformat(),
+        "end": (start + timedelta(days=1)).isoformat(),
+        "used_seven_day_fallback": False,
+    }, []
 
 
 def _title_case_enum(value: Any) -> str:

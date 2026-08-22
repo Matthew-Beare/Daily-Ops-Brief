@@ -34,6 +34,7 @@ Keep mutable state in the two live Sheets, policy in the bundled engine, and sch
 - Keep each scheduled run single-purpose: render one brief and record one deterministic Run Log result.
 - Never hard-code task-specific exceptions; use the live row fields and engine result.
 - Never display appointment-confirmation state. It is hidden anti-nag state only.
+- Appointment reminders are mode-independent: Saturday 2:45 AM previews the next seven calendar days (Saturday through Friday); all other 2:45 AM briefs show appointments for that day, and every 2:45 PM brief shows appointments for the next day.
 - Reconcile Gmail against the active `Shipments` queue before rendering either brief. Read complete materially relevant threads; snippets alone are not evidence.
 - Delete delivered items from the active `Shipments` queue immediately. Report a newly observed delivery once from `Order Events`, then never re-report it.
 - Treat a replacement with a new merchant order number as a new Receipt ID linked bidirectionally to the original; never overwrite the cancelled order. A same-order revision stays under the original Receipt ID.

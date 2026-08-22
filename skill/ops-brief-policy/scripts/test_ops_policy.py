@@ -199,34 +199,33 @@ class OverrideTests(unittest.TestCase):
 
 
 class AppointmentTests(unittest.TestCase):
-    def test_home_mode_uses_next_calendar_day(self):
+    def test_pm_brief_uses_next_calendar_day(self):
         window, errors = policy.appointment_window(dt("2026-08-13T14:45:00-04:00"), "HOME", [])
         self.assertEqual(errors, [])
-        self.assertEqual(window["kind"], "home_day_before")
+        self.assertEqual(window["kind"], "day_before")
         self.assertEqual(window["start"], "2026-08-14T00:00:00-04:00")
         self.assertEqual(window["end"], "2026-08-15T00:00:00-04:00")
 
-    def test_normal_transition_friday_previews_until_wednesday_home(self):
-        window, errors = policy.appointment_window(dt("2026-08-14T02:45:00-04:00"), "HOME", [])
+    def test_am_brief_uses_current_calendar_day(self):
+        window, errors = policy.appointment_window(dt("2026-08-14T02:45:00-04:00"), "ROAD", [])
         self.assertEqual(errors, [])
-        self.assertEqual(window["kind"], "friday_road_preview")
-        self.assertEqual(window["start"], "2026-08-14T12:00:00-04:00")
-        self.assertEqual(window["end"], "2026-08-19T16:30:00-04:00")
+        self.assertEqual(window["kind"], "morning_of")
+        self.assertEqual(window["start"], "2026-08-14T00:00:00-04:00")
+        self.assertEqual(window["end"], "2026-08-15T00:00:00-04:00")
 
-    def test_vacation_covering_friday_suppresses_preview(self):
-        rows, _ = policy.prepare_overrides(
-            [override("CTRL-1", "HOME", "2026-08-12T00:00:00-04:00", "2026-08-21T12:00:00-04:00")]
-        )
-        window, errors = policy.appointment_window(dt("2026-08-14T02:45:00-04:00"), "HOME", rows)
+    def test_saturday_am_previews_next_seven_calendar_days(self):
+        window, errors = policy.appointment_window(dt("2026-08-22T02:45:00-04:00"), "ROAD", [])
         self.assertEqual(errors, [])
-        self.assertEqual(window["kind"], "home_day_before")
+        self.assertEqual(window["kind"], "saturday_seven_day_preview")
+        self.assertEqual(window["start"], "2026-08-22T00:00:00-04:00")
+        self.assertEqual(window["end"], "2026-08-29T00:00:00-04:00")
 
-    def test_delayed_friday_transition_uses_override_expiry(self):
-        rows, _ = policy.prepare_overrides(
-            [override("CTRL-1", "HOME", "2026-08-12T00:00:00-04:00", "2026-08-14T15:00:00-04:00")]
-        )
-        window, _ = policy.appointment_window(dt("2026-08-14T02:45:00-04:00"), "HOME", rows)
-        self.assertEqual(window["start"], "2026-08-14T15:00:00-04:00")
+    def test_saturday_pm_reverts_to_day_before(self):
+        window, errors = policy.appointment_window(dt("2026-08-22T14:45:00-04:00"), "ROAD", [])
+        self.assertEqual(errors, [])
+        self.assertEqual(window["kind"], "day_before")
+        self.assertEqual(window["start"], "2026-08-23T00:00:00-04:00")
+        self.assertEqual(window["end"], "2026-08-24T00:00:00-04:00")
 
     def test_filter_appointments_uses_half_open_window(self):
         window = {
@@ -867,7 +866,7 @@ class IntegrationTests(unittest.TestCase):
         self.assertTrue(result["weather_allowed"])
         self.assertEqual(result["visible_task_ids"], ["TASK-017"])
         self.assertIn("GUPPI", result["ops_status_markdown"])
-        self.assertEqual(result["appointment_window"]["kind"], "home_day_before")
+        self.assertEqual(result["appointment_window"]["kind"], "day_before")
 
     def test_conflict_returns_error_status(self):
         payload = {
