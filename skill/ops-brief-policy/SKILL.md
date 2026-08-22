@@ -5,7 +5,7 @@ description: Run and maintain the user's Daily Ops Brief control room using the 
 
 # Ops Brief Policy
 
-Keep mutable state in the two live Sheets, policy in the bundled engine, and scheduled prompts limited to slot selection. Never copy the mutable task, route, trip, mileage, suppression, override, shipment, or run-log database into prompts, instructions, memory, or another file.
+Keep mutable state in the two live Sheets, lasting policy/code/tests/bootstrap in the configured private Git repository, and scheduled prompts limited to slot selection. The installed skill is a deployed runtime copy, not a second policy authority. Never copy the mutable task, route, trip, mileage, suppression, override, shipment, or run-log database into prompts, instructions, memory, or another file.
 
 ## Authority
 
@@ -13,8 +13,8 @@ Keep mutable state in the two live Sheets, policy in the bundled engine, and sch
 - Ops Status Register: `https://docs.google.com/spreadsheets/d/10WMU_hDMfSJcACel--8LekT7So5MXKgWuLVxvnSCPNU/edit`.
 - Mileage & Pay Tracker: `https://docs.google.com/spreadsheets/d/1OUzdjZaVTidLnMX2xuIZ3mRVDOF5oAfT8-pdl6KfUfI/edit`.
 - Purchase & Receipt Archive: `https://docs.google.com/spreadsheets/d/1pHkTdCxmdBdZjnVu97FkpkiSjysLkhjuTEcfcEXzmW8/edit`.
-- Engine: `scripts/ops_policy.py`.
-- Shipment reconciler: `scripts/reconcile_shipments.py`.
+- Deployed engine: `scripts/ops_policy.py`.
+- Deployed shipment reconciler: `scripts/reconcile_shipments.py`.
 - The `Shipments` tab is an active queue only. Durable purchase and lifecycle history belongs in the Purchase & Receipt Archive; Gmail remains the source evidence.
 - If either Sheet is unavailable, report `Action Required — <sheet name> unavailable.` Never substitute remembered or previously rendered state.
 
@@ -42,5 +42,5 @@ Keep mutable state in the two live Sheets, policy in the bundled engine, and sch
 - Keep important email in Inbox under `Ops/Archive Approval` until the user approves archiving. Silence is not approval.
 - Do not monitor promotions or sales unless the user explicitly reinstates that scope.
 - For a lasting Ops policy change, provide the complete revised project-instructions block when the bootstrap contract changes; never provide a partial instructions patch.
-- Treat versioning as part of every lasting policy, schema, workflow, schedule, onboarding, or output-contract change: update tests and fingerprints, commit and push the configured private repository, and verify the remote result without waiting for a separate Git prompt. Never auto-merge, publish publicly, or commit mutable data or secrets.
+- The configured private Daily-Ops-Brief repository is the sole policy source of truth. Treat versioning as part of every lasting policy, schema, workflow, schedule, onboarding, or output-contract change: update tests and fingerprints, commit and push that repository, redeploy the installed skill from the committed source, and verify the remote result without waiting for a separate Git prompt. Never auto-merge, publish publicly, or commit mutable data or secrets.
 - Prefer an explicit degraded brief over retries, loops, or a run that never finishes.

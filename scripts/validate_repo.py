@@ -72,6 +72,10 @@ def validate(root: Path) -> list[str]:
     require("Order Events!A1:Q1000" in email_policy, "email policy does not read replacement-link columns", errors)
     require("without asking for a separate Git confirmation" in maintenance, "state maintenance lacks automatic Git synchronization", errors)
     require("automatically commit/push" in project, "project contract lacks automatic durable Git synchronization", errors)
+    require("sole policy/code/test/bootstrap source" in project, "project contract lacks a sole policy source of truth", errors)
+    require("runtime copy" in project, "project contract does not define the installed skill as a deployment copy", errors)
+    require("sole source of truth" in maintenance, "state maintenance lacks a sole repository authority", errors)
+    require("deployed runtime copy" in maintenance, "state maintenance treats the installed skill as a competing authority", errors)
     require("To consolidate a healthy legacy AM/PM pair" in maintenance, "state maintenance lacks the migration transaction", errors)
     require("Keep exactly two active Ops Brief" not in project + skill + maintenance, "legacy two-task invariant remains", errors)
 
