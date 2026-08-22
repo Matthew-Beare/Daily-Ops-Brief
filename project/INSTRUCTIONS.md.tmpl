@@ -29,6 +29,6 @@ POLICY_SOURCE_FINGERPRINT: sha256:a49fb92b89f46937ea3239b11f30e87d7ce23b84f79a66
 ## Recovery/versioning
 
 - Snapshot automation mutations, verify dependencies/writes, and roll back failures. Recover from live authorities without making the user restate the system.
-- Version policy/tests/bootstrap in the private repo; never commit mutable data or secrets.
+- Always automatically commit/push policy/tests/bootstrap changes; never commit mutable data or secrets.
 - Keep this bootstrap below 3,000 characters; durable detail belongs in the skill/repo. When changed without a direct Project write, return one complete compact `PROJECT INSTRUCTIONS UPDATE`.
 - Never claim a connector/GitHub write succeeded without confirmation.
