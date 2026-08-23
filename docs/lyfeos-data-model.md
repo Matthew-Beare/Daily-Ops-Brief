@@ -1,6 +1,10 @@
 # LyfeOS Data Model
 
-LyfeOS keeps stable transaction/asset/trip identities while allowing many evidence sources, tags, beneficiaries, events and allocations. Google Sheets is the current mutable implementation; keys and relationships are designed to migrate to PostgreSQL without rewriting history.
+LyfeOS keeps stable transaction/asset/trip/knowledge identities while allowing many evidence sources, tags, beneficiaries, events and allocations. Google Sheets/Drive are the current mutable implementation; keys and relationships are designed to migrate to PostgreSQL/object storage without rewriting history.
+
+## Identity rule
+
+People, physical assets and retained knowledge objects use immutable collision-resistant RFC 4122 UUIDs as canonical cross-database identities. Friendly IDs such as `ASSET-FL5-2025`, names, tool numbers, model names and Knowledge IDs are aliases for humans. A UUID is never recycled or changed because a record is renamed, reclassified, transferred, moved to another database, or later shared across a family deployment.
 
 ## Core entities
 
@@ -12,40 +16,45 @@ LyfeOS keeps stable transaction/asset/trip identities while allowing many eviden
 | Expense allocation | `Expense Ledger` | `Allocation ID` | Balanced cost-owner/asset/project allocation |
 | Classification case | `Classification Queue` | `Queue ID` | Last-resort unresolved identity/ownership/fitment |
 | Payment case | `Payment Reconciliation` | `Payment Case ID` | Expected charge vs pending/posted settlement |
-| Person/external asset | `People & Assets` | `Entity ID` | Beneficiaries, aliases and external asset registry |
+| Person/asset registry | `People & Assets` | `Entity UUID` | People, beneficiaries, aliases, owned/external physical assets |
+| Knowledge/reference | `Knowledge Index` + Drive | `Entity UUID` | Manuals/datasheets/reference metadata and canonical file link |
 | Reimbursement | `Reimbursements` | `Reimbursement ID` | Expected/received payback separate from merchant refund |
 | Active fulfillment | Ops `Shipments` | `Shipment ID` | Undelivered/exception work queue only |
 | Calendar projection | Ops `Calendar Projection` | `Projection ID` | Source entity ↔ Google Calendar event dedupe/link |
 | Route knowledge | Ops `Routes` | `Route ID` | Reusable terminal-pair geometry/runtime/paid-mile facts |
-| Trip occurrence | Ops `Trips` | `Trip ID` | One real work leg / travel occurrence |
+| Trip occurrence | Ops `Trips` | `Trip ID` | One real work leg/travel occurrence |
 | Mileage occurrence | Mileage `Mileage Log` | `Mileage ID` | Auditable paid mileage/pay occurrence |
-| Tool/owned asset | Tool/asset inventory | stable Asset/Tool ID | Physical owned-item identity and evidence links |
 | Integrity result | `Audit` | `Check ID` | Commit gate/remediation |
 
-## Purchase and asset invariants
+## Purchase, asset and knowledge invariants
 
 1. A Receipt ID occurs once in the transaction table and its supported total is counted once.
 2. A receipt may contain line items with different categories/assets/beneficiaries; included allocations reconcile exactly to the supported merchant total.
 3. Email, photographed receipt, screenshot, account transaction and shipment evidence enrich the same transaction when they describe the same purchase.
 4. A same-order merchant revision keeps one Receipt ID; a true new replacement order gets a separate Receipt ID and reciprocal relationship events.
 5. Lifecycle events append idempotently; corrections supersede earlier interpretations without erasing them.
-6. Product/asset identity may be enriched from model, serial, UPC/GTIN, SKU, part number, product photo, receipt and manufacturer evidence. One physical asset uses one stable Asset/Tool ID.
-7. Unknown classification/fitment is queued only after reachable evidence and asset-registry exclusion checks are exhausted.
-8. Reimbursement is not merchant refund. Gross merchant purchase remains auditable while verified reimbursements reduce net household cost separately.
-9. Payment cases remain open until expected settlement is matched, split-matched, resolved as no-settlement or otherwise financially resolved. Actual posted amounts are compared with the latest supported same-order revision.
-10. Gmail/archive success requires the applicable Audit gate to pass.
+6. Product/asset identity may be enriched from model, serial, UPC/GTIN, SKU, part number, product photo, receipt, manual and manufacturer evidence. One physical asset uses one immutable Entity UUID.
+7. Retained product/service manuals and technical references use one immutable Knowledge UUID, live as files in canonical Drive, and are indexed by manufacturer/model/part/revision/asset relationships. Multiple upload/email/URL paths to the same document enrich one record rather than duplicating it.
+8. Unknown classification/fitment is queued only after reachable evidence and asset-registry exclusion checks are exhausted.
+9. Reimbursement is not merchant refund. Gross merchant purchase remains auditable while verified reimbursements reduce net household cost separately.
+10. Payment cases remain open until expected settlement is matched, split-matched, resolved as no-settlement or otherwise financially resolved. Actual posted amounts are compared with the latest supported same-order revision.
+11. Gmail/archive success requires the applicable Audit gate to pass.
 
 ## Fulfillment and Gmail retention
 
 `Shipments` contains only active `Awaiting Shipment`, `Shipped`, or `Exception` fulfillment. Delivered state is durable in `Order Events` and reported once.
 
-Correlated merchant/carrier mail may be grouped by order-history labels. The narrow deployment retention rule may move only carrier-originated FedEx/UPS/DHL logistics messages to Trash after 90 days from durable delivery when tracking evidence is saved, Audit passes, and no claim/return/dispute/investigation requires the message. Merchant receipts/order/payment/support evidence is retained.
+Correlated merchant/carrier mail may be grouped by order-history labels. The narrow deployment retention rule may move only carrier-originated FedEx/UPS/DHL/USPS logistics messages to Trash after 90 days from durable delivery when tracking evidence is saved, Audit passes, and no claim/return/dispute/investigation requires the message. Merchant receipts/order/payment/support evidence is retained.
 
 ## Routes, trips and external run-sheet evidence
 
-`Routes` is reusable knowledge; `Trips` and Mileage Log are occurrences. Employer/shared run sheets are evidence sources that reconcile into these tables using stable source/date/terminal/miles identifiers and must never create a parallel route database.
+`Routes` is reusable terminal-pair knowledge; `Trips` and Mileage Log are actual occurrences. A historical employer/shared run sheet used to teach route mileage is normalized into **unique canonical terminal pairs only by default**. Repeated source occurrences become provenance counts/variants and do not create hundreds of historical Trip/Mileage rows unless historical-occurrence import is explicitly requested.
 
-For the current deployment, company-paid terminal mileage is symmetric by terminal pair unless an explicit exception is supplied. Historical source variants remain provenance; reusable route values prefer explicit corrections, then current/repeated evidence rather than silently averaging conflicting entries.
+Normalize only proven aliases/typos before pair dedupe. For the current deployment, company-paid terminal mileage is symmetric by terminal pair unless an explicit exception is supplied. Historical source variants remain provenance; reusable route values prefer explicit corrections, then current/repeated evidence rather than silently averaging conflicting entries.
+
+## Manual/reference library
+
+Drive `Manuals & Reference` is the current durable file store. `Knowledge Index` stores Knowledge ID, immutable Entity UUID, title/type, manufacturer, model/part, related asset UUID/ID, source URL, Drive URL/ID, revision/date, tags, summary and status. Queries should resolve by UUID/asset/model/part/title/tags, read the retained source when needed, and return the canonical Drive link plus page/section provenance when supported.
 
 ## Calendar projection
 
@@ -62,4 +71,4 @@ Google Calendar is an optional projection surface, not authoritative state. `Cal
 
 ## Self-hosting path
 
-A future relational implementation maps naturally to `transactions`, `transaction_items`, `order_events`, `expense_allocations`, `payment_cases`, `people`, `assets`, `transaction_assets`, `reimbursements`, `shipments`, `routes`, `trips`, `mileage_entries`, `calendar_projections`, `evidence_objects`, and `audit_results`. Stable IDs and append-only evidence/event history must survive migration. Drive/Gmail/provider URLs remain provenance references. Self-hosting changes storage/query/automation power; it does not weaken connector, approval or integrity rules.
+A future relational implementation maps naturally to `transactions`, `transaction_items`, `order_events`, `expense_allocations`, `payment_cases`, `people`, `assets`, `knowledge_objects`, `asset_knowledge`, `transaction_assets`, `reimbursements`, `shipments`, `routes`, `trips`, `mileage_entries`, `calendar_projections`, `evidence_objects`, and `audit_results`, with original files in S3-compatible object storage. Immutable UUIDs and append-only evidence/event history survive migration. Drive/Gmail/provider URLs remain provenance references during/after transition. Self-hosting changes storage/query/automation power; it does not weaken connector, approval or integrity rules.
