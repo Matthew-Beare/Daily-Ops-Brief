@@ -2,7 +2,7 @@
 
 ## Decision
 
-LyfeOS is an ecosystem of personal forks built from a stable public upstream. Each user's fork versions durable behavior/config/schema/tests/features. Live mutable records remain in that user's selected canonical authorities. Features may originate anywhere and flow upstream/downstream only through a portable, reviewed boundary.
+LyfeOS is an ecosystem of personal forks built from a stable **public upstream**. Each user's fork versions durable behavior/config/schema/tests/features and may be **public or private** by owner choice. Live **mutable operational state** remains in that user's selected canonical authorities. Features may originate anywhere and flow upstream/downstream only through a portable, reviewed boundary.
 
 | Surface | Contents | Rule |
 |---|---|---|
