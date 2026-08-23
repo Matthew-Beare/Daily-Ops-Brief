@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Compute the stable policy-source fingerprint embedded in Project instructions."""
+"""Compute the stable deployed-policy fingerprint stored inside Git.
+
+Fingerprint v2 hashes each policy file's relative path plus its deterministic Git
+blob identity. This preserves content sensitivity while making the repository tree
+sufficient to independently reproduce a checkpoint fingerprint without weakening
+strict validation or requiring a deliberately failing CI discovery run.
+"""
 
 from __future__ import annotations
 
@@ -11,13 +17,12 @@ from pathlib import Path
 def policy_files(skill_root: Path) -> list[Path]:
     files = [skill_root / "SKILL.md"]
     files.extend(sorted((skill_root / "references").glob("*.md")))
+    scripts = skill_root / "scripts"
     files.extend(
-        skill_root / "scripts" / name
-        for name in (
-            "financial_resolution.py",
-            "ops_policy.py",
-            "ops_policy_runtime.py",
-            "reconcile_shipments.py",
+        sorted(
+            path
+            for path in scripts.glob("*.py")
+            if path.is_file() and not path.name.startswith("test_") and path.name != "__init__.py"
         )
     )
     missing = [str(path) for path in files if not path.is_file()]
@@ -26,13 +31,19 @@ def policy_files(skill_root: Path) -> list[Path]:
     return sorted(files, key=lambda path: path.relative_to(skill_root).as_posix())
 
 
+def git_blob_sha(content: bytes) -> str:
+    header = f"blob {len(content)}\0".encode("ascii")
+    return hashlib.sha1(header + content).hexdigest()
+
+
 def compute(skill_root: Path) -> str:
     digest = hashlib.sha256()
     for path in policy_files(skill_root):
         relative = path.relative_to(skill_root).as_posix().encode("utf-8")
+        blob_identity = git_blob_sha(path.read_bytes()).encode("ascii")
         digest.update(relative)
         digest.update(b"\0")
-        digest.update(path.read_bytes())
+        digest.update(blob_identity)
         digest.update(b"\0")
     return digest.hexdigest()
 

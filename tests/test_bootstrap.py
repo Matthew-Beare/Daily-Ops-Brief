@@ -21,6 +21,7 @@ class BootstrapTests(unittest.TestCase):
         rendered = BOOTSTRAP.render(template, config)
         self.assertNotIn("{{", rendered)
         self.assertIn("$my-ops-policy", rendered)
+        self.assertIn("USER_SELECTED_PUBLIC_OR_PRIVATE", rendered)
 
     def test_missing_key_fails(self) -> None:
         with self.assertRaisesRegex(ValueError, "missing configuration keys"):
@@ -35,18 +36,20 @@ class BootstrapTests(unittest.TestCase):
 
     def test_human_first_boot_is_safe_and_bounded(self) -> None:
         guide = (ROOT / "starter/START_HERE.md").read_text(encoding="utf-8")
+        lower = guide.lower()
         self.assertIn("Minimum Useful Setup", guide)
         self.assertIn("Start now by asking only the four kickoff questions", guide)
-        self.assertIn("explicit approval", guide)
-        self.assertIn("partial cancellation", guide.lower())
-        self.assertIn("authoritative timezone", guide.lower())
-        self.assertIn("exact local times", guide.lower())
-        self.assertIn("recipe library", guide.lower())
-        self.assertIn("exact job title", guide.lower())
+        self.assertIn("explicit approval", lower)
+        self.assertIn("partial cancellation", lower)
+        self.assertIn("timezone is permanently authoritative", lower)
+        self.assertIn("exact local times", lower)
+        self.assertIn("recipe library", lower)
+        self.assertIn("exact job title", lower)
         self.assertIn("mark HOME/ROAD bypassed", guide)
-        self.assertIn("driving/trucking", guide.lower())
-        self.assertIn("true replacement", guide.lower())
+        self.assertIn("driving/trucking", lower)
+        self.assertIn("true replacement", lower)
         self.assertIn("automatically update validation, commit, and push", guide)
+        self.assertIn("public-source audit", lower)
         self.assertNotIn("1pHkTdCx", guide)
         self.assertNotIn("jbeare92", guide)
         self.assertLess(len(guide), 9000)

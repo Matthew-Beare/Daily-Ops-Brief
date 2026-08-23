@@ -1,112 +1,119 @@
 # Email and Shipment Reconciliation
 
-Load this reference completely for order mail, active shipments, inbox filing, archive approval, explicit email deletion, and the Gmail pass of every brief.
+Load this reference completely for order mail, active shipments, Gmail filing, archive approval, approved carrier-retention deletion, and the Gmail pass of every brief/lifecycle run.
 
 ## Authoritative state
 
-- `Shipments!A1:N500` in the Ops Status Register is the active shipment queue, not a purchase ledger.
-- `Order Events!A1:Q1000` in the Purchase & Receipt Archive is append-only lifecycle history; columns P/Q are `Related Receipt ID` and `Replacement Group ID`. `Classification Queue!A1:L500` is unresolved purchase input.
-- Its exact columns are `Shipment ID`, `Vendor`, `Order Number`, `Item`, `Carrier`, `Tracking Number`, `Package Count`, `Order Date`, `Shipped Date`, `ETA (ET)`, `Status`, `Last Progress (ET)`, `Notes`, and `Updated (ET)`.
-- Allowed active statuses are `Awaiting Shipment`, `Shipped`, and `Exception`.
-- Keep one row per fulfillment or tracking number. Split packages may create multiple rows for one order.
-- Gmail labels and archived threads are the order/receipt history. Never copy message bodies, Gmail IDs, account numbers, addresses, or live Sheet rows into Git.
+- `Shipments!A1:N500` in the Ops Status Register is the active fulfillment queue, not purchase history.
+- `Order Events!A1:Q1000` in the Purchase & Receipt Archive is append-only lifecycle history. `Classification Queue!A1:L500` is unresolved purchase input.
+- Keep one active row per fulfillment/tracking number. Split packages may create multiple rows for one order.
+- Gmail is evidence and a searchable archive, but canonical order/tracking state lives in Sheets/Drive. Never make Gmail folder residence the only record of a lifecycle fact.
 
 ## Read and match evidence
 
 1. Read the active queue before searching Gmail.
-2. Search new material since the last completed brief, or 24 hours when no completed run exists.
-3. Search each active row by exact tracking number and exact order number. Inspect USPS, FedEx, UPS, DHL, and vendor mail as applicable.
-4. Read every materially relevant thread in full. A subject or snippet can select a thread, but cannot establish final state.
-5. Normalize one evidence event per fulfillment. Include source, event, vendor, order number, item, carrier, tracking number, package count, event time, observed time, ETA, and concise notes when available. For cancellation evidence also include `scope` (`order` or fulfillment), `cancelled_item`, `remaining_item`, `remaining_status`, original total, revised total, and cancelled/refunded amount when the source states them. For a replacement include `replacement_order_number`, `replacement_item`, replacement shipment fields when known, both Receipt IDs when resolved, a shared `replacement_group_id`, and whether original cancellation is confirmed.
-6. Match in this order:
-   - exact tracking number;
-   - exact vendor plus order number when unique;
-   - exact order number plus item/package facts when unique;
-   - vendor plus item, order date, recipient, and package facts only when the combination is unique.
-7. If more than one active row remains plausible, do not guess. Keep the rows and surface a concise unresolved exception.
+2. Search new material since the previous successful lifecycle pass, plus exact order/tracking searches for every active fulfillment.
+3. Inspect USPS, FedEx, UPS, DHL and vendor mail as applicable, but read every materially relevant message/thread in full before final state.
+4. Normalize evidence using vendor, order number, Receipt ID when known, item, carrier, tracking/package, event time, observed time, ETA, and source.
+5. For cancellation evidence include scope, removed/surviving items, original/revised total, and financial facts actually stated. For replacements include both merchant order numbers, both Receipt IDs when resolved, replacement group and cancellation state.
+6. Match in this order: exact tracking; exact vendor+order; exact order+item/package; only then a unique combination of vendor/item/date/recipient/package facts.
+7. More than one plausible match is unresolved. Do not overwrite or invent a relationship.
 
-## Cancellation handling
+## Revisions, cancellations and replacements
 
-- `Cancellation Requested` and `Partial Cancellation Requested` are non-terminal. Keep the active row as `Exception` until the merchant confirms what was removed and the resulting charge.
-- A confirmed full cancellation is terminal for the matched fulfillment. Use `scope: order` only when evidence explicitly cancels the entire order; then remove all active rows for that order after appending the durable event.
-- A confirmed partial cancellation must name the surviving `remaining_item`. Rewrite the active row to only that item and its supported active status; retain the cancelled line in the receipt database, not the active shipment queue. If the remaining item is not explicit, leave the row unchanged and surface the ambiguity.
-- Cancellation, return, and refund financial effects are committed through the receipt-ingestion workflow. The shipment reconciler never invents revised totals, fees, taxes, or refund amounts.
-
-## Replacement handling
-
-- Do not call a revised line under the same merchant order number a replacement transaction; keep it under the same Receipt ID and use partial-cancellation/revision handling.
-- A true replacement has a distinct merchant order number or separately evidenced transaction. Resolve both Receipt IDs, persist reciprocal `Replaced By` and `Replacement For` events, and use one shared Replacement Group ID before changing the active queue.
-- If original cancellation is confirmed, delete the original active row or order-scope rows and upsert the replacement. If cancellation is not confirmed, keep the original as `Exception` and also upsert the replacement; never silently assume the old charge vanished.
-- Missing replacement order number, replacement item, reciprocal Receipt ID, or ambiguous original match is unresolved. Preserve existing rows and surface one precise question instead of overwriting history.
+- Reconcile same-merchant-order revisions before shipment or payment matching. The strongest current revision under the same merchant order remains one Receipt ID and becomes the expected settlement source.
+- `Cancellation Requested` and `Partial Cancellation Requested` are non-terminal until authoritative evidence establishes the fulfillment/financial result.
+- A confirmed full cancellation removes matching active fulfillment after the durable event is appended. A confirmed partial cancellation rewrites active fulfillment to only the surviving supported item(s).
+- Cancellation, return and refund accounting is committed through receipt/payment policy; shipment logic never invents totals, tax, fees or refunds.
+- A true replacement with a different merchant order/transaction gets a different Receipt ID and reciprocal relationship events. Never mutate the original into the replacement.
 
 ## Evidence precedence
 
-Use the strongest evidence, not the newest email blindly:
+Use strongest evidence, not newest text blindly:
 
-1. Explicit user statement.
-2. Carrier delivery event.
-3. Carrier exception or progress event.
-4. Vendor delivery or status event.
+1. explicit user correction;
+2. carrier delivery event;
+3. carrier exception/progress event;
+4. vendor fulfillment/status event.
 
-Within the same class, the newer credible event wins. A stale vendor `Shipped` message cannot resurrect a carrier-confirmed or user-confirmed delivery. Never infer delivery from elapsed time, ETA expiry, an invoice, or shipment age.
+Within a class, newer credible evidence wins. Never infer delivery from age, ETA expiry or an invoice.
 
-## Transaction order
+## Gmail filing model
 
-1. Build normalized evidence from complete threads and any explicit user statement.
-2. Run `python3 scripts/reconcile_shipments.py reconcile --input <json-file> --pretty`.
-3. Apply active-row creates/updates using stable `SHIP-###` IDs.
-4. Append each material transition idempotently to `Order Events`. For replacements, append and verify both reciprocal relationship events before deleting an original active row. Preserve explicit user corrections beside earlier email evidence.
-5. Delete each row returned as delivered, fully cancelled, or confirmed replaced from the active `Shipments` queue. For a confirmed partial cancellation, keep one rewritten row containing only the surviving fulfillment. For an unconfirmed replacement, retain the original as `Exception` and the replacement as a separate active row.
-6. File the correlated Gmail messages according to the rules below.
-7. Re-read `Shipments!A1:N500`. Render active state from this post-mutation read; render delivery exactly once only when its `Order Events` observed time is later than the previous successful brief.
-8. Record only stable shipment/task/event IDs and concise counts in the Run Log. Never log Gmail message/thread IDs or message bodies.
-
-Any required Sheet or Gmail mutation failure makes the brief run `Error`; report the failed operation once and do not claim reconciliation completed.
-
-## Gmail filing
-
-Use these labels when available, creating only `Ops/Archive Approval` if missing:
+Use/create these labels as applicable:
 
 - `Receipts`
 - `Receipts/Automotive`
 - `Receipts/Tools`
 - `Orders/Awaiting Shipment`
 - `Orders/Shipped`
+- `Orders/History`
+- `Orders/Carrier Retention/90d`
 - `Shopping/Needs Classification`
 - `Ops/Archive Approval`
 
-For a delivered order:
-
-- add `Receipts` and, when automotive, `Receipts/Automotive` to the original order, invoice, shipment, and delivery messages;
-- remove `Orders/Awaiting Shipment` and `Orders/Shipped`;
-- archive the routine correlated threads after the Sheet row is deleted.
+For every verified order with a merchant order number, create/use an order-history label `Orders/History/<vendor-slug>/<order-number>`. If the merchant order number is unavailable or unsafe as a Gmail label component, use `Orders/History/<Receipt-ID>`. Apply the same order-history label to the merchant confirmation/invoice, shipment notices, delivery messages and correlated carrier messages. This is the Gmail folder-like grouping layer; the Sheet remains authoritative.
 
 For an active order:
 
-- use `Orders/Awaiting Shipment` before credible shipment evidence and `Orders/Shipped` after it;
-- remove the opposite active-order label;
-- archive routine confirmations and carrier progress messages after the Sheet state is updated. The active row, not Inbox residence, drives the brief.
+- use `Orders/Awaiting Shipment` until credible shipment evidence and `Orders/Shipped` afterward;
+- remove the opposite active label;
+- apply `Orders/History` plus the specific order-history label;
+- archive routine confirmation/progress mail only after canonical state is committed.
 
-For important or decision-bearing email:
+For a delivered order:
 
-- add `Ops/Archive Approval` and keep the thread in Inbox;
-- group related messages into one concise brief item;
-- end the `IMPORTANT EMAIL` section with exactly `Is it OK to archive these emails?`;
-- if the user does not answer, leave the queue untouched and prompt again on the next brief;
-- when the user approves all queued mail, archive the threads currently carrying `Ops/Archive Approval` in Inbox, then remove that label;
-- when approval names only a subset, archive and unlabel only that subset.
+- append/verify Delivered in `Order Events`, remove active `Shipments`, and report delivery once;
+- apply `Receipts` and the narrow receipt category where appropriate;
+- apply `Orders/History` plus the specific order-history label to all correlated merchant/carrier evidence;
+- remove active order labels;
+- archive routine correlated mail after the Audit gate passes;
+- additionally label carrier-originated FedEx/UPS/DHL/USPS tracking/progress/delivery messages `Orders/Carrier Retention/90d` so they can be purged later without touching merchant evidence.
 
-Routine noise may be archived after it is processed. Never delete email merely to clean Inbox. Delete only a specific message/thread or bounded set the user explicitly orders deleted, and report the completed scope.
+Never place a merchant order confirmation, invoice/receipt, cancellation/refund notice, warranty/support message, payment evidence, user correspondence, or mixed merchant/carrier thread in the carrier-purge class merely because it mentions tracking.
 
-For an unknown purchase:
+## 90-day carrier-email retention exception
 
-- apply `Shopping/Needs Classification`;
-- add or update one unresolved `Classification Queue` row;
-- do not file it into a guessed Drive folder or verified expense allocation;
-- after the user resolves it, file and allocate it, mark the queue row `Resolved`, and remove the Gmail label.
+The user has explicitly authorized automatic deletion-to-Trash of qualifying **FedEx, UPS, DHL and USPS carrier-originated logistics messages** beginning 90 calendar days after the related canonical delivery time. This is a narrow standing exception to the normal no-auto-delete rule.
+
+A message may be deleted only when all are true:
+
+1. it is carrier-originated FedEx/UPS/DHL/USPS logistics mail, not merchant/support/user correspondence;
+2. exact tracking/order correlation resolves to a canonical Delivered event;
+3. at least 90 calendar days have elapsed since that Delivered event;
+4. carrier, tracking number, delivery timestamp/status and needed shipment history are already durable in canonical Sheets/Drive;
+5. the relevant receipt/order Audit gate passes;
+6. no open return, claim, dispute, damage case, chargeback, warranty/shipping investigation or other reason requires the carrier email;
+7. the message does not contain unique receipt/payment/order-revision evidence not stored elsewhere.
+
+When eligible, move the message to Gmail Trash, remove it from active retention labels as appropriate, and append/log a concise `Carrier Email Purged` audit fact without preserving Gmail message IDs in Git. Gmail Trash behavior is the deletion mechanism; do not attempt permanent provider-side purge.
+
+Any carrier not named above remains retention-only unless the user later extends this rule. Any deletion outside this exact 90-day carrier class still requires an explicit bounded user request.
+
+## Important and unknown mail
+
+- Important or decision-bearing mail stays in Inbox under `Ops/Archive Approval`; silence is never archive approval and the 90-day carrier rule never overrides this label.
+- Unknown purchases receive `Shopping/Needs Classification` plus one canonical queue case and are not guessed into verified filing/allocation.
+- After classification is resolved, update canonical state first, then filing/labels.
+
+## Contact safety
+
+Before any proposed vendor reply/contact, load `vendor-contact.md`: inspect From/Reply-To/body/footer for no-reply or unmonitored instructions, research a current official contact path when needed, and show recipient/channel + subject + complete draft followed by `Do you want me to send this email?`. Never send automatically.
+
+## Transaction order
+
+1. build normalized evidence from complete messages and live canonical state;
+2. reconcile revisions/cancellations/replacements;
+3. mutate `Shipments` and append durable `Order Events`;
+4. reconcile receipt/payment/allocation/asset side effects as required;
+5. rebuild/verify the Audit gate;
+6. apply Gmail labels/order-history filing and archive routine evidence;
+7. run the bounded 90-day carrier-purge check;
+8. re-read active state and report only meaningful changes/actions.
+
+A required Sheet/Gmail mutation failure makes the affected lifecycle transaction incomplete. Do not claim success from a partially updated layer.
 
 ## Excluded scope
 
-- Do not search Promotions for discounts or sales.
-- Do not calculate discount percentages or add sale alerts to a brief.
-- Do not reinstate promotion monitoring unless the user explicitly requests it later.
+- Do not search Promotions for discounts/sales unless explicitly reinstated.
+- Do not calculate sale percentages or create promotion alerts by default.

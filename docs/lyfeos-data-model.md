@@ -1,55 +1,74 @@
-# LyfeOS 0.0.1 Data Model
+# LyfeOS Data Model
 
-LyfeOS 0.0.1 keeps one transaction identity while allowing many tags, assets, events, and cost allocations. Google Sheets is the current implementation; the keys and relationships are deliberately portable to PostgreSQL or another self-hosted database.
+LyfeOS keeps stable transaction/asset/trip/knowledge identities while allowing many evidence sources, tags, beneficiaries, events and allocations. Google Sheets/Drive are the current mutable implementation; keys and relationships are designed to migrate to PostgreSQL/object storage without rewriting history.
+
+## Identity rule
+
+People, physical assets and retained knowledge objects use immutable collision-resistant RFC 4122 UUIDs as canonical cross-database identities. Friendly IDs such as `ASSET-FL5-2025`, names, tool numbers, model names and Knowledge IDs are aliases for humans. A UUID is never recycled or changed because a record is renamed, reclassified, transferred, moved to another database, or later shared across a family deployment.
 
 ## Core entities
 
-| Entity | Current tab | Primary key | Purpose |
+| Entity | Current authority/tab | Primary key | Purpose |
 |---|---|---|---|
-| Transaction | `Orders - Database` | `Receipt ID` | One row and one counted total per underlying purchase |
-| Transaction item | `Receipt Details - Expandable` | Receipt ID plus item/SKU/position | Searchable line items and fitment |
-| Order event | `Order Events` (P/Q: related Receipt/group) | `Event ID` | Append-only lifecycle plus reciprocal related Receipt IDs and replacement group |
-| Expense allocation | `Expense Ledger` | `Allocation ID` | Cost-owner split whose rows sum to the transaction total |
-| Classification case | `Classification Queue` | `Queue ID` | Unknown product, category, vehicle, or owner awaiting user input |
-| Active fulfillment | Ops `Shipments` | `Shipment ID` | Undelivered work queue only |
-| Tool | Tool Inventory `Inventory` | `Tool ID` | Owned-tool inventory side effect |
-| Integrity result | `Audit` | `Check ID` | Commit gate and explicit remediation |
+| Transaction | Purchase Archive `Orders - Database` | `Receipt ID` | One counted merchant transaction |
+| Transaction item | `Receipt Details - Expandable` | Receipt ID + item/SKU/position | Searchable line items, category, fitment |
+| Order event | `Order Events` | `Event ID` | Append-only lifecycle/revision/replacement history |
+| Expense allocation | `Expense Ledger` | `Allocation ID` | Balanced cost-owner/asset/project allocation |
+| Classification case | `Classification Queue` | `Queue ID` | Last-resort unresolved identity/ownership/fitment |
+| Payment case | `Payment Reconciliation` | `Payment Case ID` | Expected charge vs pending/posted settlement |
+| Person/asset registry | `People & Assets` | `Entity UUID` | People, beneficiaries, aliases, owned/external physical assets |
+| Knowledge/reference | `Knowledge Index` + Drive | `Entity UUID` | Manuals/datasheets/reference metadata and canonical file link |
+| Reimbursement | `Reimbursements` | `Reimbursement ID` | Expected/received payback separate from merchant refund |
+| Active fulfillment | Ops `Shipments` | `Shipment ID` | Undelivered/exception work queue only |
+| Calendar projection | Ops `Calendar Projection` | `Projection ID` | Source entity ↔ Google Calendar event dedupe/link |
+| Route knowledge | Ops `Routes` | `Route ID` | Reusable terminal-pair geometry/runtime/paid-mile facts |
+| Trip occurrence | Ops `Trips` | `Trip ID` | One real work leg/travel occurrence |
+| Mileage occurrence | Mileage `Mileage Log` | `Mileage ID` | Auditable paid mileage/pay occurrence |
+| Integrity result | `Audit` | `Check ID` | Commit gate/remediation |
 
-## Invariants
+## Purchase, asset and knowledge invariants
 
-1. A Receipt ID occurs exactly once in the transaction table.
-2. Every transaction has at least one searchable detail row, a compact detail link, and canonical Drive evidence.
-3. Tags and related assets are many-to-many metadata; they never duplicate spend.
-4. Included expense allocations for one counted Receipt ID sum exactly to its current confirmed net transaction total; cancelled historical allocations remain linked but excluded.
-5. Lifecycle events are appended idempotently; a new status does not erase the prior event.
-6. The Ops shipment queue contains only `Awaiting Shipment`, `Shipped`, or `Exception`. Delivery is stored in Order Events and reported once.
-7. Unknown classification is queued and omitted from verified allocation until the user resolves it.
-8. A vehicle-specific receipt must have both correct data tags and a canonical file or link in that vehicle's receipt folder.
-9. A true replacement has two Receipt IDs, reciprocal `Replaced By`/`Replacement For` events, and one shared Replacement Group ID; same-order revisions remain one Receipt ID.
-10. Gmail is archived only after every required layer agrees and the Audit gate passes.
+1. A Receipt ID occurs once in the transaction table and its supported total is counted once.
+2. A receipt may contain line items with different categories/assets/beneficiaries; included allocations reconcile exactly to the supported merchant total.
+3. Email, photographed receipt, screenshot, account transaction and shipment evidence enrich the same transaction when they describe the same purchase.
+4. A same-order merchant revision keeps one Receipt ID; a true new replacement order gets a separate Receipt ID and reciprocal relationship events.
+5. Lifecycle events append idempotently; corrections supersede earlier interpretations without erasing them.
+6. Product/asset identity may be enriched from model, serial, UPC/GTIN, SKU, part number, product photo, receipt, manual and manufacturer evidence. One physical asset uses one immutable Entity UUID.
+7. Retained product/service manuals and technical references use one immutable Knowledge UUID, live as files in canonical Drive, and are indexed by manufacturer/model/part/revision/asset relationships. Multiple upload/email/URL paths to the same document enrich one record rather than duplicating it.
+8. Unknown classification/fitment is queued only after reachable evidence and asset-registry exclusion checks are exhausted.
+9. Reimbursement is not merchant refund. Gross merchant purchase remains auditable while verified reimbursements reduce net household cost separately.
+10. Payment cases remain open until expected settlement is matched, split-matched, resolved as no-settlement or otherwise financially resolved. Actual posted amounts are compared with the latest supported same-order revision.
+11. Gmail/archive success requires the applicable Audit gate to pass.
+
+## Fulfillment and Gmail retention
+
+`Shipments` contains only active `Awaiting Shipment`, `Shipped`, or `Exception` fulfillment. Delivered state is durable in `Order Events` and reported once.
+
+Correlated merchant/carrier mail may be grouped by order-history labels. The narrow deployment retention rule may move only carrier-originated FedEx/UPS/DHL/USPS logistics messages to Trash after 90 days from durable delivery when tracking evidence is saved, Audit passes, and no claim/return/dispute/investigation requires the message. Merchant receipts/order/payment/support evidence is retained.
+
+## Routes, trips and external run-sheet evidence
+
+`Routes` is reusable terminal-pair knowledge; `Trips` and Mileage Log are actual occurrences. A historical employer/shared run sheet used to teach route mileage is normalized into **unique canonical terminal pairs only by default**. Repeated source occurrences become provenance counts/variants and do not create hundreds of historical Trip/Mileage rows unless historical-occurrence import is explicitly requested.
+
+Normalize only proven aliases/typos before pair dedupe. For the current deployment, company-paid terminal mileage is symmetric by terminal pair unless an explicit exception is supplied. Historical source variants remain provenance; reusable route values prefer explicit corrections, then current/repeated evidence rather than silently averaging conflicting entries.
+
+## Manual/reference library
+
+Drive `Manuals & Reference` is the current durable file store. `Knowledge Index` stores Knowledge ID, immutable Entity UUID, title/type, manufacturer, model/part, related asset UUID/ID, source URL, Drive URL/ID, revision/date, tags, summary and status. Queries should resolve by UUID/asset/model/part/title/tags, read the retained source when needed, and return the canonical Drive link plus page/section provenance when supported.
+
+## Calendar projection
+
+Google Calendar is an optional projection surface, not authoritative state. `Calendar Projection` stores source type/source ID, target calendar, Google event ID, event class, source revision and sync status. A revised delivery ETA/appointment/deadline updates the existing linked event rather than creating a duplicate. Inviting attendees is a separate action boundary.
 
 ## Lifecycle financial semantics
 
-- Requested cancellation: append an event, keep `Exception`, and preserve the current financial state until confirmation.
-- Confirmed full cancellation before charge: retain the transaction/details, exclude all allocations from spend, and remove active fulfillment.
-- Confirmed partial cancellation: retain the cancelled item as excluded history, update current totals only from merchant evidence, and keep only surviving fulfillment active.
-- Return: preserve spend until refund evidence exists.
-- Refund: preserve the gross transaction and append the exact refund as a linked negative adjustment or confirmed net-total revision; dashboards count the net effect once.
-- Replacement: never transform the original into the new order. Link two transactions bidirectionally; preserve the original cancellation/refund financial state and balance the replacement independently. Until original cancellation is confirmed, keep the original fulfillment in `Exception` while tracking the replacement separately.
-
-## Known vehicle mappings
-
-| Product | Vehicle |
-|---|---|
-| 245/40ZR15 Hankook R-S4 | 2000 Mazda Miata NB |
-| 265/35ZR18 Hankook R-S4 | 2015 Subaru WRX VA |
-| 275/35ZR18 Hankook R-S4 | 2025 Honda Civic Type R FL5 |
-| 205/45ZR16 General G-MAX AS-07 | 2000 Mazda Miata NB |
-| Enkei GTC02 18x9.5 +45 and HR50 M14x1.50 lugs | FL5 |
-| Konig Dekagram 15x10, Moss cover, Summit 100-7717 studs | Miata |
-| Ignition coils, PCV/tune-up parts, SubaruOnlineParts 855251 | Subaru |
-| Soft Socket | Garage Tools |
+- Cancellation request preserves existing financial state until confirmed.
+- Full cancellation before settlement excludes spend without inventing a refund.
+- Partial cancellation keeps removed lines as excluded history and updates surviving totals only from authoritative merchant revision evidence.
+- Return preserves spend until refund evidence exists.
+- Refund is linked financial evidence and nets exactly once; it does not erase gross history.
+- Replacement financial state is resolved independently for original and replacement orders.
 
 ## Self-hosting path
 
-The current Sheet columns map cleanly to relational tables named `transactions`, `transaction_items`, `order_events`, `expense_allocations`, `classification_cases`, `assets`, `transaction_assets`, and `evidence_objects`. A later migration should preserve the stable IDs, import events without rewriting history, and keep Drive/Gmail URLs as evidence references. Self-hosting changes storage and query power; it does not replace connector access or the integrity rules.
+A future relational implementation maps naturally to `transactions`, `transaction_items`, `order_events`, `expense_allocations`, `payment_cases`, `people`, `assets`, `knowledge_objects`, `asset_knowledge`, `transaction_assets`, `reimbursements`, `shipments`, `routes`, `trips`, `mileage_entries`, `calendar_projections`, `evidence_objects`, and `audit_results`, with original files in S3-compatible object storage. Immutable UUIDs and append-only evidence/event history survive migration. Drive/Gmail/provider URLs remain provenance references during/after transition. Self-hosting changes storage/query/automation power; it does not weaken connector, approval or integrity rules.

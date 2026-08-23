@@ -1,84 +1,108 @@
-# LyfeOS Starter Versioning and New-User Forks
+# LyfeOS Starter Versioning and New-User Deployments
 
 ## Repository roles
 
-- A production deployment repository is one owner's private policy/development repository. It is never the default clone source for another user.
-- `Life-Ops-Starter` is the sanitized upstream containing only portable code, schemas, tests, examples, onboarding, and synthetic fixtures.
-- Each new user's private fork/deployment of `Life-Ops-Starter` becomes that user's independent policy/deployment repository.
+- This repository is the current **public LyfeOS upstream and reference implementation**.
+- `starter/` is the sanitized portable onboarding/distribution boundary. New users start there, not from the current deployment's authority IDs or mutable state.
+- A user's deployment source lives in a repository they control. It may be public or private by explicit choice, subject to the source-audit rules.
+- Mutable operational records remain in that user's selected authorities and are never inherited from Git.
 
-## What a new user starts from
+A future standalone starter repository may make packaging cleaner, but it is **not a prerequisite** for using the current public starter.
 
-A new user starts from the **latest stable tagged release of `Life-Ops-Starter`**, not from an arbitrary development branch and never from another person's production repository/history.
+## Current public installation paths
 
-Release scheme:
+### Simple fork path
 
-- semantic versions: `vMAJOR.MINOR.PATCH`;
-- `main` in the starter repository is release-candidate quality but a tag is the stable installation boundary;
-- feature/integration branches are never first-boot sources;
-- the first starter tag should be created only after the core is merged, sanitized, CI-green, privacy-audited, and first-boot tested.
+1. Fork the public repository into an account/repository the user controls.
+2. Connect that fork to ChatGPT and verify read/write capability.
+3. Start with `starter/START_HERE.md`.
+4. First boot records that user's repository visibility, canonical timezone, authorities, modules, schedules, approval boundaries, and state model.
+5. Never copy current-deployment Google IDs, aliases, schedules, vehicle records, Gmail content, receipts, or mutable state into the new deployment.
+6. Run public-source/starter privacy audit, repository validation, and all tests before enabling scheduled writes.
 
-Recommended milestones:
+The fork contains public reference history, including the reference implementation. That is acceptable because the upstream is intentionally public. **Reference configuration is not deployment state.** First boot must build the new user's configuration from their interview and connected authorities.
 
-- `v0.1.0-beta.1` — first private onboarding beta after privacy audit and synthetic first-boot pass;
-- `v0.1.0` — first stable private starter after at least one clean deployment from an empty account/workspace;
-- `v0.2.0` — backwards-compatible new modules/onboarding behavior;
+### Clean portable-snapshot path
+
+For users who do not want the reference implementation in their repository:
+
+1. pin an exact audited upstream commit;
+2. copy/export only the documented portable starter files and portable feature/schema/test tooling;
+3. create a new repository owned by the user;
+4. run starter privacy/public-source audits and CI in that repository;
+5. record the upstream commit as provenance.
+
+This path provides a clean deployment tree without depending on another user's configuration, while the fork path remains easier for ordinary users.
+
+## Repository visibility
+
+Public and private are both supported.
+
+- **Public:** source must pass public-source audit and contain no secrets, credentials, mutable operational exports, private message/receipt bodies, account data, or other information the user did not intentionally publish.
+- **Private:** the same no-secrets rule still applies. Private Git is not a substitute for proper secret storage.
+
+Repository visibility must come from provider metadata, not prose. Changing visibility is a deliberate repository-owner action.
+
+## Release model
+
+Use semantic versions when tagging public releases:
+
+- `v0.1.0-beta.1` — first public beta after forensic repository audit, full CI, starter privacy/public-source audit, and a synthetic first-boot pass;
+- `v0.1.0` — first stable release after at least one clean real-user deployment from the public starter;
+- `v0.2.0` — backwards-compatible modules/onboarding behavior;
 - `v0.2.1` — bugfix-only release;
 - `v1.0.0` — stable compatibility contract after migrations/upgrade paths are proven.
 
+Feature branches are not installation targets. `main` is the public release-candidate/current release line only after CI and merge authority pass.
+
 ## Non-technical first boot
 
-The normal user should not need Git CLI knowledge or manually design databases.
+The normal user should not need Git CLI knowledge or database design.
 
-1. Start from a stable `Life-Ops-Starter` release in a private Git repository owned by the user.
-2. Connect that repository and whichever Drive/Sheets/Docs/Gmail/Calendar/finance services the user wants LifeOS to use.
+1. Fork the public upstream or use a clean audited starter snapshot.
+2. Connect the repository plus whichever Drive/Sheets/Docs/Gmail/Calendar/finance services they select.
 3. Run `starter/START_HERE.md`.
-4. First boot asks the four kickoff questions, offers optional modules, performs harmless connector reads, shows a concise private-resource provisioning plan, and requests one bounded approval for initial creation.
-5. After approval, setup creates or validates the user's canonical Sheets/Docs/folders/tables, writes sanitized policy/schema/tests/bootstrap to the private repository, and verifies remote/readback state.
-6. Establish one standing private-Git versioning authorization for later durable source changes.
-7. User-specific mutable data remains only in that user's selected live authorities. No other deployment's Sheet IDs, Gmail data, schedules, asset list, receipt IDs, aliases, financial data, or personal configuration are inherited.
-
-The user may understand the result without understanding Git branches, schema migrations, table normalization, or formulas. Hidden implementation complexity is acceptable; hidden external permissions or unapproved destructive actions are not.
+4. First boot asks four kickoff questions, performs the adaptive whole-life interview, recommends a Minimum Useful Setup, verifies dependencies with harmless reads, and requests one bounded provisioning approval.
+5. After approval, setup creates or validates that user's canonical resources, writes only durable source/configuration appropriate for that repository's visibility, and verifies remote/readback state.
+6. Establish standing Git versioning authorization if wanted.
+7. User-specific mutable data remains only in that user's selected live authorities.
 
 ## Deployment version record
 
-Every deployment should persist a small non-secret version record containing:
+Persist a small non-secret record containing:
 
-- `core_version`: starter semantic version;
-- `upstream_commit`: exact sanitized upstream commit/tag;
-- `schema_version`;
-- selected portable feature IDs and exact versions in `features.lock.json`;
+- `core_version` or pre-release snapshot identifier;
+- exact upstream commit/tag;
+- schema version;
+- selected portable feature IDs and versions in `features.lock.json`;
 - migration version/checksum state;
-- local deployment policy version.
+- local deployment policy version;
+- chosen repository visibility (`public` or `private`).
 
-Do not put mutable operational records or secrets in the version record.
+Never put mutable operational records or secrets in the version record.
 
-## Updating a user's deployment
+## Updating a deployment
 
-Upgrades are deliberate, reviewable changes:
-
-1. fetch/compare the next stable upstream tag;
-2. read release notes and migration declarations;
+1. fetch/compare the next audited upstream tag/commit;
+2. read release notes and migrations;
 3. run synthetic compatibility tests;
-4. apply idempotent migrations to a backup/test copy where required;
-5. open/update a deployment PR showing exactly what changes;
+4. apply idempotent migrations to a backup/test copy when required;
+5. review the source/configuration delta;
 6. verify CI and data migrations;
-7. merge only with that deployment owner's approval or standing merge policy.
+7. merge under that deployment owner's merge policy.
 
-Do not silently reset a user's deployment to upstream or overwrite private policy/configuration. Shared defaults never trump deployment-specific policy.
+Do not silently reset a deployment to upstream or overwrite deployment-specific policy/configuration.
 
-## Developing new portable features
+## Portable feature development
 
-Develop reusable features behind a branch/PR in the sanitized starter or copy a proven personal feature into a clean sanitized feature branch. A portable module must satisfy `SHARED_FEATURE_WORKFLOW.md`, the feature-manifest schema, privacy boundaries, and its own tests before a starter release can contain it.
+Portable modules follow `SHARED_FEATURE_WORKFLOW.md`: behavior, schemas, placeholders, synthetic fixtures, and tests may move between deployments; mutable personal data does not. Features can originate in any deployment, but the contribution exported upstream must pass privacy/public-source review before merge.
 
-Features may originate in any private deployment. Portable behavior is sanitized and versioned; personal state is never used as the feature distribution mechanism.
+## Production flow
 
-## Production deployment flow
-
-For any production deployment:
-
-1. develop on a short-lived feature branch;
-2. keep the integration PR open until tests and deployment parity pass;
-3. merge to production only under that deployment's merge policy;
-4. tag production releases when useful for recovery;
-5. extract only sanitized portable behavior into `Life-Ops-Starter` after it works in production;
-6. never use another user's private fork as automatic upstream authority.
+1. develop on a feature branch;
+2. keep incomplete multi-file checkpoints isolated from release CI when practical;
+3. run repository validation, public-source audit, starter privacy audit, root tests, runtime tests, and starter tests;
+4. open/ready the integration PR only when coherent;
+5. merge to `main` only under the repository owner's merge authority;
+6. verify the merge commit and main CI before calling the release healthy;
+7. never commit mutable state or secrets merely because the repository is public.

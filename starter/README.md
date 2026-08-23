@@ -1,42 +1,53 @@
-# Generic First-Boot Starter
+# Generic LyfeOS First-Boot Starter
 
-This reusable onboarding kit builds a new user's LyfeOS without copying the current user's data, schedules, accounts, assets, or rules. The human entry point is [`START_HERE.md`](START_HERE.md); JSON, templates, scripts, tests, and Git stay behind the interface.
+This reusable onboarding kit builds a new user's LyfeOS without copying the reference deployment's data, schedules, accounts, assets, or mutable state. The human entry point is [`START_HERE.md`](START_HERE.md); JSON, templates, tests, and Git stay behind the interface.
 
-## Stock product
+## Public distribution boundary
 
-Every first boot provisions three stock behaviours, configured to the user's named timezone and chosen cadence:
+`starter/` is the sanitized portable surface of the public upstream repository. A new user may fork the repository or copy an audited starter snapshot into a repository they control. Public or private deployment source is supported. In either case, secrets and mutable personal records never belong in Git.
+
+The current deployment elsewhere in the repository is a public reference implementation, not default configuration for a new user.
+
+## Stock capabilities
+
+First boot can configure, when useful:
 
 1. concise manual and scheduled briefs;
-2. one consolidated order/receipt lifecycle with shipment, delivery, exception, cancellation, replacement, return, and refund handling;
-3. a searchable, collapsible recipe library with a filterable title/ingredient/tag index;
-4. a conditional per-user HOME/ROAD layer for driving/travel/overnight roles, bypassed for non-travel work.
+2. one consolidated order/receipt lifecycle with shipment, delivery, exception, cancellation, replacement, return, refund, shopping-intent, and payment-reconciliation behavior;
+3. a searchable recipe/knowledge surface;
+4. conditional HOME/ROAD-style context for driving/travel/overnight/field roles;
+5. personal accountability/routines such as exercise and progression tracking;
+6. education/study planning, next-action selection, and home/away study variants;
+7. optional assets/manuals, Calendar Projection, household/reimbursement, and finance-related modules.
 
-These modules are stock; their accounts, exact times, notification mode, taxonomy, and retention rules are not assumed.
+Accounts, exact schedules, notification mode, taxonomy, repository visibility, and selected features are never inherited.
 
 ## First-boot workflow
 
-1. Ask only the four kickoff questions in `START_HERE.md`: name, authoritative timezone, exact job title/duties/shift/travel pattern, and exact brief/order cadence plus notification mode.
-2. Produce a Minimum Useful Setup and manual sample before optional discovery.
-3. Ask no more than four related follow-ups at a time from `questions.json`.
-4. Explain harmless connector reads, then verify connected email, calendar, Drive, Sheets, GitHub, and existing automations.
-5. Select or create a private repository and obtain one standing authorization for automatic durable versioning.
-6. Commit and push the sanitized initial policy, schema, tests, bootstrap, and recovery material; verify the remote head before enabling scheduled writes.
-7. Agree on one mutable-state authority and the smallest useful Drive hierarchy.
-8. Inspect active/paused tasks, show exact schedules/prompts, and obtain explicit approval for the initial automation mutations.
-9. Create/adapt policy and tests; keep scheduled prompts as tiny dispatchers.
-10. After standing Git authorization, automatically validate, commit, push, and remotely verify every lasting feature/schema/workflow/schedule/policy/onboarding change. Do not ask again whether to push.
+1. Ask only the four kickoff questions in `START_HERE.md`.
+2. Conduct the adaptive whole-life interview in small batches from `LIFE_INTERVIEW.md` and `questions.json`.
+3. Recommend a Minimum Useful Setup and show a manual sample before scheduled writes.
+4. Verify selected email, calendar, Drive/Sheets, GitHub, financial, and task dependencies with harmless reads.
+5. Record whether the user's Git repository is public or private. Public source must pass the public-source audit.
+6. Agree on one mutable-state authority and the smallest useful evidence/document hierarchy.
+7. Inspect existing scheduled tasks, show exact schedules/prompts, and obtain explicit approval for the initial automation mutations.
+8. Provision idempotently, verify every write/readback, and keep scheduled prompts as thin dispatchers.
+9. After standing Git authorization, automatically validate, commit, push, and remotely verify lasting source changes without repeated Git questions.
+10. Never treat green CI as proof of a scheduler repair until the next actual canonical-time firing/Run Log is observed.
 
 ## Boundaries
 
-- Never inherit another user's timezone, schedule, or mode state. Household members get separate controls even when evidence is shared.
-- Never create one automation per order. Consolidate checks and notifications at the chosen cadence.
-- Same-order revisions remain one transaction; true replacements use two linked Receipt IDs and never erase the original.
-- One recipe body may have many categories/tags; preserve searchable text and provenance instead of duplicating it.
-- Never request or commit passwords, tokens, keys, full card data, Gmail bodies, receipts, or mutable exports.
-- Automatic Git push does not authorize auto-merge, public publishing, releases, or force-pushes.
-- A cloud task cannot reach an unconnected private device or LAN service without an explicit bridge.
-- User-facing Drive navigation must use readable native surfaces, not raw HTML/JSON/Markdown cards.
+- Never inherit another user's timezone, schedule, mode state, accounts, aliases, assets, receipt history, authority IDs, or mutable records.
+- Never create one automation per order, routine, assignment, or calendar item when a dispatcher can resolve due state.
+- Same-order revisions remain one transaction; true replacements use linked Receipt IDs.
+- Never request or commit passwords, tokens, keys, full card data, Gmail bodies, receipts, account exports, or mutable operational data.
+- Automatic Git push does not imply merge/release/force-push authority unless the repository owner explicitly grants it.
+- A cloud task cannot reach an unconnected private device or LAN service without an authorized bridge.
+- User-facing Drive navigation stays native/readable rather than raw developer artifacts.
+- Completion of exercise, study, tasks, or orders must come from user confirmation or connected evidence, never silence.
 
 ## Developer/recovery layer
 
 A developer may copy `config.example.json` to untracked `config.local.json` and render `INSTRUCTIONS.md.tmpl` with `scripts/bootstrap.py`. Durable facts belong in policy/schema/tests; mutable facts stay in the authoritative state store.
+
+See `VERSIONING.md` for public fork/snapshot/release rules and `DEPENDENCIES.md` for provider setup and scheduler integrity.
