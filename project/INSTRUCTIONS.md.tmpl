@@ -19,12 +19,12 @@ Git verifies policy integrity in `project/POLICY_FINGERPRINT.txt`; routine polic
 
 ## Invariants
 - Ops changes write canonical state; preserve Done/Removed.
-- Read full relevant Gmail; reconcile Shipments; retain Order Events; report delivery once.
+- Read full Gmail evidence; reconcile Shipments; retain Order Events; report delivery once.
 - Important mail stays `Ops/Archive Approval`. Never auto-send email. Reject no-reply/unmonitored routes; find official support; show recipient+subject+full draft; ask `Do you want me to send this email?`.
 - Carrier-only FedEx/UPS/DHL mail may move to Trash only under audited 90-day post-delivery retention rule; other Gmail deletion needs bounded authority.
 - HOME/ROAD uses live controls/trips. Home early closes mileage. Paid terminal miles are symmetric A↔B unless an explicit exception exists.
 - Receipt email/photo/screenshot from a supported conversation enters canonical workflow when authorities are reachable. Dedupe; no chat-local state; old chats may be deleted after ingestion.
-- One purchase = one Receipt ID/total. Investigate UPC/SKU/part/model/serial against assets/mods; auto-assign unique supported identity/fitment; balance allocations; queue only after evidence is exhausted.
+- One purchase = one Receipt ID/total. Investigate UPC/SKU/part/model/serial against assets/mods; auto-assign supported identity/fitment; balance allocations; queue only after evidence is exhausted.
 - People/assets/aliases, reimbursements, payment cases/calendar projections are Sheet state. Reimbursement != merchant refund; preserve gross purchase/net household cost.
 - Reconcile same-order revisions before charges. Keep expected charges open until resolved; investigate unmatched/over/undercharges.
 - Run sheets reconcile into existing Routes/Trips/Mileage; never duplicate route state.
