@@ -57,22 +57,25 @@ Required only for calendar reads or selected Calendar Projection classes. Verify
 
 Scheduled Tasks are optional unless the user wants recurring briefs, digests, accountability check-ins, or condition watches.
 
-Treat timezone configuration as a two-part dependency:
+Treat scheduling as an evidence chain, not as one timezone-looking string:
 
 1. **Schedule definition:** the visible schedule/VEVENT uses the user's canonical IANA timezone and requested local time.
-2. **Provider execution timezone:** after create/update, read the task back and verify the scheduler's stored/default/execution timezone also equals that same canonical IANA timezone.
+2. **Dispatcher state:** exactly the intended job is enabled, its timing mode is correct, and there are no active duplicates.
+3. **Notification state:** any push/email delivery the user expects is enabled.
+4. **Observed execution:** after setup or repair, an actual firing/run-log timestamp lands in the intended canonical local slot.
 
-A task is **not** healthy merely because its RRULE contains the desired TZID. If the provider silently stamps the current travel/device timezone, current location has leaked into scheduling authority.
+A connector field called `default_timezone` is not automatically proof of the scheduler's stored execution timezone. Some connector/tool readbacks may expose the current session/device/travel timezone. Treat that field as authoritative only when the provider contract explicitly says it is persistent task execution state. Never chase a travel-local metadata value by recreating otherwise correct tasks.
 
 Provisioning rules:
 - Show the sample output and exact intended schedule before the first task write.
 - Snapshot existing tasks before consolidation or replacement.
-- After every create/update, verify title, enabled state, cadence, local time, TZID, provider execution timezone, and duplicate count.
-- If provider execution timezone differs from canonical timezone and the available task API/UI does not expose a reliable setter, fail closed for the scheduled module. Preserve the desired schedule in policy/state, keep unrelated manual workflows working, and give the user the exact Scheduled-page/platform correction required.
-- Never compensate by inventing hidden hourly retry jobs, AM/PM child jobs, per-order jobs, or a travel-location-specific schedule that will break on the next trip.
-- After a timezone repair, require readback showing the canonical execution timezone and verify the next actual firing/run-log timestamp before clearing the incident.
+- Prefer editing the existing notification-capable canonical dispatcher over replacing it.
+- After every create/update, verify title, enabled state, cadence, local time, TZID, timing mode, required notification state, and duplicate count.
+- If replacement is unavoidable, verify the new job can notify before disabling the previous known-good dispatcher.
+- After a scheduler repair, require the next actual firing/run-log timestamp before declaring the incident cleared.
+- If the intended slot is missed despite healthy readback, fail closed for scheduler maintenance, preserve manual workflows/canonical state, and issue the Pants Filling With Shit Report. Do not spin up hidden hourly retry jobs, AM/PM child jobs, per-order jobs, or travel-location-specific compensating schedules.
 
-Being offline or outside a work context is not itself a reason for a server-side Scheduled Task to stop. Context modes affect content; they must not redefine the canonical scheduler timezone.
+Scheduled Tasks are server-side and are intended to execute whether or not the user currently has ChatGPT open. Merely leaving ChatGPT Work or changing HOME/ROAD mode is not a scheduling-state change. Deleting the associated task/chat, platform pausing, notification settings, usage limits, or a scheduler/runtime fault are separate conditions to diagnose.
 
 ## Financial accounts
 
@@ -86,4 +89,4 @@ Optional workflows may use a NAS, home server, phone-local store or LAN-only ser
 
 Before provisioning, show each dependency as: required module(s); read verified / write verified / missing / partial; exact next action; whether unrelated onboarding can continue.
 
-Do not enable scheduled writes for a module until its authorities, scheduler-timezone integrity, and private-Git recovery path are verified.
+Do not enable scheduled writes for a module until its authorities, schedule/notification checks, and private-Git recovery path are verified; do not call a scheduler repair complete until the next real firing proves it.
