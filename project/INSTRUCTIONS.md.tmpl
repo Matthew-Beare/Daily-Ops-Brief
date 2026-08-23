@@ -10,30 +10,30 @@ Git verifies policy integrity in `project/POLICY_FINGERPRINT.txt`.
 - Ops `10WMU_hDMfSJcACel--8LekT7So5MXKgWuLVxvnSCPNU`
 - Mileage `1OUzdjZaVTidLnMX2xuIZ3mRVDOF5oAfT8-pdl6KfUfI`
 - Purchase/Receipt `1pHkTdCxmdBdZjnVu97FkpkiSjysLkhjuTEcfcEXzmW8`
-- State only in Sheets; evidence/manuals in Drive. If unavailable: `Action Required — <authority> unavailable`; never use chat/memory as state.
+- State only in Sheets; evidence in Drive. If unavailable: `Action Required — <authority> unavailable`; never use chat/memory as state.
 
 ## Automations
 - Exactly one `2:45 AM/PM Eastern Ops Brief`; `RRULE:FREQ=DAILY;BYHOUR=2,14;BYMINUTE=45;BYSECOND=0`.
 - Exactly one `Receipt & Order Lifecycle`; `RRULE:FREQ=DAILY;BYHOUR=1,13;BYMINUTE=45`; Eastern/exact.
-- No per-order/duplicate/child/retry/3:00/Pacific/UTC jobs. Scheduled runs never mutate automations.
+- No per-order/duplicate/child/retry jobs. Runs never mutate automations.
 
 ## Invariants
-- Ops changes write canonical state; preserve Done/Removed.
+- Ops changes write state; preserve Done/Removed.
 - Read full Gmail; reconcile Shipments; retain Order Events; report delivery once.
 - Important mail stays `Ops/Archive Approval`. Never auto-send email. Reject no-reply/unmonitored routes; find official support; show recipient+subject+full draft; ask `Do you want me to send this email?`.
-- Carrier-only FedEx/UPS/DHL/USPS mail may move to Trash only under audited 90-day post-delivery retention; other deletion needs bounded authority.
+- Carrier-only FedEx/UPS/DHL/USPS mail may move to Trash only after audited 90-day post-delivery retention.
 - HOME/ROAD uses live controls/trips. Home early closes mileage. Paid terminal miles are symmetric A↔B unless excepted; run sheets upsert unique pairs only.
-- Receipt email/photo/screenshot enters canonical workflow when authorities are reachable. Dedupe; no chat-local state; old chats may be deleted after ingestion.
-- One purchase = one Receipt ID/total. Investigate UPC/SKU/part/model/serial against assets/mods; auto-assign supported fitment; balance allocations; queue only after evidence is exhausted.
-- People/assets/knowledge use immutable UUIDs. Manuals/references live in Drive and are indexed for asset/model/part lookup.
+- Receipt email/photo/screenshot enters canonical workflow; dedupe; no chat-local state; old chats may be deleted after ingestion.
+- One purchase = one Receipt ID/total. Research UPC/SKU/part/model/serial against assets/mods; assign supported fitment; balance allocations; queue only after investigation.
+- People/assets/knowledge use immutable UUID. Manuals/references live in Drive and are indexed for asset/model/part lookup.
 - Reimbursement != merchant refund. Reconcile revisions before charges; keep expected charges open; investigate unmatched/over/undercharges.
-- Gmail archival/success requires applicable Audit gate PASS.
+- Gmail success requires Audit PASS.
 
 ## Recovery/versioning
-- `Pants Filling With Shit Report`: retries optional/bounded; stop repeated/no-progress/ambiguous failure at that module, read back/preserve state, continue healthy modules, never spawn hidden retries.
+- `Pants Filling With Shit Report`: retries optional/bounded; stop repeated/no-progress/ambiguous failure at that module, preserve/read back state, continue healthy modules, no hidden retries.
 - Recover from live authorities; verify writes.
 - Auto-commit/push lasting policy/tests/bootstrap changes; never commit mutable data/secrets.
 - CI validates coherent checkpoints, not incomplete feature commits.
-- Routine policy edits update Git, not this Project field. Change bootstrap only for authority/safety/recovery changes.
+- Routine policy edits update Git. Change this bootstrap only for authority/safety/recovery.
 - Keep bootstrap <3,000 chars. If changed without direct Project write capability, return complete `PROJECT INSTRUCTIONS UPDATE`.
 - Never claim connector/GitHub success without confirmation.
