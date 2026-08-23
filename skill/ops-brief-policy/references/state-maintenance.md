@@ -1,91 +1,90 @@
 # Ops State and Automation Maintenance
 
-Load this reference completely before changing task, control, mode, mileage, automation, or other persistent Ops state. Preserve Sheet identity, headers, validation, row formatting, and history.
+Load this reference completely before changing task, control, mode, mileage, automation, calendar-projection, or other persistent Ops state. Preserve Sheet identity, headers, validation, row formatting, provenance and history.
 
-## Global capture from any conversation
+## Global capture from supported conversations
 
-- Treat any clear request to add, update, complete, pause, or remove something from the `Daily Brief`, `Ops Brief`, `Ops list`, or equivalent named project as a command to update the canonical Ops Status Register immediately. This applies from any Chat, Work, project, supported voice, or dictation surface.
-- Do not leave an Ops change only in chat memory, a project-local note, a prompt, or a second database. The live Sheet is the acknowledgement boundary.
-- For normal task additions, ask only for a missing required Tier or Classification. For Persistent additions, ask only for a missing Classification. Apply unambiguous updates and completions without reconfirming.
-- If the connected Sheet cannot be reached or written from the current surface, say that the change was not persisted. Never claim success based on conversational memory.
-- Keep unrelated reminders outside this system unless the user explicitly names the Daily Brief/Ops destination.
+- A clear request to add/update/complete/pause/remove something from the named Daily/Ops system is a command to update the canonical Ops Status Register immediately when that authority is reachable from the current surface.
+- Chat is an intake surface, not an authority. Never leave a durable Ops change only in chat memory, a project-local note, prompt, or second database.
+- If a required connected Sheet/app cannot be reached or written from the current conversation, say the change was not persisted. Never claim account-wide interception of every ChatGPT conversation.
+- For guaranteed LifeOS receipt/state ingestion, use a conversation where the configured project/skill and write-capable authorities are actually available. Global Custom Instructions may identify intent across chats but do not manufacture missing connector/tool access.
 
 ## Tasks
 
-- Apply additions, completions, removals, pauses, renames, tier/classification changes, scheduling, and visibility directly to the existing Ops Status Register.
-- Mark completion `Done` and removal `Removed`; never delete rows or infer completion from silence.
-- A normal task requires Tier `High`, `Medium`, or `Low`, plus Classification.
-- A `Persistent` task requires Classification and no priority.
-- Ask only for a missing required field; never guess Classification.
+- Apply additions, completions, removals, pauses, renames, tier/classification changes, scheduling and visibility directly to the existing Ops Status Register.
+- Mark completion `Done` and removal `Removed`; never delete task history or infer completion from silence.
+- Ask only for a genuinely missing required field.
 
 ## Mode overrides
 
-Use only Control type `Mode Override`; Vacation and Home early are `Item` values, not separate engines.
+Use Control type `Mode Override`; Vacation and Home early are `Item` values.
 
-- For an unambiguous “got home early” statement, run `python3 scripts/ops_policy_runtime.py home-early --now <current-Eastern-ISO> --pretty`, then add or update the `Home early` row from `sheet_fields`. Reuse the active row or allocate the next stable `CTRL-###`. Do not ask for priority/classification.
-- `Home early` starts immediately and remains HOME through the next Friday 2:45 PM brief. Its exclusive expiry is Friday 3:00 PM Eastern, giving the scheduled 2:45 PM run enough execution grace. A later explicit work departure may start the next work cycle after the override expires.
-- When Home early is confirmed, close current work-cycle mileage accrual at the confirmed home-arrival time and mark the final active leg `Arrived` when the user's statement supports that transition. Do not fabricate an arrival time or company-paid miles.
-- For vacation or another temporary HOME interval, create a HOME Mode Override with an explicit Eastern start and exclusive expiry. Ask only when a required boundary is materially ambiguous.
-- Never manually clear an expired override; the engine ignores it.
+- For an unambiguous “got home early” statement, run `python3 scripts/ops_policy_runtime.py home-early --now <current-Eastern-ISO> --pretty`, then upsert the returned Home early control row.
+- Home early starts immediately, closes the current work-cycle mileage accrual at supported HOME arrival, and remains HOME through the next Friday 2:45 PM brief; runtime uses exclusive Friday 3:00 PM Eastern expiry.
+- Mark a final active leg Arrived only when the user's statement/evidence supports it. Never fabricate arrival time or miles.
+- Expired overrides are ignored by the engine rather than manually erased.
 
 ## Mileage and pay
 
-- Log only company-paid miles stated by the user or shown by credible company/settlement evidence. Never substitute map, odometer, route, or estimated distance.
-- Treat a work cycle as the actual sequence of paid dispatch legs from the first work departure until confirmed HOME arrival. It normally closes Wednesday PM but closes earlier when the user reports Home early. Thursday is reporting-only unless a real paid leg is explicitly recorded after HOME.
-- The Thursday `Week Ending` remains the reporting/grouping bucket. It is not permission to keep accruing phantom miles after the user is HOME.
-- Every actual dispatch leg gets its own Trip ID and mileage entry. Never assume the first outbound destination returns directly to the home terminal. Example: Morristown → Rialto, Rialto → Phoenix, Phoenix → Dallas, and Dallas → another terminal are separate legs whose paid miles are aggregated into the same work-cycle/reporting bucket when applicable.
-- Start the next cycle with the next actual work departure/first new paid leg, normally Friday. Do not pre-create mileage for a planned leg whose company-paid miles are unknown.
-- Use a stable `MILE-###` row with Thursday week ending, Trip ID, route, departure/arrival, endpoints, company-paid miles, miles source, status, notes, and update timestamp.
-- For a new actual entry, replace that row's rate formula with the current numeric `Rate per mile` value so historical pay remains frozen when the default changes.
-- Gross estimate equals company-paid miles times that row's frozen rate.
-- Use `Planned`, `Estimated`, `Final`, or `Voided`. Correct or void in place; never delete history. Settlement evidence outranks an earlier estimate.
-- On both Thursday briefs, render the engine's mileage summary even though mode is normally HOME. If a known completed/active paid leg lacks company-paid mileage, ask only for the missing company-paid miles.
+- Log only company-paid miles stated by the user or credible company/settlement/run-sheet evidence. Never substitute map, odometer or estimated distance.
+- A work cycle is the actual sequence of paid dispatch legs from work departure through confirmed HOME arrival. It normally closes Wednesday PM or earlier; Thursday is reporting-only unless a real paid leg is explicitly recorded after HOME.
+- Every real dispatch leg gets its own Trip ID and Mileage Log occurrence. Never assume the first outbound destination returns directly home.
+- Use stable `MILE-###` rows and preserve corrections/voids in place. Settlement evidence outranks estimates.
+- Freeze the applicable rate on each historical mileage row so future rate changes do not rewrite prior gross estimates.
 
-## Routes, terminal pairs, trips, and watches
+## Routes, terminal pairs, trips and imported run sheets
 
-Read `references/route-weather.md` before changing any route, trip, runtime, departure, ETA, location, arrival, or watch. Write explicit changes immediately; never rely on conversational memory.
+Read `references/route-weather.md` before changing route/trip/runtime/departure/ETA/location/arrival/watch state.
 
-- `Routes` is the learned terminal-pair database. Store route geometry/runtime and company-paid mileage separately for A → B and B → A.
-- `Paid Miles A → B` and `Paid Miles B → A` are independent facts, each with its own `Miles Source`. Never mirror, average, or infer the reverse company's paid mileage from the known direction or from map distance.
-- A reverse route geometry/runtime may use an explicitly documented fallback when no reverse observation exists, but the paid-mile fields may not.
-- When a user/company source provides a terminal-pair paid mileage, update the matching directional Route field and still write the actual Trip/Mileage Log entry. The Route row is learned reusable knowledge; the Mileage Log is the auditable occurrence used for pay.
-- If terminal codes or endpoint identities are ambiguous, preserve the known code/location and ask rather than merging two terminals based only on similar names.
+- `Routes` is the learned reusable terminal-pair database; `Trips` and Mileage Log are occurrence history. Never create a parallel route database for an employer/shared run sheet.
+- **Standing paid-mile rule:** company-paid terminal mileage is symmetric by terminal pair. Once A↔B is reconciled, write/use the same paid-mile value in both `Paid Miles A → B` and `Paid Miles B → A`, unless the user later gives an explicit exception for that pair.
+- Route geometry/runtime may remain directional even when paid miles are symmetric.
+- A shared/employer run sheet is an evidence source. Reconcile/upsert into existing Routes/Trips/Mileage using the strongest stable source/date/terminal/run identifiers; do not duplicate an occurrence already represented.
+- Historical source variants and obvious human-entry errors remain provenance. For a reusable Route value, prefer explicit user/company corrections, then current/latest consistent evidence, then a strong repeated/modal value. Material conflicts that cannot be reconciled must be surfaced rather than silently averaged.
+- When a paid-mile pair is learned, update the reusable Route record and still record the actual Trip/Mileage occurrence when that leg happened.
+- Preserve terminal codes when location identity is unknown; enrich later rather than guessing a city from a similar code.
+
+## Calendar projection state
+
+- `Calendar Projection` is the dedupe/link table for optional projections from canonical LifeOS state to Google Calendar.
+- Calendar projection is opt-in by event type. Never assume that enabling appointments also enables deliveries, work travel, trials, bills, deadlines or tasks.
+- Each projected event stores source type/source ID plus Google Calendar event ID so revisions update the existing event instead of creating duplicates.
+- If source state changes (delivery ETA, cancellation, reschedule), update/cancel the linked event according to that user's selected policy. Calendar is a presentation/scheduling surface; the underlying Sheet remains authoritative.
+- Do not create a new automation per calendar event.
 
 ## Inbox and shipment maintenance
 
-Read `references/email-reconciliation.md` before processing order mail, changing the active shipment queue, filing order threads, acting on `Is it OK to archive these emails?`, or deleting email. Important-email silence leaves the queue unchanged. Delete only the specific email or bounded set the user explicitly names.
+Read `references/email-reconciliation.md` before order-mail processing, shipment mutations, Gmail filing, archive approval or deletion. The standing 90-day FedEx/UPS/DHL carrier-retention exception lives there; all other Gmail deletion still requires explicit bounded authority.
 
 ## Automation maintenance
 
-- Keep the scheduled prompt a dispatcher, not a policy copy. The canonical prompt is: `Use $ops-brief-policy to run the Daily Ops Brief for the current America/New_York slot. Use AM before noon and PM at or after noon; the PM brief is my morning brief. Return only the brief.`
-- Use the title `2:45 AM/PM Eastern Ops Brief`.
-- Keep one exact schedule with `TZID=America/New_York`, `default_timezone=America/New_York`, and `RRULE:FREQ=DAILY;BYHOUR=2,14;BYMINUTE=45;BYSECOND=0`. Set `DTSTART` to the next applicable 2:45 local occurrence.
-- For ordinary prompt or schedule changes, update the existing canonical job in place.
-- Identify the canonical Ops Brief job by the combined title, the twice-daily 2:45 Eastern rule, and an `$ops-brief-policy` invocation. Treat legacy AM-only or PM-only jobs as migration candidates, not additional required schedules. If more than one plausible combined job is active, stop before mutation and report the conflict.
-- To consolidate a healthy legacy AM/PM pair without burning another active task slot, use this transaction:
-  1. Snapshot the exact legacy job IDs, prompts, schedules, titles, timezones, and enabled states.
-  2. Before mutation, harmlessly read both Sheet metadata/ranges, the Gmail account profile or labels, and the Calendar profile or calendar list. If any dependency is unavailable, stop and report `Action Required — <dependency> unavailable.`
-  3. Update one healthy legacy job in place to the canonical combined title, prompt, schedule, and timezone.
-  4. Re-inspect and verify that updated job before pausing the other active legacy Ops Brief job.
-  5. Re-inspect and verify exactly one active Ops Brief automation with the canonical fields.
-  6. If any update, pause, or verification fails, restore every snapshotted job to its former fields and enabled state, re-inspect once, and report the rollback result.
-- When the user explicitly requests a clean rebuild because the job or its chat context is stuck/bloated, snapshot every active Ops Brief job, verify dependencies, pause them, create one fresh canonical combined job, and verify exactly one active canonical job. If creation or verification fails, pause the new job, restore every old job to its snapshotted fields and enabled state, re-inspect once, and report the rollback result.
-- Never create AM/PM child jobs, supporting scheduled jobs, retries, or duplicate schedules. Segment workflow inside the skill references instead.
-- A scheduled run must not edit, create, duplicate, reschedule, inspect, or repair automations.
+- Keep the scheduled prompt a thin dispatcher, not a policy copy.
+- Keep exactly one active combined `2:45 AM/PM Eastern Ops Brief` and exactly one active consolidated Receipt & Order Lifecycle schedule.
+- Scheduled runs never inspect/mutate automation definitions.
+- For ordinary changes, update the existing canonical job in place and verify it.
 
-## Repository and project-instruction synchronization
+To consolidate a healthy legacy AM/PM pair without burning another active task slot, use this transaction:
+1. snapshot exact legacy job IDs/prompts/schedules/titles/timezones/enabled states;
+2. harmlessly verify required authorities;
+3. convert one healthy job into the canonical combined schedule;
+4. verify it before pausing the other legacy job;
+5. re-inspect and require exactly one active canonical job;
+6. on failure restore the snapshot and verify rollback.
 
-- Treat the configured private Daily-Ops-Brief repository as the sole source of truth for lasting policy, code, tests, recovery material, and bootstrap contracts. Its version-controlled `project/INSTRUCTIONS.md.tmpl` is the complete ChatGPT Project bootstrap contract.
-- Treat the installed skill as a deployed runtime copy of the committed repository source, never as a competing authority. If it diverges, the repository wins and the skill must be redeployed from the verified commit.
-- The user's standing authorization covers scoped commits and pushes of non-secret policy, schema, tests, onboarding, recovery, and bootstrap files to the configured private repository. After every lasting policy, schema, workflow, authority, schedule, onboarding, or output-contract change, update the repository source and tests, refresh the fingerprint/template, validate, commit, push, verify the remote head and CI, then deploy and verify the installed skill without asking for a separate Git confirmation. Temporary Sheet state does not trigger a repository write because the Sheets are already the sole mutable-data authorities.
-- Never auto-merge a pull request, make a repository public, publish a release, or commit mutable Sheet exports, Gmail content, receipts, credentials, tokens, keys, or full payment data without separate explicit authority.
-- If the configured repository or GitHub write path is unavailable, preserve the validated local change and report `Action Required — repository synchronization unavailable`; never claim the lasting change is fully saved.
-- If the project-instructions contract changed, return the entire rendered replacement under the exact heading `PROJECT INSTRUCTIONS UPDATE`; never return a partial patch or make the user splice text.
-- If the project-instructions contract did not change, state `Project instructions unchanged.`
-- Do not claim that repository code silently changed the ChatGPT Project instruction field. Code versions, renders, and verifies the replacement; the user must paste it unless the current surface exposes an explicit project-instructions write tool.
+Never create AM/PM child jobs, hidden retries, per-order jobs or support schedules.
+
+## Repository and Project-instruction synchronization
+
+- Treat the configured private Daily-Ops-Brief repository as the **sole source of truth** for lasting policy, code, tests, onboarding, schemas and recovery contracts. The installed skill is a **deployed runtime copy**, never a competing authority.
+- Standing authorization covers scoped commits/pushes of non-secret durable changes without asking for a separate Git confirmation. Mutable Sheets/Gmail/calendar/account data never belongs in source control.
+- Never auto-merge, publish publicly, force-push, commit secrets, or export mutable personal state without separate explicit authority.
+- The ChatGPT Project-instructions field is not writable from every surface. Repository code must never claim it silently changed that UI field.
+- Prefer a **stable bootstrap contract** in the Project instructions: fixed authorities, safety boundaries and repo/skill indirection. Routine policy/feature changes should update Git/skill without changing the Project field. Change the Project bootstrap only when its actual authority/safety/recovery contract changes.
+- When the Project bootstrap genuinely changes and no direct Project-instructions write tool exists, return the full replacement under `PROJECT INSTRUCTIONS UPDATE`; never make the user splice a patch.
+- If Git write/verification is unavailable, report `Action Required — repository synchronization unavailable` and do not claim the lasting change is fully saved.
 
 ## Continuation and recovery
 
-Treat clear equivalents of “continue Daily Briefs,” “we’re here now,” “the old thread got too long,” or “pick up the briefs here” as bootstrap commands. Inspect the automation list and both live Sheets, apply the routing above, and continue without making the user restate prior state.
+Clear equivalents of “continue Daily Briefs,” “old chat is gone,” or “pick this up here” are bootstrap commands. Re-read canonical authorities and continue without requiring prior chat history.
 
-When a newly available capability would materially improve reliability or maintenance, surface one concise `OPTIONAL UPGRADE` with benefit and tradeoff. Never install, connect, or migrate without approval.
+When a newly available capability would materially improve reliability or maintenance, surface one concise `OPTIONAL UPGRADE` with benefit/tradeoff. Never install/connect/migrate a new external service without approval.
