@@ -50,7 +50,7 @@ Read `references/route-weather.md` before changing route/trip/runtime/departure/
 - `Calendar Projection` is the dedupe/link table for optional projections from canonical LifeOS state to Google Calendar.
 - Calendar projection is opt-in by event type. Never assume that enabling appointments also enables deliveries, work travel, trials, bills, deadlines, routines, study sessions or tasks.
 - Each projected event stores source type/source ID plus Google Calendar event ID so revisions update the existing event instead of creating duplicates.
-- If source state changes (delivery ETA, cancellation, reschedule), update/cancel the linked event according to that user's selected policy. Calendar is a presentation/scheduling surface; the underlying Sheet remains authoritative.
+- If source state changes, update/cancel the linked event according to that user's selected policy. Calendar is a presentation/scheduling surface; the underlying Sheet remains authoritative.
 - Do not create a new automation per calendar event.
 
 ## Inbox and shipment maintenance
@@ -63,11 +63,11 @@ Read `references/email-reconciliation.md` before order-mail processing, shipment
 - Keep exactly one active combined `2:45 AM/PM Eastern Ops Brief` and exactly one active consolidated Receipt & Order Lifecycle schedule.
 - Scheduled runs never inspect/mutate automation definitions.
 - The canonical timezone is scheduling authority. Current device/location/travel timezone and HOME/ROAD mode are context only.
-- Do not delete a chat that currently anchors an active Scheduled Task. OpenAI Scheduled Tasks may pause when their associated chat is deleted. Durable operational content must still live outside chat, but the active task anchor itself is a platform dependency until the task is retired or deliberately migrated.
+- Do not delete a chat that currently anchors an active Scheduled Task. Durable operational content still lives outside chat, but the active task anchor is a platform dependency until retired or deliberately migrated.
 
 ### Scheduler integrity gate
 
-A visible `TZID=America/New_York` or correct RRULE is necessary but not sufficient, but neither is a connector field merely named `default_timezone` automatically authoritative. Scheduler health is an evidence chain.
+A visible `TZID=America/New_York` or correct RRULE is necessary but not sufficient. A connector field merely named `default_timezone` is not automatically authoritative. Scheduler health is an evidence chain.
 
 Before any automation create/update/consolidation:
 1. read the canonical IANA timezone from policy/state;
@@ -78,11 +78,11 @@ Before any automation create/update/consolidation:
 After every automation create/update:
 1. read the task back from the provider;
 2. verify exact title, enabled state, cadence/local clock time/RRULE, intended TZID, timing mode, required notification state, and duplicate count;
-3. treat `default_timezone` or similar metadata as execution authority only when the provider/tool contract explicitly says it is persistent task execution state. A value that follows current travel/device/session location is diagnostic context, not proof by itself;
+3. treat `default_timezone` or similar metadata as execution authority only when the provider/tool contract explicitly says it is persistent task execution state. Travel/device/session location is diagnostic context, not proof;
 4. require exactly one active canonical job of each required type and no active child/retry/legacy duplicates;
 5. require the next actual firing or canonical Run Log evidence to land in the intended canonical local slot before declaring a scheduler incident cleared.
 
-For the Ops Brief dispatcher, the first external mutation of every scheduled run should upsert its canonical Run Log row as `Running` with Started (ET) before other module work. At completion, update that same row. This separates “scheduler never entered” from “scheduler entered and a downstream module failed.”
+For the Ops Brief dispatcher, the first external mutation of every scheduled run should upsert its canonical Run Log row as `Running` with Started (ET) before other module work. At completion, update that same row. This separates “scheduler never entered” from “scheduler entered and downstream work failed.”
 
 Do not report a timezone/scheduler repair successful from VEVENT text, a `default_timezone` label, or notification configuration alone.
 
@@ -112,11 +112,12 @@ Never create AM/PM child jobs, hidden retries, per-order jobs or support schedul
 
 ## Repository and Project-instruction synchronization
 
-- Treat the configured private Daily-Ops-Brief repository as the **sole source of truth** for lasting policy, code, tests, onboarding, schemas and recovery contracts. The installed skill is a **deployed runtime copy**, never a competing authority.
+- Treat the configured Git repository as the **sole source of truth** for lasting policy, code, tests, onboarding, schemas and recovery contracts. The installed skill is a deployed runtime copy, never a competing authority.
+- Repository visibility is an explicit owner choice verified from provider metadata. Public source requires the public-source audit to pass; private source follows the same no-secrets rule.
 - Standing authorization covers scoped commits/pushes of non-secret durable changes without asking for a separate Git confirmation. Mutable Sheets/Gmail/calendar/account data never belongs in source control.
-- Never auto-merge, publish publicly, force-push, commit secrets, or export mutable personal state without separate explicit authority.
+- Never change repository visibility, merge/release outside configured authority, force-push, commit secrets, or export mutable personal state by implication.
 - The ChatGPT Project-instructions field is not writable from every surface. Repository code must never claim it silently changed that UI field.
-- Prefer a **stable bootstrap contract** in the Project instructions: fixed authorities, safety boundaries and repo/skill indirection. Routine policy/feature changes should update Git/skill without changing the Project field. Change the Project bootstrap only when its actual authority/safety/recovery contract changes.
+- Prefer a stable bootstrap contract in Project instructions: fixed authorities, safety boundaries and repo/skill indirection. Routine policy/feature changes should update Git/skill without changing the Project field. Change the bootstrap only when its authority/safety/recovery contract changes.
 - When the Project bootstrap genuinely changes and no direct Project-instructions write tool exists, return the full replacement under `PROJECT INSTRUCTIONS UPDATE`; never make the user splice a patch.
 - If Git write/verification is unavailable, report `Action Required — repository synchronization unavailable` and do not claim the lasting change is fully saved.
 
