@@ -5,7 +5,7 @@ description: Run and maintain the user's Daily Ops Brief control room using the 
 
 # Ops Brief Policy
 
-Keep mutable state in the two live Sheets, lasting policy/code/tests/bootstrap in the configured private Git repository, and scheduled prompts limited to slot selection. The installed skill is a deployed runtime copy, not a second policy authority. Never copy the mutable task, route, trip, mileage, suppression, override, shipment, or run-log database into prompts, instructions, memory, or another file.
+Keep mutable state in the live Sheets, lasting policy/code/tests/bootstrap in the configured private Git repository, and scheduled prompts limited to slot selection. The installed skill is a deployed runtime copy, not a second policy authority. Never copy the mutable task, route, trip, mileage, suppression, override, shipment, or run-log database into prompts, instructions, memory, or another file.
 
 ## Authority
 
@@ -13,10 +13,11 @@ Keep mutable state in the two live Sheets, lasting policy/code/tests/bootstrap i
 - Ops Status Register: `https://docs.google.com/spreadsheets/d/10WMU_hDMfSJcACel--8LekT7So5MXKgWuLVxvnSCPNU/edit`.
 - Mileage & Pay Tracker: `https://docs.google.com/spreadsheets/d/1OUzdjZaVTidLnMX2xuIZ3mRVDOF5oAfT8-pdl6KfUfI/edit`.
 - Purchase & Receipt Archive: `https://docs.google.com/spreadsheets/d/1pHkTdCxmdBdZjnVu97FkpkiSjysLkhjuTEcfcEXzmW8/edit`.
-- Deployed engine: `scripts/ops_policy.py`.
+- Deployed runtime engine: `scripts/ops_policy_runtime.py`; it wraps `scripts/ops_policy.py` until the hardened behavior is folded into the base engine.
 - Deployed shipment reconciler: `scripts/reconcile_shipments.py`.
 - The `Shipments` tab is an active queue only. Durable purchase and lifecycle history belongs in the Purchase & Receipt Archive; Gmail remains the source evidence.
-- If either Sheet is unavailable, report `Action Required — <sheet name> unavailable.` Never substitute remembered or previously rendered state.
+- If the Ops Status Register is unavailable, report `Action Required — Ops Status Register unavailable.` Never substitute remembered or previously rendered mutable state.
+- Mileage/pay failure is section-scoped. It never destroys an otherwise valid brief; on Thursday emit `Action Required — mileage/pay Sheet unavailable` and continue other sections.
 
 ## Route the request
 
@@ -32,14 +33,17 @@ Keep mutable state in the two live Sheets, lasting policy/code/tests/bootstrap i
 - Keep exactly one active Ops Brief automation. It dispatches at both 2:45 AM and 2:45 PM Eastern; the PM brief is the user's “morning” brief.
 - Never revive 3:00 AM/PM, Pacific, UTC-shifted, noon, midnight, duplicate, or extra Ops Brief schedules.
 - Keep each scheduled run single-purpose: render one brief and record one deterministic Run Log result.
+- Mode precedence is: live unexpired explicit Mode Override, then an active trip forces ROAD, then the weekly default. Expired overrides are ignored.
 - Never hard-code task-specific exceptions; use the live row fields and engine result.
 - Never display appointment-confirmation state. It is hidden anti-nag state only.
 - Appointment reminders are mode-independent: Saturday 2:45 AM previews the next seven calendar days (Saturday through Friday); all other 2:45 AM briefs show appointments for that day, and every 2:45 PM brief shows appointments for the next day.
+- Thursday mileage/pay is also mode-independent. HOME on Wednesday PM or Thursday does not suppress the Thursday summary. Use company/user-reported paid miles only; never infer settlement miles from map distance.
 - Reconcile Gmail against the active `Shipments` queue before rendering either brief. Read complete materially relevant threads; snippets alone are not evidence.
 - Delete delivered items from the active `Shipments` queue immediately. Report a newly observed delivery once from `Order Events`, then never re-report it.
 - Treat a replacement with a new merchant order number as a new Receipt ID linked bidirectionally to the original; never overwrite the cancelled order. A same-order revision stays under the original Receipt ID.
 - Never guess an unknown purchase classification. Keep it in `Classification Queue` and ask for the smallest useful choice in the next brief.
 - Keep important email in Inbox under `Ops/Archive Approval` until the user approves archiving. Silence is not approval.
+- Never send email automatically. Do not delete Gmail without an explicit bounded request.
 - Do not monitor promotions or sales unless the user explicitly reinstates that scope.
 - For a lasting Ops policy change, provide the complete revised project-instructions block when the bootstrap contract changes; never provide a partial instructions patch.
 - The configured private Daily-Ops-Brief repository is the sole policy source of truth. Treat versioning as part of every lasting policy, schema, workflow, schedule, onboarding, or output-contract change: update tests and fingerprints, commit and push that repository, redeploy the installed skill from the committed source, and verify the remote result without waiting for a separate Git prompt. Never auto-merge, publish publicly, or commit mutable data or secrets.
