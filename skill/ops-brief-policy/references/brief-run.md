@@ -27,6 +27,8 @@ Read these exact Mileage & Pay Tracker ranges once:
 - `'Mileage Log'!A4:O504`
 - `Settings!A3:B8`
 
+Mileage/pay is section-scoped, not a global prerequisite. If either mileage range is unreadable or unavailable on a non-Thursday run, skip the mileage section and continue without turning the whole run into `Error`. If either is unavailable on Thursday, continue all other valid sections, mark the completed run `Degraded`, and emit exactly `Action Required — mileage/pay Sheet unavailable`. HOME/ROAD mode never suppresses a Thursday mileage summary.
+
 Read connected Google Calendar far enough ahead to cover the next seven days. Calendar is non-authoritative evidence: after one failed or unavailable call, use an empty appointments list, mark the run `Degraded`, and continue.
 
 Appointment rendering is slot-based and independent of HOME/ROAD mode: the Saturday 2:45 AM brief shows appointments from Saturday through Friday (a half-open seven-calendar-day window); every other 2:45 AM brief shows appointments occurring that calendar day; every 2:45 PM brief shows appointments occurring the following calendar day. This produces the requested day-before and morning-of reminders without exposing confirmation state.
@@ -52,12 +54,14 @@ Appointment rendering is slot-based and independent of HOME/ROAD mode: the Satur
 }
 ```
 
-3. Run `python3 scripts/ops_policy.py resolve --input <json-file> --pretty` from the skill directory.
-4. Treat the result as authoritative for mode, input health, weather gates, mowing focus, route-watch eligibility, trip status, mileage/pay summary, actions, appointment items, task rendering, Run ID, and Run Log base fields.
-5. If execution fails or returns `status: error`, render its error compactly under `ACTION REQUIRED`; never improvise the failed policy.
+When mileage/pay is unavailable, omit or pass the failed mileage datasets as unavailable input to the hardened runtime; do not manufacture a readable-looking fake range.
+
+3. Run `python3 scripts/ops_policy_runtime.py resolve --input <json-file> --pretty` from the skill directory.
+4. Treat the result as authoritative for mode, input health, weather gates, mowing focus, route-watch eligibility, trip status, mileage/pay summary, actions, appointment items, task rendering, Run ID, and Run Log base fields. Mode precedence is live unexpired explicit override, then an active trip, then the weekly default.
+5. Accept `status: ok` or `status: degraded` as completed deterministic results. If execution fails or returns `status: error`, render its error compactly under `ACTION REQUIRED`; never improvise the failed policy.
 6. Set `Weather Watch` to `Off` for every returned `expired_watch_trip_ids` value while retaining the trip row.
 
-An authoritative Sheet read, policy execution, or required mutation failure makes the run `Error`. When the Ops Status Register remains writable, upsert one error row for the deterministic Run ID before stopping.
+Loss of the Ops Status Register as a whole, a deterministic policy failure unrelated to an isolated section, or a required mutation failure makes the run `Error`. A mileage/pay read failure alone is never a global `Error`; Thursday becomes `Degraded` with the explicit mileage action, and other days simply continue without that section.
 
 ## Bounded evidence pass
 
@@ -76,6 +80,7 @@ Perform one bounded pass per applicable external source. Run only the planned qu
 - From `Order Events`, show each credible delivery observed after the previous successful brief exactly once as `Delivered — <item>`. Do not retain it in the active queue or show it on later briefs.
 - From `Classification Queue`, render unresolved rows under `ACTION REQUIRED` as compact questions with exact vendor/order/item and the smallest useful choices. Do not infer an answer from silence.
 - Search `in:inbox label:"Ops/Archive Approval"` after filing. Group related messages into concise decisions under `IMPORTANT EMAIL`, retain them in Inbox, and end that section with the exact line `Is it OK to archive these emails?`. If the user did not answer the prior brief, repeat the queue unchanged. Do not treat silence as approval.
+- Never send email automatically. Do not delete Gmail without an explicit bounded request.
 - Do not search promotions, calculate discounts, or monitor sales.
 - Exclude obvious wife-only cosmetics/beauty purchases from shared Amazon results. Include ambiguous/shared goods and surface wife-only items only for household-level exceptions.
 
@@ -92,7 +97,7 @@ After evidence and required mutations finish, locate the exact deterministic Run
 
 - Set `Started (ET)` and `Completed (ET)` to actual Eastern timestamps.
 - Preserve engine policy version, mode, input health, action count, and error notes.
-- Use `OK` when all requested checks complete, `Degraded` for a completed brief with a non-authoritative source failure, and `Error` for policy, authoritative Sheet, or required-mutation failure.
+- Use `OK` when all requested checks complete, `Degraded` for a completed brief with a non-authoritative or isolated section failure including Thursday mileage/pay unavailability, and `Error` only for core policy/authority or required-mutation failure.
 - In `External Evidence`, write only concise tokens such as `Calendar: OK; Gmail: 2 material threads; NWS: clear`.
 - In `Mutations`, write only stable IDs or `None`; never copy message bodies, secrets, or the full brief.
 - If the register itself is unavailable, report the blocker without claiming the run was logged.
@@ -107,7 +112,7 @@ Render only nonempty sections in this order:
 4. `UPCOMING APPOINTMENTS`
 5. `IMPORTANT EMAIL`
 6. `OPS STATUS`
-7. `MILES & PAY`, only when `mileage_summary_due` is true
+7. `MILES & PAY`, only when `mileage_summary_due` is true and a summary is available
 8. `IMPORTANT` or `ACTION REQUIRED`, only when necessary
 9. `TRIP STATUS`, always last when returned
 
