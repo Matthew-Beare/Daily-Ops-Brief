@@ -52,7 +52,7 @@ Suggested domains/tables:
 - `run_logs`
 - `system_config`
 
-For terminal pairs, store A → B and B → A learned facts independently. Route geometry/runtime may have an explicit fallback; company-paid mileage never mirrors automatically.
+For terminal pairs, route geometry and runtime may keep A → B and B → A learned facts independently. Company-paid terminal mileage is a policy-controlled pair fact: for the current deployment it is symmetric, so a verified A↔B paid-mile value is stored/used both directions unless an explicit exception is recorded for that pair. A future generic deployment may choose a directional paid-mile policy only through explicit configuration rather than accidental reverse-fallback behavior.
 
 ### Write API / policy service
 
@@ -94,7 +94,7 @@ Current production remains unchanged while schemas and tests stabilize.
 
 - create migrations and synthetic fixtures;
 - map every current Sheet column to normalized fields;
-- preserve stable existing IDs;
+- preserve stable existing IDs and immutable UUIDs;
 - create read-only views matching current Sheet outputs.
 
 ### Stage 2 — one-way mirror
