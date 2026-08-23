@@ -2,6 +2,8 @@
 
 Use this after the four kickoff questions in `START_HERE.md`. Its purpose is discovery and prioritization, not interrogation for its own sake. A person usually does not know every useful AI workflow in advance. The interview should reveal where structured state, reminders, evidence, planning, accountability, search, or automation would materially help.
 
+Primary accountability branches include **Exercise / fitness** and **School / study**, alongside household, administrative, project, hobby, maintenance, document, purchase, work and user-defined life domains.
+
 ## Interview mechanics
 
 - Ask no more than four related questions at a time.
