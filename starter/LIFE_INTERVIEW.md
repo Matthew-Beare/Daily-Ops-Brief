@@ -2,7 +2,7 @@
 
 Use this after the four kickoff questions in `START_HERE.md`. Its purpose is discovery and prioritization, not interrogation for its own sake. A person usually does not know every useful AI workflow in advance. The interview should reveal where structured state, reminders, evidence, planning, accountability, search, or automation would materially help.
 
-Primary accountability branches include **Exercise / fitness** and **School / study**, alongside household, administrative, project, hobby, maintenance, document, purchase, work and user-defined life domains.
+Primary accountability branches include **Exercise / fitness** and **School / study**, alongside household, administrative, project, hobby, maintenance, document, purchase, work and user-defined life domains. The interview must discover enough context to answer **what to do next** without reconstructing the user's life from scratch each time.
 
 ## Interview mechanics
 
