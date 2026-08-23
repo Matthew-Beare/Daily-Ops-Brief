@@ -1,0 +1,431 @@
+{
+  "version": 2,
+  "instructions": "Ask only unanswered questions after the four-question kickoff in START_HERE.md. The kickoff must capture system name, authoritative timezone, work pattern, and exact brief/order cadence. Group no more than four related questions at a time; provision stock briefs, order lifecycle, recipes, and private Git recovery before optional modules. Capture the exact job title and actual duties during kickoff. Ask HOME/ROAD questions only when the role involves recurring driving/travel/overnights; otherwise bypass that branch.",
+  "sections": [
+    {
+      "id": "identity_time",
+      "title": "Identity and time",
+      "questions": [
+        {
+          "id": "system_name",
+          "required": true,
+          "prompt": "What should this personal-ops system be called?"
+        },
+        {
+          "id": "canonical_timezone",
+          "required": true,
+          "prompt": "Which IANA timezone is authoritative even while you travel?"
+        },
+        {
+          "id": "day_boundary",
+          "required": false,
+          "prompt": "Does your operational day use a non-midnight boundary because of night work?"
+        },
+        {
+          "id": "brief_slots",
+          "required": true,
+          "prompt": "How often and at which exact local times should briefs arrive in the authoritative timezone?"
+        },
+        {
+          "id": "slot_names",
+          "required": false,
+          "prompt": "Do AM/PM labels match your sleep schedule, or should a slot have a custom name?"
+        },
+        {
+          "id": "order_update_slots",
+          "required": true,
+          "prompt": "How often and at which exact local times should order evidence be checked or summarized?"
+        },
+        {
+          "id": "order_notification_mode",
+          "required": true,
+          "prompt": "Should order changes be immediate, digest-only, or immediate only for exceptions?"
+        }
+      ]
+    },
+    {
+      "id": "work_life",
+      "title": "Work and life model",
+      "questions": [
+        {
+          "id": "job_title",
+          "required": true,
+          "prompt": "What is the user's exact job title and what do they actually do?"
+        },
+        {
+          "id": "job_pattern",
+          "required": true,
+          "prompt": "What is the shift, normal workweek, and recurring work-travel or overnight pattern?"
+        },
+        {
+          "id": "travel_pattern",
+          "required": false,
+          "prompt": "Do you travel for work, and what departures or returns repeat?"
+        },
+        {
+          "id": "home_road_modes",
+          "required": false,
+          "prompt": "For this travel role, what should HOME and ROAD mean operationally?",
+          "applies_when": "Job title or actual duties involve recurring driving, trucking, delivery routes, field travel, rotating worksites, transport crew, or nights away from home."
+        },
+        {
+          "id": "household_context",
+          "required": false,
+          "prompt": "Which household members affect shared purchases, calendars, or task ownership?"
+        },
+        {
+          "id": "vehicles",
+          "required": false,
+          "prompt": "Which vehicles or equipment need their own task and document branches?"
+        },
+        {
+          "id": "education",
+          "required": false,
+          "prompt": "Which current courses, certifications, or study tracks need exact folders?"
+        },
+        {
+          "id": "recurring_responsibilities",
+          "required": false,
+          "prompt": "Which recurring responsibilities are easy to forget?"
+        },
+        {
+          "id": "mode_boundaries",
+          "required": false,
+          "prompt": "What deterministic schedule, departure, arrival, location, or user statement enters and exits each mode?",
+          "applies_when": "HOME/ROAD routing is enabled for this user."
+        },
+        {
+          "id": "mode_overrides",
+          "required": false,
+          "prompt": "Which vacation, early-return, pause, or temporary overrides are needed, and when do they expire?",
+          "applies_when": "HOME/ROAD routing is enabled for this user."
+        },
+        {
+          "id": "mode_visibility",
+          "required": false,
+          "prompt": "Which tasks, appointments, weather, routes, and notifications appear in each mode?",
+          "applies_when": "HOME/ROAD routing is enabled for this user."
+        },
+        {
+          "id": "household_mode_separation",
+          "required": false,
+          "prompt": "Which household members need separate mode rules, state, and schedules even when evidence is shared?",
+          "applies_when": "HOME/ROAD routing is enabled for this user."
+        }
+      ]
+    },
+    {
+      "id": "stock_modules",
+      "title": "Stock briefs, orders, and recipes",
+      "questions": [
+        {
+          "id": "manual_brief_sample",
+          "required": true,
+          "prompt": "What must the first manual sample brief contain before scheduling is approved?"
+        },
+        {
+          "id": "order_evidence_accounts",
+          "required": false,
+          "prompt": "Which direct or forwarded email accounts contain order, shipment, delivery, cancellation, replacement, return, and refund evidence?"
+        },
+        {
+          "id": "order_exception_threshold",
+          "required": false,
+          "prompt": "Which order exceptions should notify immediately instead of waiting for the next digest?"
+        },
+        {
+          "id": "recipe_sources",
+          "required": true,
+          "prompt": "Where are the user's recipe documents, PDFs, images, links, or notes currently stored?"
+        },
+        {
+          "id": "recipe_taxonomy",
+          "required": false,
+          "prompt": "Which cuisines, meal types, dietary tags, equipment, or household categories should recipes support?"
+        },
+        {
+          "id": "recipe_search_fields",
+          "required": true,
+          "prompt": "Which recipe fields must be searchable and filterable: title, ingredient, tag, source, prep time, nutrition, or others?"
+        },
+        {
+          "id": "recipe_display",
+          "required": true,
+          "prompt": "Should the default recipe view use collapsible headings, cards, or another native readable surface?"
+        },
+        {
+          "id": "recipe_duplicates",
+          "required": false,
+          "prompt": "How should duplicate or variant recipes preserve provenance without duplicating the canonical body?"
+        }
+      ]
+    },
+    {
+      "id": "output",
+      "title": "Brief output",
+      "questions": [
+        {
+          "id": "length",
+          "required": true,
+          "prompt": "How short should the normal brief be?"
+        },
+        {
+          "id": "priority_model",
+          "required": true,
+          "prompt": "Which priorities or tiers should tasks use?"
+        },
+        {
+          "id": "persistent_items",
+          "required": false,
+          "prompt": "Do some items remain visible until explicitly completed?"
+        },
+        {
+          "id": "nag_rules",
+          "required": false,
+          "prompt": "What must never be repeated after acknowledgement or confirmation?"
+        },
+        {
+          "id": "degraded_output",
+          "required": false,
+          "prompt": "How should a brief report an unavailable dependency?"
+        },
+        {
+          "id": "tone",
+          "required": false,
+          "prompt": "What tone, terminology, or forbidden filler should the brief use?"
+        }
+      ]
+    },
+    {
+      "id": "state",
+      "title": "State and data",
+      "questions": [
+        {
+          "id": "canonical_store",
+          "required": true,
+          "prompt": "Where should mutable tasks and controls live?"
+        },
+        {
+          "id": "existing_store",
+          "required": false,
+          "prompt": "Does an existing Sheet, database, or app already contain authoritative state?"
+        },
+        {
+          "id": "history_rule",
+          "required": true,
+          "prompt": "Should completed and removed rows be retained for history?"
+        },
+        {
+          "id": "required_fields",
+          "required": true,
+          "prompt": "Which fields are mandatory before a task can be stored?"
+        },
+        {
+          "id": "sensitive_fields",
+          "required": false,
+          "prompt": "Which data must never enter prompts, repositories, or shared files?"
+        },
+        {
+          "id": "retention",
+          "required": false,
+          "prompt": "How long should logs, receipts, and archived records be retained?"
+        }
+      ]
+    },
+    {
+      "id": "integrations",
+      "title": "Integrations",
+      "questions": [
+        {
+          "id": "email",
+          "required": false,
+          "prompt": "Which email account supplies actionable messages, shipments, and receipts?"
+        },
+        {
+          "id": "calendar",
+          "required": false,
+          "prompt": "Which calendar is authoritative for appointments and reminders?"
+        },
+        {
+          "id": "drive",
+          "required": false,
+          "prompt": "Which Drive or cloud storage should hold evidence and documents?"
+        },
+        {
+          "id": "github",
+          "required": true,
+          "prompt": "Which existing private Git repository should store durable policy, or may setup create one?"
+        },
+        {
+          "id": "task_apps",
+          "required": false,
+          "prompt": "Which existing task apps or automations must be inspected before creating duplicates?"
+        },
+        {
+          "id": "finance",
+          "required": false,
+          "prompt": "Is spending analysis email-detected only, or is an account-level source connected?"
+        },
+        {
+          "id": "inventory",
+          "required": false,
+          "prompt": "Should receipts update a tool, vehicle, warranty, or asset inventory?"
+        },
+        {
+          "id": "weather_maps",
+          "required": false,
+          "prompt": "Should route or severe-weather evidence be used, and under which gate?"
+        },
+        {
+          "id": "git_standing_authorization",
+          "required": true,
+          "prompt": "After the initial private-repository approval, may every lasting policy/schema/feature change commit and push automatically without asking again?"
+        },
+        {
+          "id": "git_merge_policy",
+          "required": true,
+          "prompt": "Should verified changes stop at a branch/PR, or may any bounded merge policy be enabled?"
+        },
+        {
+          "id": "git_failure_policy",
+          "required": true,
+          "prompt": "If automatic Git synchronization fails, should the operational change pause or remain locally staged with an Action Required notice?"
+        }
+      ]
+    },
+    {
+      "id": "drive_taxonomy",
+      "title": "Drive taxonomy",
+      "questions": [
+        {
+          "id": "top_domains",
+          "required": false,
+          "prompt": "Which few top-level domains should exist?"
+        },
+        {
+          "id": "personal_records",
+          "required": false,
+          "prompt": "Which issued licenses, resumes, and employment records belong under Personal?"
+        },
+        {
+          "id": "education_depth",
+          "required": false,
+          "prompt": "Should education file by institution, exact course/certification, then material type?"
+        },
+        {
+          "id": "recipe_library",
+          "required": true,
+          "prompt": "Which recipe sources should feed the stock searchable, collapsible recipe library and ingredient/tag index?"
+        },
+        {
+          "id": "unnamed_files",
+          "required": false,
+          "prompt": "May contents be read to name and categorize untitled or ambiguous files?"
+        },
+        {
+          "id": "duplicates",
+          "required": false,
+          "prompt": "Should versions be preserved, archived, or deduplicated after confirmation?"
+        },
+        {
+          "id": "shared_files",
+          "required": false,
+          "prompt": "Should non-movable shared sources be copied into owned organized folders?"
+        }
+      ]
+    },
+    {
+      "id": "automation",
+      "title": "Automation design",
+      "questions": [
+        {
+          "id": "existing_tasks",
+          "required": true,
+          "prompt": "Which scheduled tasks already exist, including paused duplicates?"
+        },
+        {
+          "id": "active_limit",
+          "required": false,
+          "prompt": "Does the account have an active-task limit that favors multi-time RRULE dispatch?"
+        },
+        {
+          "id": "failure_policy",
+          "required": true,
+          "prompt": "What should happen if a required connector is unavailable?"
+        },
+        {
+          "id": "notification_silence",
+          "required": false,
+          "prompt": "Which condition watches should stay silent when nothing changed?"
+        },
+        {
+          "id": "rollback",
+          "required": true,
+          "prompt": "Which scheduled-task mutations require snapshot-and-rollback?"
+        },
+        {
+          "id": "manual_run",
+          "required": false,
+          "prompt": "Should the same policy support manual runs from any conversation?"
+        }
+      ]
+    },
+    {
+      "id": "private_devices",
+      "title": "Private devices and security",
+      "questions": [
+        {
+          "id": "local_devices",
+          "required": false,
+          "prompt": "Does any requested workflow depend on a phone, NAS, home server, or LAN-only service?"
+        },
+        {
+          "id": "bridge",
+          "required": false,
+          "prompt": "What explicit bridge or sync mechanism is authorized for private-device access?"
+        },
+        {
+          "id": "least_privilege",
+          "required": true,
+          "prompt": "What is the narrowest permission each integration needs?"
+        },
+        {
+          "id": "secrets",
+          "required": true,
+          "prompt": "Where will credentials live so they are never pasted into chat or committed?"
+        },
+        {
+          "id": "destructive_actions",
+          "required": true,
+          "prompt": "Which deletes, archives, sends, or overwrites require confirmation?"
+        }
+      ]
+    },
+    {
+      "id": "evolution",
+      "title": "Review and evolution",
+      "questions": [
+        {
+          "id": "review_cadence",
+          "required": false,
+          "prompt": "How often should policy noise, stale state, and duplicate tasks be reviewed?"
+        },
+        {
+          "id": "success_metrics",
+          "required": false,
+          "prompt": "How will you judge whether the system saves time and catches the right things?"
+        },
+        {
+          "id": "change_control",
+          "required": true,
+          "prompt": "Who may approve lasting policy, schema, schedule, or integration changes?"
+        },
+        {
+          "id": "recovery_owner",
+          "required": false,
+          "prompt": "Who should be able to recover the system if the primary chat thread is gone?"
+        }
+      ]
+    }
+  ]
+}

@@ -1,57 +1,28 @@
-# Ops Brief Regression Cases
+# Ops Brief Regression Contract
 
-These are contract tests for the policy/engine. A future executable test harness should encode the same cases.
+This file is retained from the emergency `main` fixes as a human-readable compatibility index. Executable regression authority lives in:
 
-## REG-001 — Saturday PM active trip is ROAD
+- `skill/ops-brief-policy/scripts/test_ops_policy.py`
+- `skill/ops-brief-policy/scripts/test_ops_policy_runtime.py`
+- `skill/ops-brief-policy/scripts/test_financial_resolution.py`
+- `skill/ops-brief-policy/scripts/test_reconcile_shipments.py`
+- `tests/test_bootstrap.py`
+- `tests/test_contract.py`
 
-**Now:** 2026-08-22 14:45 America/New_York  
-**Control:** HOME vacation override expired 2026-08-21 12:00 ET  
-**Trips:** TRIP-001 status `Active`, Morristown TN → Rialto CA  
-**Expected:** `ROAD`
+The suite must continue covering at least:
 
-The expired HOME override must not leak into Saturday. Active trip evidence independently forces ROAD.
+1. active trip outranks the weekly HOME default and forces ROAD;
+2. live unexpired explicit HOME override outranks an active trip;
+3. `Home early` closes current mileage accrual and keeps HOME through the next Friday 2:45 PM ET brief;
+4. non-Thursday mileage authority failure cannot abort the whole brief;
+5. Thursday mileage failure degrades the run and emits the canonical Action Required message;
+6. Thursday mileage/pay renders even while HOME;
+7. Saturday AM appointment horizon is seven days;
+8. terminal company-paid miles are directional and reverse values are never inferred;
+9. one receipt may contain independently classified line items and balanced allocations without duplicate spend;
+10. identifiable part/SKU fitment is evidenced before final asset assignment, with ambiguous matches queued rather than guessed;
+11. cancellation and financial resolution remain separate, with unresolved expected corrections surfaced after five business days;
+12. replacement orders retain separate Receipt IDs and reciprocal linkage;
+13. no automatic email sending or destructive Gmail behavior occurs without explicit bounded approval.
 
-## REG-002 — Saturday PM mileage shape failure is not fatal
-
-**Now:** 2026-08-22 14:45 America/New_York  
-**Mode:** ROAD by REG-001  
-**Injected failure:** `mileage_values is not a readable sheet range`  
-**Expected:** brief still renders ROAD content. The run must not become `Error` solely because mileage data failed on Saturday.
-
-Acceptable status is `OK` when mileage was not needed/consulted, or `Degraded` when the optional read was attempted and failed.
-
-## REG-003 — Thursday mileage failure is section-scoped
-
-**Now:** Thursday 14:45 ET  
-**Injected failure:** Mileage & Pay Tracker unavailable  
-**Expected:** include `Action Required — mileage/pay Sheet unavailable`; continue other valid sections. Do not substitute map miles or memory.
-
-## REG-004 — Friday PM is ROAD before physical departure
-
-**Now:** Friday 14:45 ET  
-**Trips:** none active  
-**Overrides:** none  
-**Expected:** `ROAD` because the weekly ROAD window begins Friday 12:00 ET. This makes the pre-departure PM brief road-oriented even when normal departure is 16:30 ET.
-
-## REG-005 — Expired override is ignored
-
-**Now:** any timestamp after an override's `Expires At (ET)`  
-**Expected:** ignore that override completely and continue to active-trip/weekly resolution.
-
-## REG-006 — Active HOME override outranks active trip
-
-**Now:** inside an explicit unexpired HOME override window  
-**Trips:** an old/stale trip still says `Active`  
-**Expected:** `HOME`. Explicit live override wins until expiry; the stale trip should then be reconciled separately.
-
-## REG-007 — Active trip survives weekly HOME boundary
-
-**Now:** Wednesday 16:31 ET  
-**Trips:** current trip still genuinely `Active` due delay  
-**Overrides:** none  
-**Expected:** `ROAD`. A real active trip is stronger evidence than the weekly default HOME transition.
-
-## REG-008 — Saturday AM appointment look-ahead
-
-**Now:** Saturday 02:45 ET  
-**Expected:** include appointments in the next 7 days, plus all otherwise applicable day-before/morning-of reminders. Never expose confirmation status.
+CI, not this document, decides whether the regression contract passes.

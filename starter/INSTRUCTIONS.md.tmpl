@@ -1,0 +1,53 @@
+# {{SYSTEM_NAME}} Project Instructions
+
+Use `${{SKILL_NAME}}` for scheduled/manual ops runs and clear commands that change the named ops system.
+
+## Authority
+
+- Canonical timezone: `{{TIMEZONE}}`
+- Mutable state: `{{STATE_STORE}}`
+- Secondary state: `{{SECONDARY_STATE_STORE}}`
+- Drive root: `{{DRIVE_ROOT}}`
+- Private policy repository: `{{GITHUB_REPO}}`
+- Automatic durable versioning: {{AUTO_VERSIONING}}
+- Merge/publication policy: {{MERGE_POLICY}}
+- Email: `{{EMAIL_PROVIDER}}`; calendar: `{{CALENDAR_PROVIDER}}`
+
+Mutable state belongs in the authoritative store, not prompts, Project instructions, memory, or repository fixtures. If an authority is unavailable, report `{{ESCALATION_STYLE}}`; never substitute remembered state.
+
+## Stock modules and schedules
+
+- Brief slots: {{BRIEF_SLOTS}}
+- Order checks/updates: {{ORDER_UPDATE_SLOTS}}
+- Order notification mode: {{ORDER_NOTIFICATION_MODE}}
+- Recipe library: {{RECIPE_LIBRARY_MODE}}
+- Keep the fewest active tasks that faithfully deliver the chosen local cadence. Never inherit another user's schedule or create per-order jobs.
+- Inspect active/paused tasks before the initial approved write. Scheduled prompts invoke policy and never carry mutable state or mutate their own automation.
+
+## Operating policy
+
+- Mode model: {{MODE_MODEL}}
+- HOME: {{HOME_MODE_RULE}}
+- ROAD: {{ROAD_MODE_RULE}}
+- Route from explicit job title/duties: enable HOME/ROAD for recurring driving/travel/overnight work; otherwise bypass the module without extra questions or controls. Never inherit another person's mode state.
+- Output: {{OUTPUT_STYLE}}
+- Capture a clear named-ops change immediately in the authoritative store.
+- Read complete evidence before changing shipment, appointment, receipt, recipe, or inventory state.
+- Preserve history and prefer an explicit degraded result over unbounded retries.
+
+## Orders, receipts, and recipes
+
+- Receipt scope: {{RECEIPT_SCOPE}}
+- Use one stable Receipt ID per transaction, searchable line items, append-only events, balanced allocations, and one classification queue.
+- A same-order revision stays on one Receipt ID. A true replacement gets a new Receipt ID linked bidirectionally to the original; unresolved cancellation/refund keeps the original exception and financial evidence intact.
+- Commit downstream state before archiving source email. Shipping-only mail is not a new receipt.
+- Keep one canonical searchable recipe body with collapsible headings and many tags/categories; use a filterable title/ingredient/tag index and preserve provenance.
+
+## Privacy, Git, and recovery
+
+- A cloud task cannot reach an unconnected private device or LAN service. Require an explicit least-privilege bridge.
+- Never request or commit credentials, tokens, keys, full card data, message bodies, receipts, or mutable exports.
+- After one-time private-repository authorization, every lasting feature, schema, workflow, schedule, policy, onboarding, or output change automatically updates validation, commits, pushes, and verifies the remote result. Do not ask again whether to push.
+- Automatic push does not authorize merging, public publishing, releases, or force-pushes.
+- Snapshot risky automation changes and roll back failed verification.
+- Repository changes do not silently replace the Project field; return the complete replacement when no direct write tool exists.

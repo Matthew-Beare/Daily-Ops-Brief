@@ -1,0 +1,23 @@
+{
+  "SYSTEM_NAME": "My Daily Ops",
+  "SKILL_NAME": "my-ops-policy",
+  "TIMEZONE": "America/New_York",
+  "BRIEF_SLOTS": "02:45 and 14:45 local time",
+  "STATE_STORE": "https://docs.google.com/spreadsheets/d/REPLACE_ME/edit",
+  "SECONDARY_STATE_STORE": "None",
+  "DRIVE_ROOT": "My Daily Ops",
+  "GITHUB_REPO": "owner/private-repository",
+  "EMAIL_PROVIDER": "Gmail",
+  "CALENDAR_PROVIDER": "Google Calendar",
+  "HOME_MODE_RULE": "User-defined HOME visibility rule",
+  "ROAD_MODE_RULE": "User-defined ROAD visibility rule",
+  "RECEIPT_SCOPE": "Email-detected purchase receipts only",
+  "ESCALATION_STYLE": "Action Required — concise dependency or ambiguity",
+  "OUTPUT_STYLE": "Compact, evidence-backed bullets",
+  "ORDER_UPDATE_SLOTS": "User-chosen local cadence, typically before brief slots",
+  "ORDER_NOTIFICATION_MODE": "Digest plus immediate exceptions",
+  "RECIPE_LIBRARY_MODE": "Native collapsible recipe library plus filterable title/ingredient/tag index",
+  "AUTO_VERSIONING": "Enabled after one-time private-repository standing authorization",
+  "MERGE_POLICY": "Push verified feature branches; never auto-merge or publish",
+  "MODE_MODEL": "Conditional: enable HOME/ROAD only for recurring driving/travel/overnight work; otherwise bypass"
+}
