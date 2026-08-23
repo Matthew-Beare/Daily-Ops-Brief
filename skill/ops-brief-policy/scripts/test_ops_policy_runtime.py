@@ -137,8 +137,8 @@ class RuntimePolicyRegressionTests(unittest.TestCase):
         self.assertEqual(result["mode"], "HOME")
         self.assertEqual(result["status"], "degraded")
         self.assertEqual(result["run_log_fields"]["Status"], "Degraded")
-        details = [item.get("detail") for item in result["actions_required"]]
-        self.assertIn("Action Required — mileage/pay Sheet unavailable", details)
+        messages = [item.get("message") for item in result["actions_required"]]
+        self.assertIn("Action Required — mileage/pay Sheet unavailable", messages)
 
 
 if __name__ == "__main__":
