@@ -18,6 +18,11 @@ Optional Gmail organization may group all correlated merchant/carrier messages u
 Ask: **Do you want a searchable purchase database from email, files, screenshots and receipt photos?**
 Offer vendor/order/item/date/category/amount search; cross-source dedupe; UPC/GTIN/SKU/part/model extraction; readable evidence links; line-item categories/beneficiaries/assets; balanced allocations; and unresolved classification only after investigation.
 
+### Shopping and procurement reconciliation
+Ask: **Do you want a shopping/procurement list that automatically marks or updates items when LifeOS proves you bought them?**
+
+If enabled, preserve one shopping intent per desired item/project. Confirmed purchases update the existing row with the actual product/model, vendor/order, status, Receipt ID and resolved date. Order revisions and replacement orders update the same shopping intent rather than creating duplicates. A cancelled item without a supported replacement remains open or becomes `Needs replacement`; a merely similar purchase never closes an item without evidence.
+
 ### Asset acquisition and inventory
 Ask: **Do you want products/tools/equipment automatically added or enriched when receipts, product photos, model/serial plates or exact identifiers prove what they are?**
 Offer tools/shop equipment, vehicles/parts, electronics/computers, appliances/home equipment, warranty/serial assets, hobby/technical equipment and user-defined domains.
