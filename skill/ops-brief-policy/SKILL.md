@@ -5,7 +5,7 @@ description: Run and maintain the user's Daily Ops Brief and LyfeOS control room
 
 # Ops Brief Policy
 
-Keep mutable operational state in canonical Sheets, durable policy/code/tests/onboarding in the configured private Git repository, retained files/evidence in canonical Drive, and scheduled prompts thin. The installed skill is a deployed runtime copy, not a second authority. Chat history is an intake/reasoning surface, never the sole database.
+Keep mutable operational state in canonical Sheets, durable policy/code/tests/onboarding in the configured **actually private** Git repository, retained files/evidence in canonical Drive, and scheduled prompts thin. The installed skill is a deployed runtime copy, not a second authority. Chat history is an intake/reasoning surface, never the sole database.
 
 ## Authority
 
@@ -16,6 +16,7 @@ Keep mutable operational state in canonical Sheets, durable policy/code/tests/on
 - Runtime engine: `scripts/ops_policy_runtime.py`; shipment reconciler: `scripts/reconcile_shipments.py`.
 - `Shipments` is active fulfillment only; durable purchase/lifecycle/payment/asset/knowledge history belongs in canonical tables/evidence.
 - If Ops is unavailable, report `Action Required — Ops Status Register unavailable.` Mileage failure is section-scoped; on Thursday report mileage/pay unavailable and continue other valid sections.
+- Git provider metadata, not documentation, decides whether the deployment repository is actually private. If a required deployment repository is public, treat privacy/release as blocked until visibility is corrected.
 
 ## Route the request
 
@@ -33,13 +34,14 @@ Keep mutable operational state in canonical Sheets, durable policy/code/tests/on
 - External email/contact: read `references/vendor-contact.md`; never reply blindly to no-reply/unmonitored routes.
 - Cross-chat intake/deletion/recovery: read `references/chat-portability.md`.
 - Route/trip/ETA/location/weather: read `references/route-weather.md`.
-- Repeated connector/API/tool failure, ambiguous partial write, scheduler execution timezone mismatch, CI loop, stalled workflow, or no forward progress: read `references/pants-filling-with-shit-report.md` and generate the Pants Filling With Shit Report when its circuit-breaker conditions are met.
+- Repeated connector/API/tool failure, ambiguous partial write, scheduler execution-time mismatch, CI loop, stalled workflow, or no forward progress: read `references/pants-filling-with-shit-report.md` and generate the Pants Filling With Shit Report when its circuit-breaker conditions are met.
 
 ## Non-negotiable invariants
 
 - Exactly one active Ops Brief automation at 2:45 AM/PM Eastern and exactly one consolidated Receipt & Order Lifecycle at 1:45 AM/PM Eastern. No per-order/child/retry/3:00/UTC/Pacific duplicates.
 - Scheduled runs perform their work and do not mutate automation definitions.
-- A schedule is not verified by RRULE/TZID text alone. After every automation create/update, provider readback must show the stored/default/execution timezone equals the canonical `America/New_York` timezone as well as the intended local schedule. Travel/device timezone must never redefine scheduling authority. If provider readback disagrees and no reliable timezone setter is available, fail the automation-maintenance module closed and generate the Pants Filling With Shit Report rather than claiming success.
+- Scheduler health is an **evidence chain**, not a timezone-looking string. After every automation create/update, read back title, enabled state, exact recurrence/local time/TZID, timing mode, required notification state and duplicate count. A provider field described as `default_timezone`, stored/default/execution timezone, or similar is execution authority only when the provider/tool contract explicitly defines it as persistent task execution state. Travel/device/session timezone is context. Prefer editing the existing notification-capable canonical dispatcher; if replacement is unavoidable, prove the replacement can notify before disabling the known-good dispatcher. A scheduler incident is not cleared until a subsequent actual firing or canonical Run Log entry lands in the intended `America/New_York` slot.
+- The first external state mutation of an entered scheduled Ops Brief should upsert the canonical Run Log for that deterministic Run ID as `Running` with Started (ET), before downstream Gmail/Calendar/Drive/mileage mutations. Completion updates that same row. Absence of a Run Log entry after a scheduled slot helps distinguish “scheduler never entered” from “scheduler entered and downstream work failed.”
 - Mode precedence: unexpired explicit override, then active trip forces ROAD, then weekly default. Home early immediately closes supported work accrual and holds HOME through the next Friday 2:45 PM brief (exclusive 3:00 PM ET expiry).
 - Appointment reminder visibility is mode-independent and follows configured brief rules; never expose hidden anti-nag confirmation state.
 - Mileage accrual closes at confirmed HOME arrival, normally Wednesday PM or earlier; Thursday is reporting-only. Use company/user/run-sheet paid miles, never map distance.
@@ -63,8 +65,8 @@ Keep mutable operational state in canonical Sheets, durable policy/code/tests/on
 - Important mail remains under `Ops/Archive Approval` until explicit archive approval.
 - Never send email automatically. Validate the recipient/channel, reject no-reply/unmonitored routes, research official support when needed, show recipient + subject + complete draft, and ask exactly `Do you want me to send this email?`.
 - Outside the explicit 90-day FedEx/UPS/DHL/USPS carrier-retention class, Gmail deletion requires explicit bounded authority.
-- Retry is not mandatory. For a plausibly transient read/idempotent operation, the default maximum is the initial attempt plus one retry. Permission/authentication failures, deterministic validation failures, known-bad arguments, destructive operations, ambiguous writes, and scheduler timezone mismatches do not receive blind retries.
-- If the same operation fails twice, two cycles make no forward progress, an ambiguous/partial mutation occurs, or scheduler readback contradicts canonical time, generate the Pants Filling With Shit Report: stop writes for that module, read back/preserve verified state, continue healthy unrelated modules, report one specific next action, and never create hidden retry jobs.
+- Retry is not mandatory. For a plausibly transient read/idempotent operation, the default maximum is the initial attempt plus one retry. Permission/authentication failures, deterministic validation failures, known-bad arguments, destructive operations, ambiguous writes, scheduler integrity mismatches and unchanged CI failures do not receive blind retries.
+- If the same operation fails twice, two cycles make no forward progress, an ambiguous/partial mutation occurs, a release/privacy gate contradicts assumptions, or scheduler readback/observed execution contradicts canonical time, generate the Pants Filling With Shit Report: stop writes for that module, read back/preserve verified state, continue healthy unrelated modules, report one specific next action, and never create hidden retry jobs.
 - Do not monitor promotions/sales unless explicitly reinstated.
 - Durable behavior changes update validation/tests and are committed/pushed to the private repo. Never auto-merge/publish/force-push/commit mutable data or secrets.
 - Prefer an explicit degraded result over loops or silent failure.
