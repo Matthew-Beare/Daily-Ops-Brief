@@ -19,7 +19,7 @@ A deployment repository may be **public or private by explicit user choice**. Pu
 1. Fork the public LyfeOS upstream into a repository the user controls, or use an audited clean snapshot.
 2. Connect GitHub and verify a harmless repository/file read.
 3. Separately verify write capability with one bounded approved branch/file mutation and remote readback.
-4. Read provider repository metadata and record public/private visibility plus exact upstream commit/tag provenance.
+4. Read **provider metadata** for the repository and record public/private visibility plus exact upstream commit/tag provenance.
 5. First boot writes the user's non-secret deployment config, module/feature lock, authority references, schemas/migrations and generated policy.
 6. Run validation/privacy/source checks, commit/push the coherent first-boot checkpoint, and read it back before calling source initialization complete.
 7. Standing Git authorization may cover later durable commits/pushes. Merge/publication remains the user's configured policy.
