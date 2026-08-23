@@ -26,12 +26,17 @@ Timezone: America/New_York
 
 ## Repository map
 
-- `skill/ops-brief-policy/` — installed policy, deterministic engine, references, and tests
+- `skill/ops-brief-policy/` — canonical installed policy, deterministic engine, references, and tests
 - `project/INSTRUCTIONS.md.tmpl` — complete user-specific Project instructions replacement
 - `starter/` — separate generic first-boot kit for a new user
 - `scripts/` — policy fingerprinting, starter rendering, and repository validation
 - `tests/` — starter and repository-contract tests
 - `docs/` — architecture, automation, Drive, privacy/recovery, and receipt-pipeline notes
+- `policy/ops-brief-policy.yaml` — retained legacy machine-readable compatibility snapshot
+- `skills/ops-brief-policy/SKILL.md` — retained legacy path pointing to the canonical `skill/` tree
+- `tests/ops-brief-regressions.md` — retained human regression index pointing to executable tests
+
+The three legacy compatibility paths above preserve the emergency `main` fixes and old links without creating a second policy authority. Canonical behavior lives under `skill/ops-brief-policy/` and wins on divergence.
 
 ## Validate
 
