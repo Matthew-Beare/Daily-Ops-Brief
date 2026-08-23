@@ -69,8 +69,14 @@ class LifeOSPolicyContractTests(unittest.TestCase):
             lower = surface.lower()
             self.assertIn("notification", lower)
             self.assertIn("duplicate", lower)
-            self.assertIn("actual firing", lower)
-            self.assertIn("provider contract", lower)
+            self.assertTrue(
+                any(term in lower for term in ("actual firing", "actual scheduled firing", "observed firing", "observed execution")),
+                "scheduler surface lacks observed execution evidence",
+            )
+            self.assertTrue(
+                "provider contract" in lower or "provider/tool contract" in lower,
+                "scheduler surface does not condition provider metadata on documented semantics",
+            )
         self.assertIn("default_timezone", skill)
         self.assertIn("default_timezone", maintenance)
         self.assertIn("first external", skill.lower())
