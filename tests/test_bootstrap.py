@@ -21,7 +21,8 @@ class BootstrapTests(unittest.TestCase):
         rendered = BOOTSTRAP.render(template, config)
         self.assertNotIn("{{", rendered)
         self.assertIn("$my-ops-policy", rendered)
-        self.assertIn("USER_SELECTED_PUBLIC_OR_PRIVATE", rendered)
+        self.assertIn("PRIVATE_REQUIRED_WHEN_PERSONAL_STATE_IS_ENABLED", rendered)
+        self.assertIn("PRIVATE_GIT_REPOSITORY/state", rendered)
 
     def test_missing_key_fails(self) -> None:
         with self.assertRaisesRegex(ValueError, "missing configuration keys"):
@@ -34,7 +35,7 @@ class BootstrapTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "must be a scalar"):
                 BOOTSTRAP.load_config(path)
 
-    def test_human_first_boot_is_safe_and_bounded(self) -> None:
+    def test_human_first_boot_is_safe_bounded_and_git_state_native(self) -> None:
         guide = (ROOT / "starter/START_HERE.md").read_text(encoding="utf-8")
         lower = guide.lower()
         self.assertIn("Minimum Useful Setup", guide)
@@ -44,15 +45,17 @@ class BootstrapTests(unittest.TestCase):
         self.assertIn("timezone is permanently authoritative", lower)
         self.assertIn("exact local times", lower)
         self.assertIn("recipe library", lower)
-        self.assertIn("exact job title", lower)
+        self.assertIn("job title", lower)
         self.assertIn("mark HOME/ROAD bypassed", guide)
         self.assertIn("driving/trucking", lower)
         self.assertIn("true replacement", lower)
-        self.assertIn("automatically update validation, commit, and push", guide)
+        self.assertIn("automatically validates, commits, pushes", guide)
+        self.assertIn("private Git", guide)
+        self.assertIn("Do you want help with meal planning?", guide)
         self.assertIn("public-source audit", lower)
         self.assertNotIn("1pHkTdCx", guide)
         self.assertNotIn("jbeare92", guide)
-        self.assertLess(len(guide), 9000)
+        self.assertLess(len(guide), 12000)
 
 
 if __name__ == "__main__":
