@@ -14,6 +14,8 @@ import subprocess
 from pathlib import Path
 
 AUDITOR_PATH = "scripts/audit_public_source.py"
+SYNTHETIC_SECRET_TEST_PATH = "tests/test_public_source_audit.py"
+SCAN_EXEMPT_PATHS = {AUDITOR_PATH, SYNTHETIC_SECRET_TEST_PATH}
 MAX_TEXT_BYTES = 2_000_000
 
 BLOCKED_FILENAMES = {
@@ -120,8 +122,7 @@ def scan_text(text: str, label: str) -> list[str]:
             errors.append(f"{label}: possible literal secret assignment for {match.group(1)}")
 
     for match in CARD_CANDIDATE.finditer(text):
-        candidate = match.group(0)
-        if _luhn(candidate):
+        if _luhn(match.group(0)):
             errors.append(f"{label}: possible full payment-card number")
             break
     return errors
@@ -139,7 +140,7 @@ def audit(root: Path) -> list[str]:
         if blocked:
             errors.append(blocked)
             continue
-        if relative == AUDITOR_PATH:
+        if relative in SCAN_EXEMPT_PATHS:
             continue
         try:
             raw = path.read_bytes()
@@ -157,7 +158,7 @@ def audit(root: Path) -> list[str]:
 
 
 def audit_history(root: Path) -> list[str]:
-    """Scan added text lines in reachable history while excluding this detector itself."""
+    """Scan added text lines in reachable history, excluding synthetic detector tests."""
     try:
         result = subprocess.run(
             [
@@ -183,15 +184,14 @@ def audit_history(root: Path) -> list[str]:
             continue
         if not raw_line.startswith("+") or raw_line.startswith("+++"):
             continue
-        if current_path == AUDITOR_PATH:
+        if current_path in SCAN_EXEMPT_PATHS:
             continue
         blocked = _blocked_path(current_path) if current_path else None
         if blocked:
             errors.append(f"history {current_commit[:12]}: {blocked}")
             continue
         line = raw_line[1:]
-        for error in scan_text(line, f"history {current_commit[:12]} {current_path or '<unknown>'}"):
-            errors.append(error)
+        errors.extend(scan_text(line, f"history {current_commit[:12]} {current_path or '<unknown>'}"))
     return sorted(set(errors))
 
 
