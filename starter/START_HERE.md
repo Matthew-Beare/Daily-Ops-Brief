@@ -23,7 +23,7 @@ Dependency gate:
 - Read DEPENDENCIES.md before provisioning and verify selected dependencies with harmless reads.
 - If GitHub, Drive/Sheets/Docs, Gmail, Calendar, financial accounts, or another dependency is missing/partial, block only that module, explain exactly what to click on the ChatGPT side and provider side, then resume verification when completed.
 - Never require tokens, JSON editing, Git commands, or OAuth knowledge when the normal UI can do the setup.
-- Private Git is required for a durable deployment. Verify repository readback and, after provisioning approval, one harmless bounded write before automatic versioning is active.
+- Private Git is required for durable deployment. Verify repository readback and, after provisioning approval, one harmless bounded write before automatic versioning is active.
 - Do not enable scheduled writes until required authorities and recovery Git are verified.
 
 Minimum Useful Setup:
@@ -31,7 +31,7 @@ Minimum Useful Setup:
 - Orders/receipts: one transaction identity, searchable evidence/lines, active fulfillment, append-only lifecycle, balanced allocations and payment reconciliation.
 - Inventory/assets: optional receipt/photo/model/serial/UPC/SKU/part intake. Every person/physical asset uses one immutable UUID plus friendly aliases.
 - Manuals/knowledge: optional Drive retention of manuals/references indexed by immutable Knowledge UUID/model/part/asset so later queries return the Drive link and relevant section.
-- Recipes: one readable searchable library.
+- Recipe library: one readable searchable recipe library.
 - State: one authoritative mutable store plus a small Drive hierarchy; no chat-local databases.
 - Modes: enable HOME/ROAD only when recurring work-away behavior makes it useful.
 - Recovery: private Git stores durable policy/schema/tests/onboarding/recovery. State must survive deletion of old chats.
@@ -41,7 +41,13 @@ Initial provisioning:
 - After approval, automatically create or validate selected Sheets/Docs/folders/tables/config, initialize schema, write sanitized policy/tests/bootstrap to private Git, and verify readback.
 - Provisioning is idempotent: migrate/reuse canonical resources instead of duplicating them.
 - Personal mutable records stay in live authorities, never Git.
-- After one standing Git authorization, routine lasting changes automatically validate, commit, push and verify without requiring Git knowledge or repeated approval. Merge/publication remains separate.
+- After one standing Git authorization, routine lasting changes automatically update validation, commit, and push, then verify readback without requiring Git knowledge or repeated approval. Merge/publication remains separate.
+
+Emergency Ripcord:
+- Enable a fail-fast circuit breaker for every module. One retry after an initial transient/idempotent failure is the default maximum.
+- If the same operation fails twice, two cycles make no forward progress, permissions are missing, or a write may have partially succeeded, stop writes for that module before doing more damage.
+- Read back and preserve known-good canonical state, continue unrelated healthy modules, and show one concise failure/action summary. Do not create hidden retry jobs or recursive workflows.
+- A later run retries from canonical state rather than assuming the failed run finished.
 
 Job/mode routing:
 - Use exact job title, duties, shift and recurring travel.
@@ -65,16 +71,17 @@ Calendar Projection:
 Git checkpoint:
 - Guide repository setup through DEPENDENCIES.md and verify both ChatGPT authorization and GitHub-side installed-app repository access.
 - Obtain one standing authorization after read/write verification.
-- Lasting feature/schema/workflow/schedule/policy/onboarding changes automatically update validation, commit and push. Do not repeatedly ask whether to push.
+- Lasting feature/schema/workflow/schedule/policy/onboarding changes automatically update validation, commit, and push. Do not repeatedly ask whether to push.
 - This does not authorize auto-merge, public publishing, releases, force-pushes, mutable-data exports or secrets.
 
 Orders, receipts, assets, manuals and payment:
 - One stable Receipt ID per transaction; photos/screenshots/files/email/account records are evidence and must be deduped.
 - Receipt lines may use different categories, beneficiaries, assets/projects and allocations while the total counts once.
+- Track ordered, shipped, delivered, exception, cancellation requested, partial cancellation, confirmed cancellation, returned, refunded and replacement states without erasing audit history.
 - For part/SKU/UPC/model/serial evidence, resolve the exact product from authoritative sources, cross-reference the complete asset registry/modifications, use exclusion evidence and auto-assign only a uniquely supported result.
 - Asset intake may combine photo + plate + receipt + lookup into one immutable-UUID asset.
 - A supplied/downloaded manual may be retained in Drive, deduped/indexed, linked to asset UUID(s), and later retrieved by model/part/asset with its Drive link.
-- Same-order revisions remain one Receipt ID; true replacements with new order numbers get linked Receipt IDs.
+- Same-order revisions remain one Receipt ID; a true replacement with a new order number gets a separate linked Receipt ID.
 - Keep expected charges `Awaiting Settlement` until financially resolved. Reconcile against the latest supported revision and investigate unexplained over/under/unmatched charges.
 - Cancellation and refund are separate. Only an expected unresolved correction gets its escalation deadline.
 - Outside-person purchases remain gross merchant spend; reimbursement is separate and supports net household cost reporting.
