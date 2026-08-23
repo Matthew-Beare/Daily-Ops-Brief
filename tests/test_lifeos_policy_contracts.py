@@ -23,7 +23,6 @@ class LifeOSPolicyContractTests(unittest.TestCase):
         self.assertIn("carrier-originated FedEx/UPS/DHL/USPS", policy)
         self.assertIn("merchant order confirmation", policy.lower())
         self.assertIn("open return, claim, dispute", policy)
-        self.assertNotIn("USPS and any carrier not named above remain retention-only", policy)
 
     def test_asset_acquisition_requires_global_uuid_dedupe_and_evidence(self) -> None:
         policy = self.text("skill/ops-brief-policy/references/asset-acquisition.md")
@@ -43,15 +42,17 @@ class LifeOSPolicyContractTests(unittest.TestCase):
         self.assertIn("asset UUID", policy)
         self.assertIn("PostgreSQL", policy)
 
-    def test_emergency_ripcord_is_fail_fast_and_module_scoped(self) -> None:
-        policy = self.text("skill/ops-brief-policy/references/failure-ripcord.md")
+    def test_pants_filling_with_shit_report_is_fail_fast_and_module_scoped(self) -> None:
+        policy = self.text("skill/ops-brief-policy/references/pants-filling-with-shit-report.md")
         skill = self.text("skill/ops-brief-policy/SKILL.md")
-        self.assertIn("Default retry budget is one retry after the initial attempt", policy)
+        self.assertIn("# Pants Filling With Shit Report", policy)
+        self.assertIn("Default budget is the initial attempt plus at most one retry", policy)
+        self.assertIn("Retry is **not mandatory**", policy)
         self.assertIn("same external operation fails twice", policy)
         self.assertIn("Stop writes for the affected module", policy)
         self.assertIn("Continue unrelated modules", policy)
-        self.assertIn("do not blind-rerun", policy)
-        self.assertIn("failure-ripcord.md", skill)
+        self.assertIn("never blind-rerun", policy)
+        self.assertIn("pants-filling-with-shit-report.md", skill)
         self.assertIn("never create hidden retry jobs", skill)
 
     def test_calendar_projection_updates_in_place(self) -> None:
@@ -75,7 +76,7 @@ class LifeOSPolicyContractTests(unittest.TestCase):
         self.assertIn("non-technical user", guide)
         self.assertIn("exactly what to click", guide)
         self.assertIn("automatically update validation, commit, and push", guide)
-        self.assertIn("Emergency Ripcord", guide)
+        self.assertIn("Pants Filling With Shit Report", guide)
         self.assertIn("same operation fails twice", guide)
         self.assertIn("GitHub side", deps)
         self.assertIn("ChatGPT side", deps)
