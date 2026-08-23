@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://life-ops.invalid/starter/schemas/feature-manifest.schema.json",
+  "title": "Portable Life-Ops Feature Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "manifest_version",
+    "id",
+    "version",
+    "summary",
+    "portable",
+    "compatibility",
+    "dependencies",
+    "entrypoints",
+    "permissions",
+    "data_boundary",
+    "config_schema",
+    "tests"
+  ],
+  "properties": {
+    "manifest_version": {"const": 1},
+    "id": {"type": "string", "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"},
+    "version": {"type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$"},
+    "summary": {"type": "string", "minLength": 1, "maxLength": 200},
+    "portable": {"const": true},
+    "compatibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["core"],
+      "properties": {"core": {"type": "string", "minLength": 1}}
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "version_range"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"},
+          "version_range": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "entrypoints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["references", "scripts", "schemas", "migrations"],
+      "properties": {
+        "references": {"$ref": "#/$defs/pathList"},
+        "scripts": {"$ref": "#/$defs/pathList"},
+        "schemas": {"$ref": "#/$defs/pathList"},
+        "migrations": {"$ref": "#/$defs/pathList"}
+      }
+    },
+    "permissions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["connectors", "network_domains", "writes", "approval_required"],
+      "properties": {
+        "connectors": {"$ref": "#/$defs/stringList"},
+        "network_domains": {"$ref": "#/$defs/stringList"},
+        "writes": {"$ref": "#/$defs/stringList"},
+        "approval_required": {"$ref": "#/$defs/stringList"}
+      }
+    },
+    "data_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_contains_personal_data", "shared_logs_contain_personal_data", "runtime_state", "forbidden_source_data"],
+      "properties": {
+        "source_contains_personal_data": {"const": false},
+        "shared_logs_contain_personal_data": {"const": false},
+        "runtime_state": {"enum": ["none", "deployment-local", "external-authority"]},
+        "forbidden_source_data": {"allOf": [{"$ref": "#/$defs/stringList"}, {"minItems": 1}]}
+      }
+    },
+    "config_schema": {
+      "type": "object",
+      "required": ["type", "additionalProperties"],
+      "properties": {"type": {"const": "object"}, "additionalProperties": {"const": false}}
+    },
+    "tests": {"allOf": [{"$ref": "#/$defs/pathList"}, {"minItems": 1}]}
+  },
+  "$defs": {
+    "stringList": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "pathList": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+$"}}
+  }
+}
