@@ -2,32 +2,35 @@
 
 Use `$ops-brief-policy` for Ops/brief/receipt work. Private `Matthew-Beare/Daily-Ops-Brief` is the sole policy/code/test/bootstrap source; installed skill = runtime copy; Git wins on divergence.
 
-POLICY_SOURCE_FINGERPRINT: sha256:20afa4458f0be9b5beb2a8e9b545cb4719098bec5c3bd59bdb9c71a2f00f772a
+POLICY_SOURCE_FINGERPRINT: sha256:ca774a56ebead927ba28c0b17dfecdfe3e1613427a5c1521da6c756bae39ad7c
 
 ## Authority
-- Timezone: `America/New_York`.
-- Ops Sheet: `10WMU_hDMfSJcACel--8LekT7So5MXKgWuLVxvnSCPNU`
-- Mileage/pay Sheet: `1OUzdjZaVTidLnMX2xuIZ3mRVDOF5oAfT8-pdl6KfUfI`
-- Purchase & Receipt Archive: `1pHkTdCxmdBdZjnVu97FkpkiSjysLkhjuTEcfcEXzmW8`
-- Mutable state lives only in those Sheets. If unavailable: `Action Required — <authority> unavailable`; never substitute memory.
+- TZ `America/New_York`.
+- Ops `10WMU_hDMfSJcACel--8LekT7So5MXKgWuLVxvnSCPNU`
+- Mileage `1OUzdjZaVTidLnMX2xuIZ3mRVDOF5oAfT8-pdl6KfUfI`
+- Purchase & Receipt Archive `1pHkTdCxmdBdZjnVu97FkpkiSjysLkhjuTEcfcEXzmW8`
+- Mutable state only in Sheets. If unavailable: `Action Required — <authority> unavailable`; never substitute chat/memory.
 
 ## Automations
-- Keep exactly one active Ops Brief automation: `2:45 AM/PM Eastern Ops Brief`, `RRULE:FREQ=DAILY;BYHOUR=2,14;BYMINUTE=45;BYSECOND=0`, Eastern. Invoke skill; PM is morning; return only brief.
-- Keep exactly one active `Receipt & Order Lifecycle`, `RRULE:FREQ=DAILY;BYHOUR=1,13;BYMINUTE=45`, Eastern, exact schedule.
-- No per-order/duplicate/child/support/retry/3:00/Pacific/UTC-shifted jobs. Scheduled runs never inspect/mutate automations.
+- Keep exactly one active Ops Brief automation: `2:45 AM/PM Eastern Ops Brief`; `RRULE:FREQ=DAILY;BYHOUR=2,14;BYMINUTE=45;BYSECOND=0`.
+- Keep exactly one active `Receipt & Order Lifecycle`; `RRULE:FREQ=DAILY;BYHOUR=1,13;BYMINUTE=45`; Eastern/exact.
+- No per-order/duplicate/child/retry/3:00/Pacific/UTC jobs. Scheduled runs never mutate automations.
 
 ## Invariants
-- Clear Ops-list changes write canonical Sheet immediately; preserve `Done`/`Removed`.
-- Briefs use live evidence/engine output. Read complete Gmail evidence; reconcile `Shipments`; retain `Order Events`; report delivery once.
-- Important mail stays under `Ops/Archive Approval` until approval. Never auto-send email or delete Gmail without explicit bounded request.
-- HOME/ROAD uses live controls/trips. Home early closes mileage accrual and holds HOME through next Friday 2:45 PM. Paid terminal miles are directional; never mirror reverse mileage without evidence.
-- Receipt email/photo/screenshot from any supported conversation enters canonical receipt workflow. Dedupe sources; no chat-local receipt state.
-- One purchase = one Receipt ID/total; line items may span categories/assets/projects. Investigate UPC/SKU/part/model, cross-reference owned assets/modifications, auto-assign unique fitment, and balance allocations. Queue only after evidence is exhausted.
-- Preserve cancellation/return history. Cancellation != refund; determine whether money settled. Only an expected unresolved correction gets the five-business-day action.
-- Gmail archival/success requires Audit gate PASS for database, Drive, classification, allocation, mapping, Shipment, financial-resolution, and inventory checks.
+- Clear Ops changes write canonical state; preserve Done/Removed.
+- Read full relevant Gmail; reconcile Shipments; retain Order Events; report delivery once.
+- Important mail stays `Ops/Archive Approval`. Never auto-send/delete email. Reject no-reply/unmonitored routes; find official support; show recipient+subject+full draft; ask `Do you want me to send this email?`.
+- HOME/ROAD uses live controls/trips. Home early closes mileage; paid terminal miles are directional, never mirrored without evidence.
+- Receipt email/photo/screenshot from any supported conversation enters canonical workflow. Dedupe; no chat-local state; old chats may be deleted after ingestion.
+- One purchase = one Receipt ID/total. Investigate UPC/SKU/part/model against assets/mods; auto-assign unique fitment; balance allocations; queue only after evidence is exhausted.
+- People/assets/aliases, reimbursements, payment cases are Sheet state. Reimbursement != merchant refund; preserve gross purchase and net household cost.
+- Reconcile same-order revisions before charges. Keep expected charges open until resolved; investigate unmatched/over/undercharges.
+- Cancellation != refund; determine settlement. Only expected unresolved corrections get five-business-day action.
+- Run sheets update existing Routes/Trips/Mileage by directional evidence; never create a duplicate route database.
+- Gmail archival/success requires Audit gate PASS for applicable database, Drive, classification, allocation, mapping, Shipment, payment/financial-resolution, reimbursement, inventory.
 
 ## Recovery/versioning
-- Snapshot automation mutations; verify writes/dependencies; roll back failures. Recover from live authorities without user restatement.
-- Always automatically commit/push lasting policy/tests/bootstrap changes to private repo; never commit mutable data/secrets.
-- Keep bootstrap <3,000 chars; durable detail belongs in skill/repo. If changed without direct Project write, return complete `PROJECT INSTRUCTIONS UPDATE`.
+- Recover from live authorities; verify writes.
+- Always automatically commit/push lasting policy/tests/bootstrap changes; never commit mutable data/secrets.
+- Bootstrap <3,000 chars; detail in skill/repo. If changed without direct Project write, return complete `PROJECT INSTRUCTIONS UPDATE`.
 - Never claim connector/GitHub success without confirmation.
