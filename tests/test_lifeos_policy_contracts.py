@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import unittest
 from pathlib import Path
 
@@ -55,6 +56,18 @@ class LifeOSPolicyContractTests(unittest.TestCase):
         self.assertIn("pants-filling-with-shit-report.md", skill)
         self.assertIn("never create hidden retry jobs", skill)
 
+    def test_scheduler_timezone_requires_provider_execution_readback(self) -> None:
+        maintenance = self.text("skill/ops-brief-policy/references/state-maintenance.md")
+        pants = self.text("skill/ops-brief-policy/references/pants-filling-with-shit-report.md")
+        docs = self.text("docs/automation-contracts.md")
+        deps = self.text("starter/DEPENDENCIES.md")
+        for text in (maintenance, pants, docs, deps):
+            self.assertIn("stored/default/execution timezone", text)
+        self.assertIn("travel/device timezone", maintenance)
+        self.assertIn("Do **not** report a timezone repair successful from VEVENT text alone", maintenance)
+        self.assertIn("subsequent actual run/Run Log timestamp", pants)
+        self.assertIn("fail closed", deps)
+
     def test_calendar_projection_updates_in_place(self) -> None:
         policy = self.text("skill/ops-brief-policy/references/calendar-projection.md")
         self.assertIn("Google Calendar event ID", policy)
@@ -69,6 +82,33 @@ class LifeOSPolicyContractTests(unittest.TestCase):
         self.assertIn("unique canonical terminal pairs", skill)
         self.assertIn("do not manufacture hundreds of historical `Trips`", skill)
         self.assertIn("same paid-mile value", maintenance)
+        self.assertIn("A reusable route pair may be learned even when the user does not want a current Trip occurrence created", maintenance)
+
+    def test_shopping_procurement_is_active_list_not_purchase_history(self) -> None:
+        skill = self.text("skill/ops-brief-policy/SKILL.md")
+        receipt = self.text("skill/ops-brief-policy/references/receipt-ingestion.md")
+        catalog = self.text("starter/MODULE_CATALOG.md")
+        for text in (skill, receipt, catalog):
+            self.assertIn("active shopping list", text)
+            self.assertIn("remove the fulfilled shopping row", text)
+        self.assertIn("explicit owner", receipt)
+        self.assertIn("separate reconciliation task", receipt)
+        self.assertIn("Purchased` tombstone", receipt)
+        self.assertIn("cancellation with no supported replacement", receipt)
+
+    def test_life_planning_supports_accountability_study_and_context_variants(self) -> None:
+        policy = self.text("skill/ops-brief-policy/references/life-planning-accountability.md")
+        interview = self.text("starter/LIFE_INTERVIEW.md")
+        catalog = self.text("starter/MODULE_CATALOG.md")
+        self.assertIn("Routine accountability", policy)
+        self.assertIn("Exercise / fitness organization", policy)
+        self.assertIn("School / study workflow", policy)
+        self.assertIn("Next-action planner", policy)
+        self.assertIn("Do you regularly work away from home", interview)
+        self.assertIn("minimum viable version", interview)
+        self.assertIn("home versus away/on the road", interview)
+        self.assertIn("Personal accountability and routines", catalog)
+        self.assertIn("Education and study coach", catalog)
 
     def test_starter_guides_nontechnical_users_auto_versions_and_fails_fast(self) -> None:
         guide = self.text("starter/START_HERE.md")
@@ -80,6 +120,24 @@ class LifeOSPolicyContractTests(unittest.TestCase):
         self.assertIn("same operation fails twice", guide)
         self.assertIn("GitHub side", deps)
         self.assertIn("ChatGPT side", deps)
+        self.assertIn("Do I ever work away from home or sleep away for work?", guide)
+        self.assertIn("whole-life interview", guide)
+
+    def test_starter_questions_have_adaptive_whole_life_depth(self) -> None:
+        questions = json.loads(self.text("starter/questions.json"))
+        rows = [q for section in questions["sections"] for q in section["questions"]]
+        ids = {q["id"] for q in rows}
+        for required in (
+            "works_away_from_home",
+            "accountability_domains",
+            "routine_progression",
+            "education_active",
+            "study_home_away",
+            "study_next_action_rule",
+            "scheduler_timezone_integrity",
+        ):
+            self.assertIn(required, ids)
+        self.assertGreaterEqual(len(rows), 80)
 
 
 if __name__ == "__main__":
