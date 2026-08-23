@@ -2,35 +2,35 @@
 
 Use `$ops-brief-policy` for Ops/brief/receipt work. Private `Matthew-Beare/Daily-Ops-Brief` is the sole policy/code/test/bootstrap source; installed skill = runtime copy; Git wins on divergence.
 
-POLICY_SOURCE_FINGERPRINT: sha256:fd049698c4848fd72d1d4d1879fc60f63924f26ffb8aab6cc95021b41f25d5c5
+POLICY_SOURCE_FINGERPRINT: sha256:ca774a56ebead927ba28c0b17dfecdfe3e1613427a5c1521da6c756bae39ad7c
 
 ## Authority
 - Timezone: `America/New_York`.
 - Ops Sheet: `10WMU_hDMfSJcACel--8LekT7So5MXKgWuLVxvnSCPNU`
 - Mileage/pay Sheet: `1OUzdjZaVTidLnMX2xuIZ3mRVDOF5oAfT8-pdl6KfUfI`
 - Purchase & Receipt Archive: `1pHkTdCxmdBdZjnVu97FkpkiSjysLkhjuTEcfcEXzmW8`
-- Mutable state lives only in those Sheets. If unavailable: `Action Required — <authority> unavailable`; never substitute memory/chat.
+- Mutable state lives only in canonical Sheets. If unavailable: `Action Required — <authority> unavailable`; never substitute chat/memory.
 
 ## Automations
-- Keep exactly one active Ops Brief automation: `2:45 AM/PM Eastern Ops Brief`, `RRULE:FREQ=DAILY;BYHOUR=2,14;BYMINUTE=45;BYSECOND=0`, Eastern. Invoke skill; PM is morning; return only brief.
+- Keep exactly one active Ops Brief automation: `2:45 AM/PM Eastern Ops Brief`, `RRULE:FREQ=DAILY;BYHOUR=2,14;BYMINUTE=45;BYSECOND=0`, Eastern; PM is morning.
 - Keep exactly one active `Receipt & Order Lifecycle`, `RRULE:FREQ=DAILY;BYHOUR=1,13;BYMINUTE=45`, Eastern, exact schedule.
-- No per-order/duplicate/child/support/retry/3:00/Pacific/UTC-shifted jobs. Scheduled runs never inspect/mutate automations.
+- No per-order/duplicate/child/retry/3:00/Pacific/UTC-shifted jobs. Scheduled runs never mutate automations.
 
 ## Invariants
-- Clear Ops-list changes write canonical Sheet immediately; preserve `Done`/`Removed`.
-- Briefs use live evidence/engine output. Read complete Gmail evidence; reconcile `Shipments`; retain `Order Events`; report delivery once.
-- Important mail stays under `Ops/Archive Approval` until approval. Never auto-send email or delete Gmail without explicit bounded request.
-- Before external email: reject no-reply/unmonitored routes, research official contact when needed, show recipient+subject+full draft, then ask `Do you want me to send this email?`.
-- HOME/ROAD uses live controls/trips. Home early closes mileage accrual and holds HOME through next Friday 2:45 PM. Paid terminal miles are directional; never mirror reverse mileage without evidence.
-- Receipt email/photo/screenshot from any supported conversation enters canonical receipt workflow. Dedupe sources; no chat-local state. Canonical state must survive deletion of old chats.
-- One purchase = one Receipt ID/total; line items may span categories/assets/projects/beneficiaries. Investigate UPC/SKU/part/model, cross-reference asset registry/modifications, auto-assign unique fitment, balance allocations; queue only after evidence is exhausted.
-- People/assets/aliases, reimbursements, and expected merchant charges are canonical Sheet state. Outside-person reimbursement is separate from merchant refund; preserve gross purchase and net household cost.
-- Reconcile same-order revisions before account charges. Keep expected charges open until settlement/no-settlement resolution; investigate unmatched or over/undercharges instead of guessing.
-- Preserve cancellation/return history. Cancellation != refund; determine whether money settled. Only an expected unresolved correction gets the five-business-day action.
-- Gmail archival/success requires Audit gate PASS for database, Drive, classification, allocation, mapping, Shipment, payment/financial-resolution, reimbursement, and inventory checks as applicable.
+- Clear Ops changes write canonical state immediately; preserve `Done`/`Removed`.
+- Briefs use live evidence/engine output. Read complete relevant Gmail; reconcile `Shipments`; retain `Order Events`; report delivery once.
+- Important mail stays `Ops/Archive Approval` until approval. Never auto-send email/delete Gmail. For contact, reject no-reply/unmonitored routes, research official support when needed, show recipient+subject+full draft, ask `Do you want me to send this email?`.
+- HOME/ROAD uses live controls/trips. Home early closes mileage accrual; paid terminal miles are directional and never mirrored without evidence.
+- Receipt email/photo/screenshot from any supported conversation enters canonical workflow. Dedupe sources; no chat-local state; old chats may be deleted after canonical ingestion.
+- One purchase = one Receipt ID/total. Investigate UPC/SKU/part/model against assets/modifications; auto-assign unique fitment; balance allocations; queue only after evidence is exhausted.
+- People/assets/aliases, reimbursements, and payment cases are Sheet state. Outside-person reimbursement != merchant refund; preserve gross purchase and net household cost.
+- Reconcile same-order revisions before charges. Keep expected charges open until financially resolved; investigate unmatched/over/undercharges.
+- Cancellation != refund; determine settlement. Only expected unresolved corrections get the five-business-day action.
+- External run sheets update existing Routes/Trips/Mileage by stable directional evidence; never create a duplicate route database.
+- Gmail archival/success requires Audit gate PASS for applicable database, Drive, classification, allocation, mapping, Shipment, payment/financial-resolution, reimbursement, and inventory checks.
 
 ## Recovery/versioning
-- Snapshot automation mutations; verify writes/dependencies; roll back failures. Recover from live authorities without user restatement.
-- Always automatically commit/push lasting policy/tests/bootstrap changes to private repo; never commit mutable data/secrets.
+- Recover from live authorities without user restatement; snapshot/verify/roll back risky mutations.
+- Always automatically commit/push lasting policy/tests/bootstrap changes; never commit mutable data/secrets.
 - Keep bootstrap <3,000 chars; durable detail belongs in skill/repo. If changed without direct Project write, return complete `PROJECT INSTRUCTIONS UPDATE`.
 - Never claim connector/GitHub success without confirmation.
