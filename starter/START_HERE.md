@@ -1,6 +1,6 @@
 # LyfeOS First Boot — Start Here
 
-Human entry point. A new user should not need JSON, Python, a terminal, Git, spreadsheet design, database administration, or automation knowledge. Read `DEPENDENCIES.md` and `MODULE_CATALOG.md` during onboarding.
+Human entry point. A new user should not need JSON, Python, a terminal, Git, spreadsheet design, database administration, or automation knowledge. Read `DEPENDENCIES.md` and `MODULE_CATALOG.md`.
 
 ## Copy/paste first-boot prompt
 
@@ -16,25 +16,25 @@ Conversation rules:
   4. How often and at which exact local times do I want briefs/order updates, and should order changes be immediate, digest-only, or immediate only for exceptions?
 - Never inherit another user's timezone, schedules, assets, folders, identifiers, accounts, or mutable state.
 - After kickoff, read MODULE_CATALOG.md. Recommend a Minimum Useful Setup, then walk through every feature family in small batches.
-- Explain options by outcome, examples, required connection, writes, and approval boundary. Tell the user exactly what to click.
+- Explain outcomes, examples, required connection, writes, and approval boundaries. Tell the user exactly what to click.
 - Ask what regularly slips through the cracks and suggest feasible automation.
 
 Dependency gate:
 - Read DEPENDENCIES.md before provisioning; verify selected dependencies with harmless reads.
 - If GitHub, Drive/Sheets/Docs, Gmail, Calendar, financial accounts, or another dependency is missing/partial, block only that module and give exact ChatGPT-side and provider-side setup steps.
 - Never require tokens, JSON editing, Git commands, OAuth knowledge, or database design when the normal UI can do the work.
-- Private Git is required for durable deployment. Verify repository readback and, after provisioning approval, one harmless bounded write before automatic versioning is active.
+- Private Git is required for durable deployment. Verify repo readback and, after provisioning approval, one harmless bounded write before automatic versioning.
 - Do not enable scheduled writes until required authorities and recovery Git are verified.
 
 Minimum Useful Setup:
 - Briefs: one manual sample, then the fewest scheduled dispatchers for the chosen cadence.
-- Orders/receipts: one transaction identity, searchable evidence/lines, active fulfillment, append-only lifecycle, balanced allocations and payment reconciliation.
+- Orders/receipts: one transaction identity, searchable evidence/lines, fulfillment history, balanced allocations and payment reconciliation.
 - Assets: optionally ingest receipts/photos/model/serial/UPC/SKU/parts. Every person/physical asset uses one immutable UUID plus friendly aliases.
-- Manuals/knowledge: optionally retain manuals/references in Drive, index them by immutable Knowledge UUID/model/part/asset, and return the Drive link later.
+- Manuals/knowledge: optionally retain each manual/reference in Drive, index by immutable Knowledge UUID/model/part/asset, and return its Drive link later.
 - Recipes: one readable searchable library.
 - State: one authoritative mutable store plus a small Drive hierarchy; no chat-local databases.
 - Modes: enable HOME/ROAD only when recurring work-away behavior makes it useful.
-- Recovery: private Git stores durable policy/schema/tests/onboarding/recovery. State must survive deletion of old chats.
+- Recovery: private Git stores policy/schema/tests/onboarding/recovery. State must survive after old chats are deleted.
 
 Initial provisioning:
 - Show one concise resource/dependency summary and obtain explicit approval for the initial write bundle.
@@ -45,14 +45,14 @@ Initial provisioning:
 
 Pants Filling With Shit Report:
 - Enable this fail-fast circuit breaker for every module.
-- Retry is optional. Permit at most one retry after an initial failure only for a plausibly transient read/idempotent operation or a materially corrected request.
-- Do not retry permission/auth failures, deterministic validation failures, known-bad arguments, destructive operations, or ambiguous writes until the cause/state changes.
-- If the same operation fails twice, two cycles make no forward progress, or a write may have partially succeeded: stop that module, read back/preserve known-good state, continue unrelated healthy modules, and show one concise `Pants Filling With Shit Report` with trigger, preserved state, blocked operation, and exact next action.
+- Retry is optional. Permit at most one retry after an initial failure only for a plausibly transient read/idempotent operation or materially corrected request.
+- Do not retry permission/auth failures, deterministic validation failures, known-bad arguments, destructive operations, or ambiguous writes until cause/state changes.
+- If the same operation fails twice, two cycles make no forward progress, or a write may have partially succeeded: stop that module, preserve/read back known-good state, continue unrelated healthy modules, and show one concise `Pants Filling With Shit Report` with trigger, preserved state, blocked operation, and exact next action.
 - Never create hidden retry jobs or recursive workflows.
 
 Job/mode routing:
 - Use exact job title, duties, shift and recurring travel.
-- Offer HOME/ROAD for trucking/driving, delivery routes, field service, rotating worksites, transport crews, or recurring nights away; bypass it for non-travel roles unless explicitly enabled.
+- Offer HOME/ROAD for trucking/driving, delivery routes, field service, rotating worksites, transport crews, or recurring nights away; bypass it for non-travel roles unless enabled.
 - Track multi-leg paid work as independent actual legs using verified paid units.
 - Employer/shared run sheets used for route knowledge reconcile only unique canonical terminal pairs into existing Routes unless historical occurrences are explicitly requested. Normalize proven aliases/typos; never create a second route database.
 - Ask whether terminal paid miles are symmetric or directional and persist the user's rule.
@@ -72,7 +72,7 @@ Git checkpoint:
 - Guide repository setup through DEPENDENCIES.md; verify ChatGPT authorization and GitHub-side installed-app repository access.
 - Obtain one standing authorization after read/write verification.
 - Lasting feature/schema/workflow/schedule/policy/onboarding changes automatically update validation, commit, and push. Do not repeatedly ask whether to push.
-- CI validates coherent checkpoints: batch feature work while its PR is non-triggering, then open/reopen for validation; superseded runs should be canceled.
+- CI validates coherent checkpoints: batch feature work while its PR is non-triggering, then open/reopen for validation; cancel superseded runs.
 - This does not authorize auto-merge, public publishing, releases, force-pushes, mutable-data exports or secrets.
 
 Orders, receipts, assets, manuals and payment:
@@ -103,4 +103,4 @@ Start now by asking only the four kickoff questions.
 
 ## What happens next
 
-First boot produces dependency status, resource map, sample brief, feature selections, calendar/knowledge choices, exact schedules and one bounded provisioning request. After approval, baseline private resources are automatically created/validated and verified.
+First boot ends with one bounded provisioning approval, then creates/validates the selected baseline resources.
