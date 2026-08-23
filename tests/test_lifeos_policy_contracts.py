@@ -11,31 +11,51 @@ class LifeOSPolicyContractTests(unittest.TestCase):
     def text(self, path: str) -> str:
         return (ROOT / path).read_text(encoding="utf-8")
 
-    def test_public_upstream_has_license_and_state_boundary(self) -> None:
+    def test_public_upstream_has_license_and_explicit_two_state_models(self) -> None:
         readme = self.text("README.md")
         license_text = self.text("LICENSE")
         self.assertIn("intentionally public", readme)
         self.assertIn("starter/START_HERE.md", readme)
         self.assertIn("Mutable operational state", readme)
+        self.assertIn("private Git", readme)
+        self.assertIn("reference deployment", readme)
         self.assertIn("public-source audit", readme)
-        self.assertNotIn("must be private", readme.lower())
         self.assertIn("MIT License", license_text)
         self.assertIn("Permission is hereby granted", license_text)
 
-    def test_starter_supports_public_or_private_deployment_source(self) -> None:
+    def test_starter_requires_private_git_for_personal_state(self) -> None:
         guide = self.text("starter/START_HERE.md")
         deps = self.text("starter/DEPENDENCIES.md")
         versioning = self.text("starter/VERSIONING.md")
         template = self.text("starter/INSTRUCTIONS.md.tmpl")
+        state = self.text("starter/GIT_STATE_MODEL.md")
         config = json.loads(self.text("starter/config.example.json"))
-        for surface in (guide, deps, versioning, template):
-            self.assertIn("public", surface.lower())
+        for surface in (guide, deps, versioning, template, state):
             self.assertIn("private", surface.lower())
+            self.assertIn("git", surface.lower())
+            self.assertIn("state", surface.lower())
         self.assertIn("public-source audit", guide.lower())
-        self.assertIn("Simple fork path", versioning)
-        self.assertIn("Clean portable-snapshot path", versioning)
+        self.assertIn("Public GitHub fork path", versioning)
+        self.assertIn("code only", versioning.lower())
         self.assertIn("{{REPOSITORY_VISIBILITY}}", template)
-        self.assertEqual(config["REPOSITORY_VISIBILITY"], "USER_SELECTED_PUBLIC_OR_PRIVATE")
+        self.assertEqual(config["STATE_STORE"], "PRIVATE_GIT_REPOSITORY/state")
+        self.assertEqual(config["REPOSITORY_VISIBILITY"], "PRIVATE_REQUIRED_WHEN_PERSONAL_STATE_IS_ENABLED")
+        self.assertIn("IMMUTABLE_EVENTS_PLUS_DERIVED_SNAPSHOTS", config["GIT_STATE_MODEL"])
+
+    def test_git_state_model_is_transactional_and_share_safe(self) -> None:
+        state = self.text("starter/GIT_STATE_MODEL.md")
+        shared = self.text("starter/SHARED_FEATURE_WORKFLOW.md")
+        for phrase in (
+            "canonical personal state authority",
+            "Event files are immutable",
+            "push by fast-forward only",
+            "read back",
+            "Never force-push",
+            "state/",
+        ):
+            self.assertIn(phrase.lower(), state.lower())
+        self.assertIn("exclude the entire private `state/` surface", shared)
+        self.assertIn("synthetic fixtures", shared.lower())
 
     def test_public_source_audit_and_ci_are_release_gates(self) -> None:
         audit = self.text("scripts/audit_public_source.py")
@@ -171,7 +191,7 @@ class LifeOSPolicyContractTests(unittest.TestCase):
         self.assertIn("Personal accountability and routines", catalog)
         self.assertIn("Education and study coach", catalog)
 
-    def test_starter_is_bounded_nontechnical_and_deep(self) -> None:
+    def test_starter_is_bounded_nontechnical_deep_and_discovery_driven(self) -> None:
         guide = self.text("starter/START_HERE.md")
         questions = json.loads(self.text("starter/questions.json"))
         rows = [q for section in questions["sections"] for q in section["questions"]]
@@ -181,9 +201,10 @@ class LifeOSPolicyContractTests(unittest.TestCase):
         self.assertIn("Start now by asking only the four kickoff questions", guide)
         self.assertIn("mark HOME/ROAD bypassed", guide)
         self.assertIn("driving/trucking", guide.lower())
-        self.assertLess(len(guide), 9000)
-        self.assertGreaterEqual(len(rows), 80)
-        self.assertGreaterEqual(questions["version"], 4)
+        self.assertIn("Do you want help with meal planning?", guide)
+        self.assertLess(len(guide), 12000)
+        self.assertGreaterEqual(len(rows), 100)
+        self.assertGreaterEqual(questions["version"], 5)
         for required in (
             "works_away_from_home",
             "accountability_domains",
@@ -194,6 +215,16 @@ class LifeOSPolicyContractTests(unittest.TestCase):
             "scheduler_timezone_integrity",
             "repository_visibility",
             "public_source_policy",
+            "employment_status",
+            "retired_support",
+            "hiking_outdoors",
+            "vacation_planning",
+            "meal_planning_help",
+            "existing_meal_plans",
+            "fitness_wearable",
+            "medical_event_tracking",
+            "appointment_email_auto_update",
+            "git_state_commit_policy",
         ):
             self.assertIn(required, ids)
 
