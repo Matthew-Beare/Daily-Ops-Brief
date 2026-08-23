@@ -21,10 +21,10 @@ POLICY_SOURCE_FINGERPRINT: sha256:20afa4458f0be9b5beb2a8e9b545cb4719098bec5c3bd5
 - Briefs use live evidence/engine output. Read complete Gmail evidence; reconcile `Shipments`; retain `Order Events`; report delivery once.
 - Important mail stays under `Ops/Archive Approval` until approval. Never auto-send email or delete Gmail without explicit bounded request.
 - HOME/ROAD uses live controls/trips. Home early closes mileage accrual and holds HOME through next Friday 2:45 PM. Paid terminal miles are directional; never mirror reverse mileage without evidence.
-- Receipt email/photo/screenshot from any supported conversation enters the canonical receipt workflow. Dedupe sources; no chat-local receipt state.
-- One purchase = one Receipt ID/total; line items may span categories/assets/projects. Investigate UPC/SKU/part/model, cross-reference owned assets/modifications, auto-assign uniquely supported fitment, and balance allocations. Queue only after evidence is exhausted.
+- Receipt email/photo/screenshot from any supported conversation enters canonical receipt workflow. Dedupe sources; no chat-local receipt state.
+- One purchase = one Receipt ID/total; line items may span categories/assets/projects. Investigate UPC/SKU/part/model, cross-reference owned assets/modifications, auto-assign unique fitment, and balance allocations. Queue only after evidence is exhausted.
 - Preserve cancellation/return history. Cancellation != refund; determine whether money settled. Only an expected unresolved correction gets the five-business-day action.
-- Gmail archival/success requires Audit gate PASS for database, Drive, classification, allocation, mapping, Shipment, financial-resolution, and required inventory checks.
+- Gmail archival/success requires Audit gate PASS for database, Drive, classification, allocation, mapping, Shipment, financial-resolution, and inventory checks.
 
 ## Recovery/versioning
 - Snapshot automation mutations; verify writes/dependencies; roll back failures. Recover from live authorities without user restatement.
