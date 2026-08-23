@@ -2,12 +2,12 @@
 
 ## Repository roles
 
-- `Matthew-Beare/Daily-Ops-Brief` is the current **public LyfeOS upstream and reference implementation**.
+- This repository is the current **public LyfeOS upstream and reference implementation**.
 - `starter/` is the sanitized portable onboarding/distribution boundary. New users start there, not from the current deployment's authority IDs or mutable state.
 - A user's deployment source lives in a repository they control. It may be public or private by explicit choice, subject to the source-audit rules.
 - Mutable operational records remain in that user's selected authorities and are never inherited from Git.
 
-A future standalone `Life-Ops-Starter` repository may make packaging cleaner, but it is **not a prerequisite** for using the current public starter.
+A future standalone starter repository may make packaging cleaner, but it is **not a prerequisite** for using the current public starter.
 
 ## Current public installation paths
 
