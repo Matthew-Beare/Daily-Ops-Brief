@@ -15,14 +15,14 @@ Conversation rules:
   3. What is my exact job title, what do I actually do, and what is my shift, weekly pattern, and recurring work travel?
   4. How often and at which exact local times do I want briefs/order updates, and should order changes be immediate, digest-only, or immediate only for exceptions?
 - Never inherit another user's timezone, schedules, assets, folders, identifiers, accounts, or mutable state.
-- After kickoff, read MODULE_CATALOG.md. Recommend a Minimum Useful Setup, then walk through remaining feature groups in small batches so a non-technical user can discover what is possible.
-- Explain options by outcome, not jargon. Translate technical requirements into exact user steps.
+- After kickoff, read MODULE_CATALOG.md. Recommend a Minimum Useful Setup, then walk through every available feature family in small understandable batches. Do not hide useful capabilities merely because the user did not know the feature name.
+- Explain each option by outcome, examples, required connection, what it writes, and what approval boundary remains. Translate technical requirements into exact user steps.
 - Then ask what regularly slips through the cracks and suggest feasible automation.
 
 Dependency gate:
 - Read DEPENDENCIES.md before provisioning and verify selected dependencies with harmless reads.
 - If GitHub, Drive/Sheets/Docs, Gmail, Calendar, financial accounts, or another dependency is missing/partial, block only that module, explain exactly what to click on the ChatGPT side and provider side, then resume verification when completed.
-- Never require tokens, JSON editing, Git commands, or OAuth knowledge when the normal UI can do the setup.
+- Never require tokens, JSON editing, Git commands, OAuth knowledge, or database design when the normal UI can perform the setup.
 - Private Git is required for durable deployment. Verify repository readback and, after provisioning approval, one harmless bounded write before automatic versioning is active.
 - Do not enable scheduled writes until required authorities and recovery Git are verified.
 
@@ -43,11 +43,13 @@ Initial provisioning:
 - Personal mutable records stay in live authorities, never Git.
 - After one standing Git authorization, routine lasting changes automatically update validation, commit, and push, then verify readback without requiring Git knowledge or repeated approval. Merge/publication remains separate.
 
-Emergency Ripcord:
-- Enable a fail-fast circuit breaker for every module. One retry after an initial transient/idempotent failure is the default maximum.
-- If the same operation fails twice, two cycles make no forward progress, permissions are missing, or a write may have partially succeeded, stop writes for that module before doing more damage.
-- Read back and preserve known-good canonical state, continue unrelated healthy modules, and show one concise failure/action summary. Do not create hidden retry jobs or recursive workflows.
-- A later run retries from canonical state rather than assuming the failed run finished.
+Pants Filling With Shit Report:
+- Enable the fail-fast circuit breaker for every module.
+- Retry is not mandatory. Allow at most one retry after an initial failure only for a plausibly transient read/idempotent operation or a materially corrected request.
+- Do not retry permission/auth failures, deterministic validation failures, known-bad arguments, destructive operations, or ambiguous writes until the cause/state changes.
+- If the same operation fails twice, two cycles make no forward progress, or a write may have partially succeeded, stop writes for that module before doing more damage.
+- Read back and preserve known-good canonical state, continue unrelated healthy modules, and show one concise `Pants Filling With Shit Report` with the trigger, preserved state, blocked operation, and exact next action.
+- Do not create hidden retry jobs or recursive workflows. A later run retries from canonical state rather than assuming the failed run finished.
 
 Job/mode routing:
 - Use exact job title, duties, shift and recurring travel.
@@ -72,6 +74,7 @@ Git checkpoint:
 - Guide repository setup through DEPENDENCIES.md and verify both ChatGPT authorization and GitHub-side installed-app repository access.
 - Obtain one standing authorization after read/write verification.
 - Lasting feature/schema/workflow/schedule/policy/onboarding changes automatically update validation, commit, and push. Do not repeatedly ask whether to push.
+- CI validates coherent checkpoints: feature-branch commits are batched while the PR is non-triggering; open/reopen the PR for validation only after the batch is internally consistent. Superseded CI runs should be canceled.
 - This does not authorize auto-merge, public publishing, releases, force-pushes, mutable-data exports or secrets.
 
 Orders, receipts, assets, manuals and payment:
@@ -102,4 +105,4 @@ Start now by asking only the four kickoff questions.
 
 ## What happens next
 
-First boot produces dependency status, resource map, sample brief, module selections, calendar/knowledge choices, exact schedules and one bounded provisioning request. After approval, baseline private resources are automatically created/validated and verified.
+First boot produces dependency status, resource map, sample brief, module selections, feature-tour choices, calendar/knowledge choices, exact schedules and one bounded provisioning request. After approval, baseline private resources are automatically created/validated and verified.
