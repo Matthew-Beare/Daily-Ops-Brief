@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Runtime compatibility layer for the Daily Ops Brief policy engine.
 
-This keeps the mature 3.1.x engine intact while enforcing two reliability
+This keeps the mature 3.1.x engine intact while enforcing reliability
 contracts that scheduled runs require:
 
 1. an active trip forces ROAD when no live explicit Mode Override exists;
-2. mileage/pay is section-scoped, never a global strict-input prerequisite.
+2. mileage/pay is section-scoped, never a global strict-input prerequisite;
+3. Home early keeps the Friday 2:45 PM brief in HOME mode and closes the
+   current work-cycle accrual immediately.
 
 Delete this layer once the same behavior is folded into ops_policy.py and its
 full regression suite.
@@ -16,13 +18,26 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from datetime import datetime, time, timedelta
 from typing import Any
 
 import ops_policy as base
 
 
-POLICY_VERSION = "3.1.1"
+POLICY_VERSION = "3.1.2"
 MILEAGE_KEYS = {"mileage_values", "mileage_settings_values"}
+
+# The live Routes sheet learns company-paid terminal-pair mileage separately
+# for each direction. Route geometry/runtime may use a reverse fallback;
+# settlement mileage may not.
+base.ROUTE_KEYS.update(
+    {
+        "paidmilesab": "paid_miles_ab",
+        "paidmilesba": "paid_miles_ba",
+        "milessourceab": "miles_source_ab",
+        "milessourceba": "miles_source_ba",
+    }
+)
 
 
 def _truthy(value: Any) -> bool:
@@ -157,6 +172,46 @@ def resolve(payload: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
+def _next_friday_1500(moment: datetime) -> datetime:
+    """Return the next strictly-future Friday 3:00 PM Eastern boundary."""
+    local = moment.astimezone(base.TZ)
+    days_ahead = (4 - local.weekday()) % 7
+    candidate = datetime.combine(
+        local.date() + timedelta(days=days_ahead), time(15, 0), base.TZ
+    )
+    if candidate <= local:
+        candidate += timedelta(days=7)
+    return candidate
+
+
+def home_early(moment: datetime) -> dict[str, Any]:
+    """Create a HOME override that covers the next Friday 2:45 PM brief."""
+    local = moment.astimezone(base.TZ)
+    expiry = _next_friday_1500(local)
+    return {
+        "policy_version": POLICY_VERSION,
+        "status": "ok",
+        "timezone": base.TZ_NAME,
+        "starts_at": local.isoformat(),
+        "expires_at": expiry.isoformat(),
+        "work_cycle_close_at": local.isoformat(),
+        "sheet_fields": {
+            "Type": "Mode Override",
+            "Item": "Home early",
+            "State": "HOME",
+            "Starts At (ET)": local.strftime("%-m/%-d/%Y %-H:%M:%S"),
+            "Expires At (ET)": expiry.strftime("%-m/%-d/%Y %-H:%M:%S"),
+            "Notes": (
+                "Force HOME through the next Friday 2:45 PM brief; expiry is "
+                "Friday 3:00 PM Eastern and exclusive. Close the current work-"
+                "cycle mileage accrual at the confirmed home-arrival time."
+            ),
+            "Status": "Active",
+            "Updated (ET)": local.strftime("%-m/%-d/%Y"),
+        },
+    }
+
+
 def _read_json(path: str) -> dict[str, Any]:
     if path == "-":
         return json.load(sys.stdin)
@@ -189,8 +244,7 @@ def main(argv: list[str] | None = None) -> int:
             now = base.parse_datetime(args.now, "now")
             if now is None:
                 raise ValueError("Missing required current timestamp.")
-            output = base.home_early(now)
-            output["policy_version"] = POLICY_VERSION
+            output = home_early(now)
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         output = {
             "policy_version": POLICY_VERSION,
