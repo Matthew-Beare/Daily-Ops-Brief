@@ -27,9 +27,11 @@ import ops_policy as base
 POLICY_VERSION = "3.1.2"
 MILEAGE_KEYS = {"mileage_values", "mileage_settings_values"}
 
-# The live Routes sheet learns company-paid terminal-pair mileage separately
-# for each direction. Route geometry/runtime may use a reverse fallback;
-# settlement mileage may not.
+# The live Routes sheet retains two physical paid-mile columns so the schema can
+# represent an explicit directional exception. The current deployment's standing
+# policy is symmetric by terminal pair: a verified A↔B paid-mile value is written
+# to and used in both columns unless the owner explicitly records an exception.
+# Route geometry and runtime remain legitimately directional.
 base.ROUTE_KEYS.update(
     {
         "paidmilesab": "paid_miles_ab",
