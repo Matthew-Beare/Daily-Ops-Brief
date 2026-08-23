@@ -6,7 +6,7 @@ This reusable onboarding kit builds a new user's LyfeOS without copying the refe
 
 `starter/` is the portable surface of the public upstream. A user may fork the repository or use an audited snapshot. Public or private deployment source is supported. Secrets and mutable personal records never belong in portable Git source.
 
-The reference deployment elsewhere in the repository is an example, not new-user configuration.
+The deployment elsewhere in the repository is a public **reference implementation** and example, not new-user configuration.
 
 ## Built-in discovery and capabilities
 
