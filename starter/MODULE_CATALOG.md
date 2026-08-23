@@ -15,25 +15,27 @@ Ask: **Do you want me to track orders from email from ordered → shipped → de
 Use one consolidated lifecycle pipeline, never one automation/task/calendar event per order. Delivered items leave the active queue but remain in lifecycle history.
 
 ### Receipt database
-Ask: **Do you want me to build and maintain a searchable database of receipts and purchases that arrive by email?**
+Ask: **Do you want me to build and maintain a searchable database of receipts and purchases from email, uploaded files, screenshots, and receipt photos?**
 
 If enabled, offer:
 - searchable vendor/order/item/date/category/amount fields;
+- one canonical transaction reconciled across email, photo/screenshot, account, shipment, and other evidence so the same purchase is not duplicated;
+- extraction and exact lookup of visible UPC/GTIN, SKU, manufacturer part/model, serial and other stable identifiers;
 - canonical readable receipt copies and evidence links;
-- deduplication across confirmation, shipment, delivery, and forwarded-message variants;
 - append-only lifecycle history;
-- category and asset tagging without duplicate spend;
-- unresolved classifications queued for a compact user question instead of guessed.
+- independent line-item categories/assets with balanced allocations and no duplicate spend;
+- evidence-driven asset assignment using the user's full owned-asset registry and known modifications;
+- unresolved classifications queued only after reachable evidence has been investigated, with the remaining ambiguity stated precisely.
 
 ### Asset and inventory extraction
 Ask: **When a receipt clearly identifies something you own, do you want me to add or update an inventory record automatically after the receipt passes validation?**
 
-Offer inventory domains separately so the user can enable only useful ones: tools/shop equipment, vehicles/parts, electronics/computers, appliances/home equipment, warranties/serial-number assets, hobby/technical equipment, and user-defined domains. Never infer ownership, model, serial number, asset relationship, or disposal from weak evidence.
+Offer inventory domains separately so the user can enable only useful ones: tools/shop equipment, vehicles/parts, electronics/computers, appliances/home equipment, warranties/serial-number assets, hobby/technical equipment, and user-defined domains. Use exact product identity, compatibility/application data, existing asset attributes, known modifications and exclusion evidence to reconcile ownership before asking. Never force an assignment when material evidence conflicts.
 
 ### Receipt-detected financial reports
-Ask: **Do you want spending reports from the receipts and purchase email I can verify?**
+Ask: **Do you want spending reports from the receipts and purchase evidence I can verify?**
 
-Make the evidence boundary explicit: this is receipt/email-detected spending unless an account-level finance source is separately connected.
+Make the evidence boundary explicit: this is receipt/email/image-detected spending unless an account-level finance source is separately connected.
 
 Offer these default views:
 - current week and prior week;
@@ -91,7 +93,7 @@ The pay week is independent of HOME/ROAD display mode. Returning home does not e
 
 ## Household and ownership modules
 
-Ask whether household members share evidence but require separate ownership, budgets, calendars, mode state, or private records. One receipt may relate to multiple people/assets without being counted twice.
+Ask whether household members share evidence but require separate ownership, budgets, calendars, mode state, or private records. One receipt may relate to multiple people/assets without being counted twice. Shared household context must not silently expose one person's private mail, finances, memory, or personal controls to another member.
 
 ## Default receipt taxonomy
 
@@ -121,7 +123,9 @@ Examples of subcategories include Tires, Vehicle Parts, Fuel & Charging, Hand To
 
 ## Cancellation semantics
 
-A confirmed cancellation must disappear from **active orders, active shipments, current spend, dashboards, and inventory side effects**. It must not be physically deleted from audit history. Retain the Receipt ID, cancelled detail/event, and evidence with `Include in Spend = FALSE` so duplicate ingestion, refunds, disputes, replacements, and later corrections remain traceable.
+A confirmed cancellation must disappear from **active orders, active shipments, current spend, dashboards, and inventory side effects**. It must not be physically deleted from audit history. Retain the Receipt ID, cancelled detail/event, and evidence with `Include in Spend = FALSE` so duplicate ingestion, disputes, replacements, and later corrections remain traceable.
+
+Cancellation and money resolution are separate. Determine whether the removed amount ever settled before expecting a refund. A merchant revision made before settlement may require no refund at all; an amount that actually settled needs credible reversal/refund proof. Only an expected financial correction still unresolved after the configured deadline becomes an action.
 
 If no replacement exists, the cancelled transaction simply ends in terminal `Cancelled` state with no replacement link. If a new merchant order replaces it, preserve both identities and link them reciprocally.
 
