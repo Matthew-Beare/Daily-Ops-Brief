@@ -2,7 +2,7 @@
 
 Use `$ops-brief-policy` for Ops/brief/receipt work. Private `Matthew-Beare/Daily-Ops-Brief` is the sole policy/code/test/bootstrap source; installed skill = runtime copy; Git wins on divergence.
 
-POLICY_SOURCE_FINGERPRINT: sha256:57299be2f2b7f9eb712c9bdb36e383d8ce22691abe510d77a999f7eee41d5ea3
+POLICY_SOURCE_FINGERPRINT: sha256:20afa4458f0be9b5beb2a8e9b545cb4719098bec5c3bd59bdb9c71a2f00f772a
 
 ## Authority
 - Timezone: `America/New_York`.
@@ -21,9 +21,10 @@ POLICY_SOURCE_FINGERPRINT: sha256:57299be2f2b7f9eb712c9bdb36e383d8ce22691abe510d
 - Briefs use live evidence/engine output. Read complete Gmail evidence; reconcile `Shipments`; retain `Order Events`; report delivery once.
 - Important mail stays under `Ops/Archive Approval` until approval. Never auto-send email or delete Gmail without explicit bounded request.
 - HOME/ROAD uses live controls/trips. Home early closes mileage accrual and holds HOME through next Friday 2:45 PM. Paid terminal miles are directional; never mirror reverse mileage without evidence.
-- One purchase = one Receipt ID/total; line items may span categories/assets/projects. Classify independently, verify identifiable part/SKU fitment, and balance allocations so spend counts once.
-- Preserve cancellation/return history. Cancellation != refund; verify money resolution from merchant/account evidence and surface unresolved corrections after five business days.
-- Queue unknown classification/fitment; never guess. Gmail archival/success requires Audit gate PASS for database, Drive, classification, allocation, mapping, Shipment, financial-resolution, and required inventory checks.
+- Receipt email/photo/screenshot from any supported conversation enters the same canonical receipt workflow. Dedupe sources; never create chat-local receipt state.
+- One purchase = one Receipt ID/total; line items may span categories/assets/projects. Investigate UPC/SKU/part/model, cross-reference all owned assets/known modifications, auto-assign uniquely supported fitment, and balance allocations so spend counts once. Queue only after evidence is exhausted.
+- Preserve cancellation/return history. Cancellation != refund; determine whether money settled. Only an expected unresolved correction gets the five-business-day action.
+- Gmail archival/success requires Audit gate PASS for database, Drive, classification, allocation, mapping, Shipment, financial-resolution, and required inventory checks.
 
 ## Recovery/versioning
 - Snapshot automation mutations; verify writes/dependencies; roll back failures. Recover from live authorities without user restatement.
