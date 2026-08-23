@@ -21,13 +21,25 @@ class RunSheetImportTests(unittest.TestCase):
         route = result["route_upserts"][0]
         self.assertEqual(route["paid_miles_a_to_b"], 312)
         self.assertEqual(route["paid_miles_b_to_a"], 312)
-        self.assertEqual(result["occurrence_count"], 2)
+        self.assertFalse(result["historical_occurrences_imported"])
+        self.assertNotIn("occurrences", result)
 
-    def test_source_occurrence_dedupes_exact_duplicate(self) -> None:
+    def test_source_occurrence_dedupes_without_creating_trip_rows(self) -> None:
         row = {"DATE": "5/8-10", "TRIP": "MRT - RTO", "MILES": "2,184", "source_tab": "present"}
         result = MODULE.reconcile([row, dict(row)])
-        self.assertEqual(result["occurrence_count"], 1)
+        self.assertEqual(result["valid_observation_count"], 1)
+        self.assertEqual(result["route_pair_count"], 1)
         self.assertEqual(result["route_upserts"][0]["paid_miles_a_to_b"], 2184)
+        self.assertFalse(result["historical_occurrences_imported"])
+
+    def test_proven_source_alias_does_not_create_duplicate_terminal(self) -> None:
+        result = MODULE.reconcile([
+            {"DATE": "old", "TRIP": "MRT - IRC", "MILES": "2204", "source_tab": "source"},
+            {"DATE": "typo", "TRIP": "MRT - I4C", "MILES": "2204", "source_tab": "source"},
+        ])
+        self.assertEqual(result["route_pair_count"], 1)
+        route = result["route_upserts"][0]
+        self.assertEqual((route["pair_a"], route["pair_b"]), ("IRC", "MRT"))
 
     def test_repeated_latest_can_supersede_old_variant(self) -> None:
         result = MODULE.reconcile([
@@ -37,7 +49,7 @@ class RunSheetImportTests(unittest.TestCase):
         ])
         route = result["route_upserts"][0]
         self.assertEqual(route["paid_miles_a_to_b"], 582)
-        self.assertEqual(route["selection_basis"], "latest-repeated")
+        self.assertEqual(route["selection_basis"], "recent-repeated")
         self.assertEqual(route["source_variants"], {581: 1, 582: 2})
 
     def test_malformed_rows_are_ignored_not_invented(self) -> None:
@@ -45,8 +57,9 @@ class RunSheetImportTests(unittest.TestCase):
             {"DATE": "x", "TRIP": "NOT A TERMINAL PAIR", "MILES": "871", "source_tab": "source"},
             {"DATE": "x", "TRIP": "PAR - ELP", "MILES": "", "source_tab": "source"},
         ])
-        self.assertEqual(result["occurrence_count"], 0)
+        self.assertEqual(result["valid_observation_count"], 0)
         self.assertEqual(result["route_pair_count"], 0)
+        self.assertEqual(result["ignored_malformed_count"], 2)
 
 
 if __name__ == "__main__":
