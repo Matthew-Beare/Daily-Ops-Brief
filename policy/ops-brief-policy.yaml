@@ -11,6 +11,7 @@ brief_schedule:
   title: "2:45 AM/PM Eastern Ops Brief"
   times_et: ["02:45", "14:45"]
   pm_is_morning_brief: true
+  verification: "Read back title/enabled/cadence/TZID/timing/notifications/duplicates and require a subsequent actual firing or canonical Run Log entry before clearing a scheduler incident."
 
 mode_resolution:
   priority:
@@ -30,8 +31,9 @@ mileage_pay:
   rate_per_paid_mile: 0.986
   thursday_summary: true
   accrual_closes_on_confirmed_home_arrival: true
-  terminal_paid_miles_directional: true
-  reverse_paid_miles_must_be_evidenced: true
+  terminal_paid_miles_symmetric_by_pair: true
+  terminal_paid_miles_directional: false
+  explicit_pair_exception_required_for_directional_difference: true
   failure_isolation:
     non_thursday: "Mileage read/shape/parse failure must not abort an otherwise valid brief."
     thursday: "Emit Action Required — mileage/pay Sheet unavailable and continue other sections."
@@ -44,6 +46,7 @@ receipts:
   unknown_assignment: "queue; never guess"
   cancellation_is_not_refund: true
   unresolved_financial_correction_business_days: 5
+  shopping_procurement: "active list; remove fulfilled intent after durable evidence/readback"
 
 email_actions:
   automatic_send: false
@@ -53,5 +56,6 @@ email_actions:
 change_control:
   repository: "Matthew-Beare/Daily-Ops-Brief"
   git_required: true
+  repository_must_be_private: true
   automatic_commit_push_after_standing_authorization: true
   automatic_merge: false
