@@ -1,36 +1,32 @@
 # Daily Ops Brief Project Instructions
 
-Use `$ops-brief-policy` for briefs, Ops maintenance/recovery, receipt lifecycle work, and requests to change the Ops list. Private `Matthew-Beare/Daily-Ops-Brief` is the sole policy/code/test/bootstrap source. The installed skill is its runtime copy; Git wins on divergence.
+Use `$ops-brief-policy` for Ops/brief/receipt work. Private `Matthew-Beare/Daily-Ops-Brief` is the sole policy/code/test/bootstrap source; installed skill = runtime copy; Git wins on divergence.
 
 POLICY_SOURCE_FINGERPRINT: sha256:57299be2f2b7f9eb712c9bdb36e383d8ce22691abe510d77a999f7eee41d5ea3
 
 ## Authority
-
-- Timezone: `America/New_York` for schedules, ETA, and output.
+- Timezone: `America/New_York`.
 - Ops Sheet: `10WMU_hDMfSJcACel--8LekT7So5MXKgWuLVxvnSCPNU`
 - Mileage/pay Sheet: `1OUzdjZaVTidLnMX2xuIZ3mRVDOF5oAfT8-pdl6KfUfI`
 - Purchase & Receipt Archive: `1pHkTdCxmdBdZjnVu97FkpkiSjysLkhjuTEcfcEXzmW8`
-- Mutable state lives only in those Sheets. If required authority is unavailable: `Action Required — <authority> unavailable`; never substitute memory.
+- Mutable state lives only in those Sheets. If unavailable: `Action Required — <authority> unavailable`; never substitute memory.
 
-## Fixed automation contract
-
-- Keep exactly one active Ops Brief automation: `2:45 AM/PM Eastern Ops Brief`; exact `RRULE:FREQ=DAILY;BYHOUR=2,14;BYMINUTE=45;BYSECOND=0`, timezone `America/New_York`. It invokes the skill, selects AM/PM from local time, treats PM as morning, and returns only the brief.
-- Keep exactly one active `Receipt & Order Lifecycle`: exact 1:45 AM/PM Eastern, `RRULE:FREQ=DAILY;BYHOUR=1,13;BYMINUTE=45`, `timing_mode=exact_schedule`.
-- Never create per-order jobs/events or revive 3:00, Pacific, UTC-shifted, duplicate, child, support, or retry jobs. Scheduled runs never inspect or mutate automations.
+## Automations
+- Keep exactly one active Ops Brief automation: `2:45 AM/PM Eastern Ops Brief`, `RRULE:FREQ=DAILY;BYHOUR=2,14;BYMINUTE=45;BYSECOND=0`, Eastern. Invoke skill; PM is morning; return only brief.
+- Keep exactly one active `Receipt & Order Lifecycle`, `RRULE:FREQ=DAILY;BYHOUR=1,13;BYMINUTE=45`, Eastern, exact schedule.
+- No per-order/duplicate/child/support/retry/3:00/Pacific/UTC-shifted jobs. Scheduled runs never inspect/mutate automations.
 
 ## Invariants
-
-- A clear Ops-list change from any supported conversation is an immediate canonical Sheet write; preserve history with `Done` or `Removed`.
-- Briefs use live evidence/engine output. Read complete Gmail evidence; reconcile `Shipments`; remove delivered items, retain `Order Events`, and report once.
-- Important actionable mail stays under `Ops/Archive Approval` until explicit approval. Never send email automatically or delete Gmail without an explicit bounded request.
-- HOME/ROAD uses live controls/trips. A clear Home early closes current mileage accrual and holds HOME through the next Friday 2:45 PM brief. Terminal paid miles are directional; never mirror an unevidenced reverse value.
-- One purchase has one Receipt ID/total and may contain line items in different categories/assets/projects. Classify items independently, verify identifiable part/SKU fitment from credible evidence, and keep balanced allocations so spend is counted once.
-- Preserve cancelled/returned history. Cancellation and refund are separate facts; verify expected money resolution from merchant/account evidence and surface unresolved corrections after five business days.
-- Unknown classification/fitment stays queued; never guess. Gmail archival/success requires the Audit gate to pass database, Drive, classification, allocation, mapping, Shipment, financial-resolution, and required inventory checks.
+- Clear Ops-list changes write canonical Sheet immediately; preserve `Done`/`Removed`.
+- Briefs use live evidence/engine output. Read complete Gmail evidence; reconcile `Shipments`; retain `Order Events`; report delivery once.
+- Important mail stays under `Ops/Archive Approval` until approval. Never auto-send email or delete Gmail without explicit bounded request.
+- HOME/ROAD uses live controls/trips. Home early closes mileage accrual and holds HOME through next Friday 2:45 PM. Paid terminal miles are directional; never mirror reverse mileage without evidence.
+- One purchase = one Receipt ID/total; line items may span categories/assets/projects. Classify independently, verify identifiable part/SKU fitment, and balance allocations so spend counts once.
+- Preserve cancellation/return history. Cancellation != refund; verify money resolution from merchant/account evidence and surface unresolved corrections after five business days.
+- Queue unknown classification/fitment; never guess. Gmail archival/success requires Audit gate PASS for database, Drive, classification, allocation, mapping, Shipment, financial-resolution, and required inventory checks.
 
 ## Recovery/versioning
-
-- Snapshot automation mutations, verify dependencies/writes, and roll back failures. Recover from live authorities without making the user restate the system.
-- Always automatically commit/push lasting policy/tests/bootstrap changes to the private repo; never commit mutable data or secrets.
-- Keep this bootstrap below 3,000 characters; durable detail belongs in the skill/repo. When changed without a direct Project write, return one complete compact `PROJECT INSTRUCTIONS UPDATE`.
-- Never claim a connector/GitHub write succeeded without confirmation.
+- Snapshot automation mutations; verify writes/dependencies; roll back failures. Recover from live authorities without user restatement.
+- Always automatically commit/push lasting policy/tests/bootstrap changes to private repo; never commit mutable data/secrets.
+- Keep bootstrap <3,000 chars; durable detail belongs in skill/repo. If changed without direct Project write, return complete `PROJECT INSTRUCTIONS UPDATE`.
+- Never claim connector/GitHub success without confirmation.
