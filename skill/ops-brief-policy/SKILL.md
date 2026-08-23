@@ -1,11 +1,11 @@
 ---
 name: ops-brief-policy
-description: Run and maintain the user's Daily Ops Brief and LyfeOS control room using canonical Sheets, Gmail/Drive/Calendar/account evidence, deterministic travel policy, receipt/order/payment reconciliation, asset acquisition, reimbursements, and safe external-contact proposals. Use for scheduled/manual briefs; task/control changes; ROAD trips/routes/mileage; order/receipt lifecycle work; receipt photos/screenshots/barcodes; product/serial/model intake; expected charges; reimbursements; calendar projections; Gmail filing/retention; and clear named-LifeOS changes from supported conversations where required authorities are available.
+description: Run and maintain the user's Daily Ops Brief and LyfeOS control room using canonical Sheets, Gmail/Drive/Calendar/account evidence, deterministic travel policy, receipt/order/payment reconciliation, asset acquisition, knowledge/manual indexing, reimbursements, and safe external-contact proposals. Use for scheduled/manual briefs; task/control changes; ROAD trips/routes/mileage; order/receipt lifecycle work; receipt photos/screenshots/barcodes; product/serial/model intake; manuals/reference documents; expected charges; reimbursements; calendar projections; Gmail filing/retention; and clear named-LifeOS changes from supported conversations where required authorities are available.
 ---
 
 # Ops Brief Policy
 
-Keep mutable operational state in canonical Sheets, durable policy/code/tests/onboarding in the configured private Git repository, and scheduled prompts thin. The installed skill is a deployed runtime copy, not a second authority. Chat history is an intake/reasoning surface, never the sole database.
+Keep mutable operational state in canonical Sheets, durable policy/code/tests/onboarding in the configured private Git repository, retained files/evidence in canonical Drive, and scheduled prompts thin. The installed skill is a deployed runtime copy, not a second authority. Chat history is an intake/reasoning surface, never the sole database.
 
 ## Authority
 
@@ -14,7 +14,7 @@ Keep mutable operational state in canonical Sheets, durable policy/code/tests/on
 - Mileage & Pay Tracker: `https://docs.google.com/spreadsheets/d/1OUzdjZaVTidLnMX2xuIZ3mRVDOF5oAfT8-pdl6KfUfI/edit`.
 - Purchase & Receipt Archive: `https://docs.google.com/spreadsheets/d/1pHkTdCxmdBdZjnVu97FkpkiSjysLkhjuTEcfcEXzmW8/edit`.
 - Runtime engine: `scripts/ops_policy_runtime.py`; shipment reconciler: `scripts/reconcile_shipments.py`.
-- `Shipments` is active fulfillment only; durable purchase/lifecycle/payment/asset history belongs in canonical tables/evidence.
+- `Shipments` is active fulfillment only; durable purchase/lifecycle/payment/asset/knowledge history belongs in canonical tables/evidence.
 - If Ops is unavailable, report `Action Required — Ops Status Register unavailable.` Mileage failure is section-scoped; on Thursday report mileage/pay unavailable and continue other valid sections.
 
 ## Route the request
@@ -25,6 +25,7 @@ Keep mutable operational state in canonical Sheets, durable policy/code/tests/on
 - Receipt ingestion/cancellation/refund/Drive filing: read `references/receipt-ingestion.md` plus `references/receipt-classification-fitment.md`.
 - Receipt/image/barcode/label photo: additionally read `references/receipt-photo-intake.md`.
 - New/enriched tool/equipment/asset from photo/model/serial/receipt: additionally read `references/asset-acquisition.md`.
+- Manual, datasheet, technical PDF, download URL, or durable reference: read `references/knowledge-manual-ingestion.md` and link it to asset UUIDs when applicable.
 - Purchase for another person/external asset or reimbursement: read `references/household-reimbursement.md`.
 - Expected/pending/posted merchant charge, over/undercharge or unmatched charge: read `references/payment-reconciliation.md`.
 - Calendar event projection from canonical state: read `references/calendar-projection.md`.
@@ -40,13 +41,15 @@ Keep mutable operational state in canonical Sheets, durable policy/code/tests/on
 - Appointment reminder visibility is mode-independent and follows configured brief rules; never expose hidden anti-nag confirmation state.
 - Mileage accrual closes at confirmed HOME arrival, normally Wednesday PM or earlier; Thursday is reporting-only. Use company/user/run-sheet paid miles, never map distance.
 - **Paid terminal mileage is symmetric by terminal pair** unless the user explicitly gives an exception. When A↔B is reconciled, store/use the same paid-mile value both directions. Route geometry/runtime may remain directional.
-- Shared/employer run sheets reconcile into existing Routes/Trips/Mileage using stable evidence and dedupe; never create a duplicate route database.
+- A historical/shared run sheet used as terminal-pair knowledge imports/upserts only unique canonical terminal pairs into `Routes`; do not manufacture hundreds of historical `Trips`/Mileage rows merely because the source lists repeated occurrences. Normalize proven terminal aliases/typos before dedupe and never create a second route database.
 - Read complete relevant Gmail and reconcile active Shipments before brief/order output. Delivered fulfillment leaves active Shipments after durable event recording and is reported once.
-- Correlated order mail is grouped under durable Gmail order-history labels. After delivery, carrier-originated FedEx/UPS/DHL logistics mail may be automatically moved to Trash only under the explicit audited 90-day retention rule in `email-reconciliation.md`; merchant/order/payment/support evidence is retained.
+- Correlated order mail is grouped under durable Gmail order-history labels. After delivery, carrier-originated FedEx/UPS/DHL/USPS logistics mail may be automatically moved to Trash only under the explicit audited 90-day retention rule in `email-reconciliation.md`; merchant/order/payment/support evidence is retained.
 - One Receipt ID = one underlying merchant transaction/total. Line items may have different categories/assets/projects/beneficiaries; allocations balance to the supported total and spend is counted once.
 - Receipt email/photo/screenshot/account evidence for the same purchase enriches one Receipt ID; do not create chat-local receipt state or duplicates.
 - Investigate UPC/GTIN/SKU/part/model/serial and exact compatibility against the full owned/external asset registry, modifications and exclusion evidence. Auto-assign unique supported fitment; queue only after reachable evidence is exhausted.
-- Asset acquisition dedupes by stable identifiers/evidence and links physical assets to receipt lines/evidence rather than duplicating financial transactions.
+- Every person/physical asset and retained knowledge object uses an immutable collision-resistant RFC 4122 UUID as canonical cross-database identity. Friendly IDs/names are aliases and UUIDs survive rename, ownership change, family expansion, or database migration.
+- Asset acquisition dedupes by UUID/stable identifiers/evidence and links physical assets to receipt lines/evidence rather than duplicating financial transactions.
+- Retained manuals/references live in canonical Drive and are indexed by immutable Knowledge UUID plus manufacturer/model/part/asset relationships so later queries can return the canonical Drive link and relevant source section.
 - Outside-person purchases remain merchant purchases. Reimbursement is separate from merchant refund; preserve gross purchase and verified net household cost.
 - Same merchant order revision stays one Receipt ID and becomes the expected-charge source when strongest. A true replacement with a distinct merchant order gets a distinct linked Receipt ID.
 - Every supported expected merchant charge stays open in `Payment Reconciliation` until matched/split-matched/no-settlement/resolved. Compare eventual posted amount with the latest supported revision; investigate unexplained over/under/unmatched charges instead of guessing.
@@ -54,7 +57,7 @@ Keep mutable operational state in canonical Sheets, durable policy/code/tests/on
 - Calendar projection is opt-in per event class and deduped through `Calendar Projection`; revisions update existing Google events rather than creating duplicates. Never create one automation per event.
 - Important mail remains under `Ops/Archive Approval` until explicit archive approval.
 - Never send email automatically. Validate the recipient/channel, reject no-reply/unmonitored routes, research official support when needed, show recipient + subject + complete draft, and ask exactly `Do you want me to send this email?`.
-- Outside the explicit 90-day FedEx/UPS/DHL carrier-retention class, Gmail deletion requires explicit bounded authority.
+- Outside the explicit 90-day FedEx/UPS/DHL/USPS carrier-retention class, Gmail deletion requires explicit bounded authority.
 - Do not monitor promotions/sales unless explicitly reinstated.
 - Durable behavior changes update validation/tests and are committed/pushed to the private repo. Never auto-merge/publish/force-push/commit mutable data or secrets.
 - Prefer an explicit degraded result over loops or silent failure.
