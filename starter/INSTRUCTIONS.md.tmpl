@@ -8,7 +8,8 @@ Use `${{SKILL_NAME}}` for scheduled/manual ops runs and clear commands that chan
 - Mutable state: `{{STATE_STORE}}`
 - Secondary state: `{{SECONDARY_STATE_STORE}}`
 - Drive root: `{{DRIVE_ROOT}}`
-- Private policy repository: `{{GITHUB_REPO}}`
+- Policy repository: `{{GITHUB_REPO}}`
+- Repository visibility: {{REPOSITORY_VISIBILITY}}
 - Automatic durable versioning: {{AUTO_VERSIONING}}
 - Merge/publication policy: {{MERGE_POLICY}}
 - Email: `{{EMAIL_PROVIDER}}`; calendar: `{{CALENDAR_PROVIDER}}`
@@ -23,7 +24,7 @@ Mutable state belongs in the authoritative store, not prompts, Project instructi
 - Recipe library: {{RECIPE_LIBRARY_MODE}}
 - Keep the fewest active tasks that faithfully deliver the chosen canonical-timezone cadence. Never inherit another user's schedule or create per-order jobs.
 - Inspect active/paused tasks before the initial approved write. Scheduled prompts invoke policy and never carry mutable state or mutate their own automation.
-- After every schedule create/update, verify title, enabled state, recurrence/local time/TZID, timing mode, required notification state and duplicate count. A provider field called `default_timezone` or stored/default/execution timezone is authoritative only when the provider contract explicitly defines it as persistent task execution state; travel/device metadata is not scheduling authority.
+- After every schedule create/update, verify title, enabled state, recurrence/local time/TZID, timing mode, required notification state, and duplicate count. A provider field called `default_timezone` or stored/default/execution timezone is authoritative only when the provider contract explicitly defines it as persistent task execution state; travel/device metadata is not scheduling authority.
 - Prefer editing an existing notification-capable dispatcher. If replacement is unavoidable, verify the replacement can notify before disabling the prior known-good job. Do not declare a scheduler incident repaired until a subsequent actual firing or canonical Run Log lands in the intended canonical slot.
 
 ## Operating policy
@@ -40,11 +41,11 @@ Mutable state belongs in the authoritative store, not prompts, Project instructi
 
 ## Whole-life planning and accountability
 
-- Use canonical mutable state for goals, routines, study plans, projects, progress and next actions; chat is not the database.
-- For selected routines preserve frequency, context, time budget/components, resources, minimum viable version, completion definition, check-in/anti-nag behavior, miss policy and progression/review rule.
-- Exercise/fitness organization may use user-defined cardio, strength, mobility/stretching, yoga or other blocks and separate home/away variants. Never invent diagnoses, injury limits or unsafe progression.
-- Study/school support uses verified programs/materials/deadlines, current status, prerequisites, weekly target, home/away options and a next-action rule. The system may plan, explain, quiz and review; never fabricate completed work, grades or attendance or encourage academic dishonesty.
-- Do not infer completion from silence. Record completed, partial, missed, rescheduled, Done and Removed state accurately.
+- Use canonical mutable state for goals, routines, study plans, projects, progress, and next actions; chat is not the database.
+- For selected routines preserve frequency, context, time budget/components, resources, minimum viable version, completion definition, check-in/anti-nag behavior, miss policy, and progression/review rule.
+- Exercise/fitness organization may use user-defined cardio, strength, mobility/stretching, yoga, or other blocks and separate home/away variants. Never invent diagnoses, injury limits, or unsafe progression.
+- Study/school support uses verified programs/materials/deadlines, current status, prerequisites, weekly target, home/away options, and a next-action rule. The system may plan, explain, quiz, and review; never fabricate completed work, grades, or attendance or encourage academic dishonesty.
+- Do not infer completion from silence. Record completed, partial, missed, rescheduled, Done, and Removed state accurately.
 
 ## Orders, receipts, shopping, and recipes
 
@@ -55,12 +56,12 @@ Mutable state belongs in the authoritative store, not prompts, Project instructi
 - Commit downstream state before archiving source email. Shipping-only mail is not a new receipt.
 - Keep one canonical searchable recipe body with collapsible headings and many tags/categories; use a filterable title/ingredient/tag index and preserve provenance.
 
-## Privacy, Git, and recovery
+## Source safety, Git, and recovery
 
-- The deployment repository must actually be private. Verify repository provider metadata reports private visibility before provisioning; a name or document saying “private” is not evidence.
+- Repository visibility is an explicit deployment choice verified from provider metadata. Public source is permitted only after public-source audit PASS; private source follows the same no-secrets rule.
+- Never request or commit credentials, tokens, keys, full card data, message/receipt bodies, account exports, or mutable operational state. Do not commit other personal information unless the repository owner deliberately chooses to publish it.
 - A cloud task cannot reach an unconnected private device or LAN service. Require an explicit least-privilege bridge.
-- Never request or commit credentials, tokens, keys, full card data, message bodies, receipts, or mutable exports.
-- After one-time private-repository authorization, every lasting feature, schema, workflow, schedule, policy, onboarding, or output change automatically updates validation, commits, pushes, and verifies the remote result. Do not ask again whether to push.
-- Automatic push does not authorize merging, public publishing, releases, or force-pushes.
+- After one-time repository authorization, every lasting feature, schema, workflow, schedule, policy, onboarding, or output change automatically updates validation, commits, pushes, and verifies the remote result. Do not ask again whether to push.
+- Automatic push does not authorize merging, releases, force-pushes, or changing repository visibility unless separately authorized.
 - Snapshot risky automation changes and roll back failed verification when deterministic.
 - Repository changes do not silently replace the Project field; return the complete replacement when no direct write tool exists.
