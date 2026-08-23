@@ -168,7 +168,7 @@ For every enabled class collect:
 - revision/cancellation behavior;
 - attendee/invite policy.
 
-A schedule is not healthy until both its visible timezone definition and the provider's stored/execution timezone match the canonical IANA timezone. Current travel/device timezone is context, not scheduling authority.
+Scheduled-task health uses an evidence chain. The visible schedule/TZID/local clock time must match the canonical timezone; exactly the intended dispatcher must be enabled with the correct timing mode and required notification state; active duplicates must be absent; and after creation or repair an actual firing/Run Log must land in the intended canonical local slot. A connector field described as stored/execution timezone or `default_timezone` is authoritative only if the provider contract explicitly defines it as persistent task execution state. Current travel/device timezone is context, not scheduling authority.
 
 ## 10. Money and purchase organization
 
@@ -208,7 +208,7 @@ Before any initial write bundle, summarize:
 - authoritative apps/data;
 - schedules/notifications;
 - destructive/external-send approval boundaries;
-- Git recovery/versioning state;
+- private-repository provider verification and Git recovery/versioning state;
 - anything still ambiguous.
 
 Then show the Minimum Useful Setup first. Provision only after explicit approval, verify every write, and keep optional expansion available without requiring a rebuild.
