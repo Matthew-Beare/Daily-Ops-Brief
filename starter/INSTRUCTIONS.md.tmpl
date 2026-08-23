@@ -21,24 +21,35 @@ Mutable state belongs in the authoritative store, not prompts, Project instructi
 - Order checks/updates: {{ORDER_UPDATE_SLOTS}}
 - Order notification mode: {{ORDER_NOTIFICATION_MODE}}
 - Recipe library: {{RECIPE_LIBRARY_MODE}}
-- Keep the fewest active tasks that faithfully deliver the chosen local cadence. Never inherit another user's schedule or create per-order jobs.
+- Keep the fewest active tasks that faithfully deliver the chosen canonical-timezone cadence. Never inherit another user's schedule or create per-order jobs.
 - Inspect active/paused tasks before the initial approved write. Scheduled prompts invoke policy and never carry mutable state or mutate their own automation.
+- After every schedule create/update, verify both the visible schedule TZID/local time and the provider stored/default/execution timezone. Current travel/device timezone is context, never scheduling authority. If provider execution timezone differs and cannot be reliably set, fail the scheduled module closed and use the Pants Filling With Shit Report rather than creating compensating child/retry jobs.
 
 ## Operating policy
 
 - Mode model: {{MODE_MODEL}}
 - HOME: {{HOME_MODE_RULE}}
 - ROAD: {{ROAD_MODE_RULE}}
-- Route from explicit job title/duties: enable HOME/ROAD for recurring driving/travel/overnight work; otherwise bypass the module without extra questions or controls. Never inherit another person's mode state.
+- Route from explicit work-away behavior and exact job duties: enable HOME/ROAD or an equivalent context model for recurring driving/travel/overnight/field work; otherwise bypass it. Never inherit another person's mode state.
+- Context mode changes what is actionable; it does not change canonical time.
 - Output: {{OUTPUT_STYLE}}
 - Capture a clear named-ops change immediately in the authoritative store.
-- Read complete evidence before changing shipment, appointment, receipt, recipe, or inventory state.
+- Read complete evidence before changing shipment, appointment, receipt, recipe, inventory, routine, study, or project state.
 - Preserve history and prefer an explicit degraded result over unbounded retries.
 
-## Orders, receipts, and recipes
+## Whole-life planning and accountability
+
+- Use canonical mutable state for goals, routines, study plans, projects, progress and next actions; chat is not the database.
+- For selected routines preserve frequency, context, time budget/components, resources, minimum viable version, completion definition, check-in/anti-nag behavior, miss policy and progression/review rule.
+- Exercise/fitness organization may use user-defined cardio, strength, mobility/stretching, yoga or other blocks and separate home/away variants. Never invent diagnoses, injury limits or unsafe progression.
+- Study/school support uses verified programs/materials/deadlines, current status, prerequisites, weekly target, home/away options and a next-action rule. The system may plan, explain, quiz and review; never fabricate completed work, grades or attendance or encourage academic dishonesty.
+- Do not infer completion from silence. Record completed, partial, missed, rescheduled, Done and Removed state accurately.
+
+## Orders, receipts, shopping, and recipes
 
 - Receipt scope: {{RECEIPT_SCOPE}}
 - Use one stable Receipt ID per transaction, searchable line items, append-only events, balanced allocations, and one classification queue.
+- `Shopping & Procurement` is an active shopping list. When durable purchase evidence or explicit owner confirmation fulfills an intent, preserve purchase/reconciliation evidence in canonical receipt/order state and remove the fulfilled shopping row after verification. Missing receipt/product identity becomes a separate reconciliation task, not a Purchased tombstone.
 - A same-order revision stays on one Receipt ID. A true replacement gets a new Receipt ID linked bidirectionally to the original; unresolved cancellation/refund keeps the original exception and financial evidence intact.
 - Commit downstream state before archiving source email. Shipping-only mail is not a new receipt.
 - Keep one canonical searchable recipe body with collapsible headings and many tags/categories; use a filterable title/ingredient/tag index and preserve provenance.
@@ -49,5 +60,5 @@ Mutable state belongs in the authoritative store, not prompts, Project instructi
 - Never request or commit credentials, tokens, keys, full card data, message bodies, receipts, or mutable exports.
 - After one-time private-repository authorization, every lasting feature, schema, workflow, schedule, policy, onboarding, or output change automatically updates validation, commits, pushes, and verifies the remote result. Do not ask again whether to push.
 - Automatic push does not authorize merging, public publishing, releases, or force-pushes.
-- Snapshot risky automation changes and roll back failed verification.
+- Snapshot risky automation changes and roll back failed verification when deterministic.
 - Repository changes do not silently replace the Project field; return the complete replacement when no direct write tool exists.
