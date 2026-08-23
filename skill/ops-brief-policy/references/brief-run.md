@@ -8,7 +8,7 @@ Read these exact Ops Status Register core ranges once:
 
 - `Tasks!A1:L500`
 - `Control!A1:I200`
-- `Routes!A1:L500`
+- `Routes!A1:P500`
 - `Trips!A1:O1000`
 - `'Travel Settings'!A1:F100`
 - `'Run Log'!A1:M1000`
@@ -20,14 +20,16 @@ Read these Purchase & Receipt Archive ranges once:
 - `Order Events!A1:Q1000`
 - `Classification Queue!A1:L500`
 
-Use the latest prior successful `Completed (ET)` value from Run Log as the delivery-event cutoff. If the receipt workbook is unavailable, mark the brief `Degraded`, skip delivery-once and classification rendering, and continue with the active shipment queue.
+Use the latest prior successful `Completed (ET)` value from Run Log as the delivery-event cutoff. If the receipt workbook is unavailable, mark the brief `Degraded`, skip delivery-once, financial-resolution exceptions, and classification rendering, and continue with the active shipment queue.
+
+From `Order Events`, also resolve the latest financial-correction state per Receipt ID. A latest unresolved `Financial Resolution Overdue` / equivalent `financial_resolution_overdue` event remains an `ACTION REQUIRED` item until a later `Financial Resolution Verified`, `Refunded`, `Revised Before Settlement`, or `No Refund Required` event resolves it. Never infer resolution merely because the order was cancelled.
 
 Read these exact Mileage & Pay Tracker ranges once:
 
 - `'Mileage Log'!A4:O504`
 - `Settings!A3:B8`
 
-Mileage/pay is section-scoped, not a global prerequisite. If either mileage range is unreadable or unavailable on a non-Thursday run, skip the mileage section and continue without turning the whole run into `Error`. If either is unavailable on Thursday, continue all other valid sections, mark the completed run `Degraded`, and emit exactly `Action Required — mileage/pay Sheet unavailable`. HOME/ROAD mode never suppresses a Thursday mileage summary.
+Mileage/pay is section-scoped, not a global prerequisite. If either mileage range is unreadable or unavailable on a non-Thursday run, skip the mileage section and continue without turning the whole run into `Error`. If either is unavailable on Thursday, continue all other valid sections, mark the completed run `Degraded`, and emit exactly `Action Required — mileage/pay Sheet unavailable`. HOME/ROAD mode never suppresses a Thursday mileage summary. Thursday reports the closed work-cycle total; operational mileage accrual normally closed on Wednesday HOME arrival or earlier Home early.
 
 Read connected Google Calendar far enough ahead to cover the next seven days. Calendar is non-authoritative evidence: after one failed or unavailable call, use an empty appointments list, mark the run `Degraded`, and continue.
 
@@ -57,7 +59,7 @@ Appointment rendering is slot-based and independent of HOME/ROAD mode: the Satur
 When mileage/pay is unavailable, omit or pass the failed mileage datasets as unavailable input to the hardened runtime; do not manufacture a readable-looking fake range.
 
 3. Run `python3 scripts/ops_policy_runtime.py resolve --input <json-file> --pretty` from the skill directory.
-4. Treat the result as authoritative for mode, input health, weather gates, mowing focus, route-watch eligibility, trip status, mileage/pay summary, actions, appointment items, task rendering, Run ID, and Run Log base fields. Mode precedence is live unexpired explicit override, then an active trip, then the weekly default.
+4. Treat the result as authoritative for mode, input health, weather gates, mowing focus, route-watch eligibility, trip status, mileage/pay summary, actions, appointment items, task rendering, Run ID, and Run Log base fields. Mode precedence is live unexpired explicit override, then an active trip, then the weekly default. Directional terminal paid-mile fields are learned evidence only; never mirror A → B into B → A.
 5. Accept `status: ok` or `status: degraded` as completed deterministic results. If execution fails or returns `status: error`, render its error compactly under `ACTION REQUIRED`; never improvise the failed policy.
 6. Set `Weather Watch` to `Off` for every returned `expired_watch_trip_ids` value while retaining the trip row.
 
@@ -79,6 +81,7 @@ Perform one bounded pass per applicable external source. Run only the planned qu
 - Re-read `Shipments!A1:N500` after mutations. Show active rows as `Item — ETA <date>` or `Item — No ETA`; add status only for a material exception.
 - From `Order Events`, show each credible delivery observed after the previous successful brief exactly once as `Delivered — <item>`. Do not retain it in the active queue or show it on later briefs.
 - From `Classification Queue`, render unresolved rows under `ACTION REQUIRED` as compact questions with exact vendor/order/item and the smallest useful choices. Do not infer an answer from silence.
+- From current unresolved financial-resolution events, render one compact `ACTION REQUIRED` line per overdue Receipt ID after the five-business-day gate. Do not create a new reminder job or send a vendor email automatically.
 - Search `in:inbox label:"Ops/Archive Approval"` after filing. Group related messages into concise decisions under `IMPORTANT EMAIL`, retain them in Inbox, and end that section with the exact line `Is it OK to archive these emails?`. If the user did not answer the prior brief, repeat the queue unchanged. Do not treat silence as approval.
 - Never send email automatically. Do not delete Gmail without an explicit bounded request.
 - Do not search promotions, calculate discounts, or monitor sales.
