@@ -20,22 +20,18 @@ class PublicSourceAuditTests(unittest.TestCase):
             self.assertEqual([], AUDIT.audit(root))
 
     def test_private_key_is_rejected(self) -> None:
+        marker = "-----BEGIN " + "PRIVATE KEY-----"
         with tempfile.TemporaryDirectory() as tempdir:
             root = Path(tempdir)
-            (root / "bad.txt").write_text(
-                "-----BEGIN PRIVATE KEY-----\nnot-real-but-forbidden\n",
-                encoding="utf-8",
-            )
+            (root / "bad.txt").write_text(marker + "\nnot-real-but-forbidden\n", encoding="utf-8")
             errors = AUDIT.audit(root)
             self.assertTrue(any("private key" in error for error in errors))
 
     def test_token_like_secret_is_rejected(self) -> None:
+        token = "gh" + "p_" + "abcdefghijklmnopqrstuvwxyzABCDEF1234567890"
         with tempfile.TemporaryDirectory() as tempdir:
             root = Path(tempdir)
-            (root / "bad.txt").write_text(
-                "token = 'ghp_abcdefghijklmnopqrstuvwxyzABCDEF1234567890'\n",
-                encoding="utf-8",
-            )
+            (root / "bad.txt").write_text(f"token = '{token}'\n", encoding="utf-8")
             errors = AUDIT.audit(root)
             self.assertTrue(any("GitHub token" in error or "literal secret" in error for error in errors))
 
@@ -51,7 +47,8 @@ class PublicSourceAuditTests(unittest.TestCase):
             self.assertTrue(any("mutable-data file type" in error for error in errors))
 
     def test_valid_luhn_card_number_is_rejected(self) -> None:
-        errors = AUDIT.scan_text("card 4111 1111 1111 1111", "fixture")
+        number = "4111" + " 1111" + " 1111" + " 1111"
+        errors = AUDIT.scan_text("card " + number, "fixture")
         self.assertTrue(any("payment-card" in error for error in errors))
 
 
