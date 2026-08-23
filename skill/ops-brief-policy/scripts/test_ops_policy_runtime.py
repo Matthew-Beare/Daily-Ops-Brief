@@ -12,7 +12,7 @@ def base_payload(now: str) -> dict:
         "now": now,
         "tasks_values": [["Task ID", "Tier", "Classification", "Subsystem", "Task", "Status", "Visibility"]],
         "control_values": [["Record ID", "Type", "Item", "State", "Starts At (ET)", "Expires At (ET)", "Notes", "Status"]],
-        "routes_values": [["Route ID", "Endpoint A", "Endpoint B", "Route A → B", "Route B → A", "Avg A → B (hrs)", "Avg B → A (hrs)", "Operation Profile", "Status"]],
+        "routes_values": [["Route ID", "Endpoint A", "Endpoint B", "Route A → B", "Route B → A", "Avg A → B (hrs)", "Avg B → A (hrs)", "Paid Miles A → B", "Paid Miles B → A", "Miles Source A → B", "Miles Source B → A", "Operation Profile", "Status"]],
         "trips_values": [["Trip ID", "Route ID", "Origin", "Destination", "Departure (ET)", "ETA (ET)", "ETA Source", "Current Location", "Location Time (ET)", "Weather Watch", "Watch Expires (ET)", "Status", "Route Override"]],
         "travel_settings_values": [
             ["Setting ID", "Setting", "Value", "Notes", "Status"],
@@ -66,7 +66,7 @@ class RuntimePolicyRegressionTests(unittest.TestCase):
                 "Home early",
                 "HOME",
                 "2026-08-26T16:00:00-04:00",
-                "2026-08-28T12:00:00-04:00",
+                "2026-08-28T15:00:00-04:00",
                 "",
                 "Active",
             ]
@@ -74,6 +74,23 @@ class RuntimePolicyRegressionTests(unittest.TestCase):
         result = runtime.resolve(payload)
         self.assertEqual(result["mode"], "HOME")
         self.assertEqual(result["mode_source"], "override")
+
+    def test_home_early_covers_friday_pm_brief(self):
+        result = runtime.home_early(runtime.base.parse_datetime("2026-08-26T16:00:00-04:00"))
+        self.assertEqual(result["expires_at"], "2026-08-28T15:00:00-04:00")
+        self.assertEqual(result["work_cycle_close_at"], "2026-08-26T16:00:00-04:00")
+        self.assertEqual(result["sheet_fields"]["State"], "HOME")
+
+    def test_home_early_after_friday_boundary_targets_next_week(self):
+        result = runtime.home_early(runtime.base.parse_datetime("2026-08-28T15:01:00-04:00"))
+        self.assertEqual(result["expires_at"], "2026-09-04T15:00:00-04:00")
+
+    def test_directional_route_miles_are_distinct_fields(self):
+        self.assertEqual(runtime.base.ROUTE_KEYS["paidmilesab"], "paid_miles_ab")
+        self.assertEqual(runtime.base.ROUTE_KEYS["paidmilesba"], "paid_miles_ba")
+        self.assertNotEqual(
+            runtime.base.ROUTE_KEYS["paidmilesab"], runtime.base.ROUTE_KEYS["paidmilesba"]
+        )
 
     def test_saturday_bad_mileage_range_does_not_abort(self):
         payload = base_payload("2026-08-22T14:45:00-04:00")
