@@ -106,8 +106,7 @@ def validate(root: Path) -> list[str]:
     require(re.fullmatch(r"[0-9a-f]{64}", fingerprint) is not None, "Git-side policy fingerprint is invalid", errors)
     if re.fullmatch(r"[0-9a-f]{64}", fingerprint):
         actual = compute(root / "skill/ops-brief-policy")
-        if fingerprint != actual:
-            print(f"POLICY_FINGERPRINT_DISCOVERY={actual}")
+        require(fingerprint == actual, f"policy fingerprint mismatch: expected {actual}", errors)
 
     for ref in (
         "receipt-ingestion.md", "receipt-photo-intake.md", "asset-acquisition.md",
@@ -123,9 +122,10 @@ def validate(root: Path) -> list[str]:
     require("never create hidden retry jobs" in skill, "skill lacks retry-job prohibition", errors)
     require("Shopping & Procurement" in skill, "skill lacks shopping/procurement reconciliation routing", errors)
 
+    receipt_lower = receipt.lower()
     require("Partial Cancellation Confirmed" in receipt and "Cancellation Requested" in receipt, "receipt policy lacks cancellation lifecycle handling", errors)
     require("Replacement Group ID" in receipt, "receipt policy lacks linked replacement handling", errors)
-    require("Shopping & Procurement reconciliation" in receipt and "do not duplicate the shopping row" in receipt, "receipt policy lacks shopping reconciliation", errors)
+    require("shopping & procurement reconciliation" in receipt_lower and "do not duplicate the shopping row" in receipt_lower, "receipt policy lacks shopping reconciliation", errors)
     require("Investigation before queue" in fitment and "Unique resolution may be established by exclusion" in fitment, "fitment policy permits premature unknown assignment", errors)
     require("card last-four" in fitment, "financial resolution policy lacks last-four reconciliation", errors)
     require("UPC/EAN/GTIN" in photo and "chat-local shadow receipt database" in photo, "photo intake lacks canonical barcode/receipt ingestion", errors)
