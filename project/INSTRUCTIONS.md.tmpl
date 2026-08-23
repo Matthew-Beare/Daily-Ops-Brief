@@ -2,14 +2,14 @@
 
 Use `$ops-brief-policy` for Ops/brief/receipt work. Private `Matthew-Beare/Daily-Ops-Brief` is the sole policy/code/test/bootstrap source; installed skill = runtime copy; Git wins on divergence.
 
-POLICY_SOURCE_FINGERPRINT: sha256:20afa4458f0be9b5beb2a8e9b545cb4719098bec5c3bd59bdb9c71a2f00f772a
+POLICY_SOURCE_FINGERPRINT: sha256:fd049698c4848fd72d1d4d1879fc60f63924f26ffb8aab6cc95021b41f25d5c5
 
 ## Authority
 - Timezone: `America/New_York`.
 - Ops Sheet: `10WMU_hDMfSJcACel--8LekT7So5MXKgWuLVxvnSCPNU`
 - Mileage/pay Sheet: `1OUzdjZaVTidLnMX2xuIZ3mRVDOF5oAfT8-pdl6KfUfI`
 - Purchase & Receipt Archive: `1pHkTdCxmdBdZjnVu97FkpkiSjysLkhjuTEcfcEXzmW8`
-- Mutable state lives only in those Sheets. If unavailable: `Action Required — <authority> unavailable`; never substitute memory.
+- Mutable state lives only in those Sheets. If unavailable: `Action Required — <authority> unavailable`; never substitute memory/chat.
 
 ## Automations
 - Keep exactly one active Ops Brief automation: `2:45 AM/PM Eastern Ops Brief`, `RRULE:FREQ=DAILY;BYHOUR=2,14;BYMINUTE=45;BYSECOND=0`, Eastern. Invoke skill; PM is morning; return only brief.
@@ -20,11 +20,14 @@ POLICY_SOURCE_FINGERPRINT: sha256:20afa4458f0be9b5beb2a8e9b545cb4719098bec5c3bd5
 - Clear Ops-list changes write canonical Sheet immediately; preserve `Done`/`Removed`.
 - Briefs use live evidence/engine output. Read complete Gmail evidence; reconcile `Shipments`; retain `Order Events`; report delivery once.
 - Important mail stays under `Ops/Archive Approval` until approval. Never auto-send email or delete Gmail without explicit bounded request.
+- Before external email: reject no-reply/unmonitored routes, research official contact when needed, show recipient+subject+full draft, then ask `Do you want me to send this email?`.
 - HOME/ROAD uses live controls/trips. Home early closes mileage accrual and holds HOME through next Friday 2:45 PM. Paid terminal miles are directional; never mirror reverse mileage without evidence.
-- Receipt email/photo/screenshot from any supported conversation enters canonical receipt workflow. Dedupe sources; no chat-local receipt state.
-- One purchase = one Receipt ID/total; line items may span categories/assets/projects. Investigate UPC/SKU/part/model, cross-reference owned assets/modifications, auto-assign unique fitment, and balance allocations. Queue only after evidence is exhausted.
+- Receipt email/photo/screenshot from any supported conversation enters canonical receipt workflow. Dedupe sources; no chat-local state. Canonical state must survive deletion of old chats.
+- One purchase = one Receipt ID/total; line items may span categories/assets/projects/beneficiaries. Investigate UPC/SKU/part/model, cross-reference asset registry/modifications, auto-assign unique fitment, balance allocations; queue only after evidence is exhausted.
+- People/assets/aliases, reimbursements, and expected merchant charges are canonical Sheet state. Outside-person reimbursement is separate from merchant refund; preserve gross purchase and net household cost.
+- Reconcile same-order revisions before account charges. Keep expected charges open until settlement/no-settlement resolution; investigate unmatched or over/undercharges instead of guessing.
 - Preserve cancellation/return history. Cancellation != refund; determine whether money settled. Only an expected unresolved correction gets the five-business-day action.
-- Gmail archival/success requires Audit gate PASS for database, Drive, classification, allocation, mapping, Shipment, financial-resolution, and inventory checks.
+- Gmail archival/success requires Audit gate PASS for database, Drive, classification, allocation, mapping, Shipment, payment/financial-resolution, reimbursement, and inventory checks as applicable.
 
 ## Recovery/versioning
 - Snapshot automation mutations; verify writes/dependencies; roll back failures. Recover from live authorities without user restatement.
