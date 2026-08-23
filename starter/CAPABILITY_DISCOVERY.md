@@ -65,7 +65,7 @@ The system should reveal adjacent useful options without enabling them silently.
 Every module declares the smallest dependency set it actually needs. Core onboarding/Git/versioning must not depend on Gmail, Calendar, finance, fitness, or another optional connector. Optional connector failure is section-scoped and must not break unrelated modules.
 
 Prefer:
-- one canonical state authority per data class;
+- one canonical authority per data class;
 - one durable Git lineage per deployment;
 - one consolidated scheduler dispatcher per cadence/purpose rather than per-record jobs;
 - Calendar events for event-specific reminders rather than one ChatGPT task per appointment;
