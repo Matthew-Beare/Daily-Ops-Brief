@@ -38,7 +38,7 @@ Use `CAPABILITY_DISCOVERY.md`. Do not claim arbitrary old ChatGPT conversations 
 
 ## 3. Work and context-mode gate
 
-Ask explicitly what the user does for work, their **exact job title** and actual duties, schedule, work environment, and whether they regularly work away from home, sleep away for work, rotate worksites, or live/work from a vehicle/field location.
+Ask explicitly: **Do you regularly work away from home, sleep away from home for work, rotate worksites, or live/work from a vehicle or field location?** Also learn what the user does for work, their **exact job title**, actual duties, schedule, and work environment.
 
 If no, mark HOME/ROAD bypassed unless another context split clearly helps.
 
@@ -177,7 +177,7 @@ First boot must produce a coherent Git checkpoint after provisioning approval. W
 
 Ask what deserves interruption versus digest, preferred length, priority model, what stays visible until done, what disappears after acknowledgement, which sections vary by context, and degraded-module wording.
 
-Every brief should answer some combination of: what changed, what needs action, what is next, and what can safely be ignored.
+Every brief should answer some combination of: what changed, what needs action, what is next, and **what to do next** when the user asks for prioritization.
 
 ## 16. Final synthesis before provisioning
 
