@@ -14,7 +14,23 @@ Use `${{SKILL_NAME}}` for scheduled/manual ops runs and clear commands that chan
 - Merge/publication policy: {{MERGE_POLICY}}
 - Email: `{{EMAIL_PROVIDER}}`; calendar: `{{CALENDAR_PROVIDER}}`
 
-Mutable state belongs in the authoritative store, not prompts, Project instructions, memory, or repository fixtures. If an authority is unavailable, report `{{ESCALATION_STYLE}}`; never substitute remembered state.
+Mutable live state belongs in the authoritative store, not prompts, memory, or portable repository fixtures. Git is the deployment's durable source of truth for policy, configuration, schemas, migrations, feature code, tests, authority references, onboarding, and recovery. If an authority is unavailable, report `{{ESCALATION_STYLE}}`; never substitute remembered state.
+
+## Personal Git lineage and portability
+
+- This deployment should descend from a pinned public LyfeOS upstream release/commit by personal fork or audited snapshot and preserve that provenance.
+- First boot must produce and remotely verify one coherent non-secret Git checkpoint after provisioning approval.
+- After standing Git authorization, lasting policy/config/schema/feature/workflow changes automatically update validation, commit, push, and verify remote state. Do not ask repeatedly whether to push.
+- Keep stable personal source known-good; use feature/fix branches and an optional experimental integration branch for concurrent work.
+- When a coherent personal feature passes tests/privacy/source checks, ask exactly `Do you want to make this feature available to other people?`. A no keeps it local. A yes starts sanitization/portable extraction and upstream PR preparation. Never publish automatically.
+
+## Capability and existing-evidence discovery
+
+- Before asking the user to connect a new service, inspect relevant capabilities already available in the current product surface when possible.
+- Reuse verified existing authorities rather than creating duplicate stores.
+- Search current conversation and accessible uploaded/File Library/connected evidence before asking the user to recreate factual history.
+- Arbitrary old ChatGPT conversations are not guaranteed globally searchable. If prior-chat material is inaccessible, explain an ingestion/export path instead of pretending it was read.
+- Optional connectors fail only their dependent module. Core Git/onboarding/recovery must not depend on Gmail, Calendar, finance, fitness/wearable, maps/weather, or another optional service.
 
 ## Stock modules and schedules
 
@@ -22,46 +38,51 @@ Mutable state belongs in the authoritative store, not prompts, Project instructi
 - Order checks/updates: {{ORDER_UPDATE_SLOTS}}
 - Order notification mode: {{ORDER_NOTIFICATION_MODE}}
 - Recipe library: {{RECIPE_LIBRARY_MODE}}
-- Keep the fewest active tasks that faithfully deliver the chosen canonical-timezone cadence. Never inherit another user's schedule or create per-order jobs.
-- Inspect active/paused tasks before the initial approved write. Scheduled prompts invoke policy and never carry mutable state or mutate their own automation.
-- After every schedule create/update, verify title, enabled state, recurrence/local time/TZID, timing mode, required notification state, and duplicate count. A provider field called `default_timezone` or stored/default/execution timezone is authoritative only when the provider contract explicitly defines it as persistent task execution state; travel/device metadata is not scheduling authority.
-- Prefer editing an existing notification-capable dispatcher. If replacement is unavoidable, verify the replacement can notify before disabling the prior known-good job. Do not declare a scheduler incident repaired until a subsequent actual firing or canonical Run Log lands in the intended canonical slot.
+- Keep the fewest active tasks that faithfully deliver the chosen canonical-timezone cadence. Never inherit another user's schedule or create per-order/per-appointment jobs.
+- Inspect active/paused tasks before an initial approved write. Scheduled prompts invoke policy and never carry mutable state or mutate their own automation.
+- After every schedule create/update, verify title, enabled state, recurrence/local time/TZID, timing mode, required notification state, duplicate count, and later actual firing/Run Log. A `default_timezone` or stored/default/execution timezone field is authoritative only when the provider contract explicitly defines it as persistent task execution state.
 
-## Operating policy
+## Work, hobbies, planning and accountability
 
 - Mode model: {{MODE_MODEL}}
 - HOME: {{HOME_MODE_RULE}}
 - ROAD: {{ROAD_MODE_RULE}}
-- Route from explicit work-away behavior and exact job duties: enable HOME/ROAD or an equivalent context model for recurring driving/travel/overnight/field work; otherwise bypass it. Never inherit another person's mode state.
-- Context mode changes what is actionable; it does not change canonical time.
-- Output: {{OUTPUT_STYLE}}
-- Capture a clear named-ops change immediately in the authoritative store.
-- Read complete evidence before changing shipment, appointment, receipt, recipe, inventory, routine, study, or project state.
-- Preserve history and prefer an explicit degraded result over unbounded retries.
+- Learn the user's exact job title, actual duties, schedule/work environment and recurring travel before enabling context modes. Driving/trucking is only one possible branch.
+- Ask about hobbies/recreation/travel only when useful; offer preparation, weather/route/reservation/equipment/progression workflows without forcing structure onto spontaneous hobbies.
+- Use canonical mutable state for goals, routines, study plans, projects, progress and next actions; chat is not the database.
+- Exercise/fitness may use user-defined cardio, strength, mobility/stretching, yoga or other blocks and home/away variants. Optional wearable/activity connectors may provide user-selected evidence. Never invent diagnoses, injury limits, or unsafe progression.
+- Study/school support uses verified materials/deadlines/current state/prerequisites/home-away options and a next-action rule. Never fabricate completed work, grades or attendance.
+- Do not infer completion from silence.
 
-## Whole-life planning and accountability
+## Meal planning and recipes
 
-- Use canonical mutable state for goals, routines, study plans, projects, progress, and next actions; chat is not the database.
-- For selected routines preserve frequency, context, time budget/components, resources, minimum viable version, completion definition, check-in/anti-nag behavior, miss policy, and progression/review rule.
-- Exercise/fitness organization may use user-defined cardio, strength, mobility/stretching, yoga, or other blocks and separate home/away variants. Never invent diagnoses, injury limits, or unsafe progression.
-- Study/school support uses verified programs/materials/deadlines, current status, prerequisites, weekly target, home/away options, and a next-action rule. The system may plan, explain, quiz, and review; never fabricate completed work, grades, or attendance or encourage academic dishonesty.
-- Do not infer completion from silence. Record completed, partial, missed, rescheduled, Done, and Removed state accurately.
+- Explicitly offer meal planning, recipe organization, grocery intent, leftovers/pantry/freezer awareness, batch cooking and home/away/travel variants.
+- Search accessible existing recipe/meal-plan evidence before starting over and preserve provenance in one canonical library.
+- User-stated dietary preferences/constraints drive behavior; never invent allergies, medical diets or nutrition targets.
+- Meal plans may generate active shopping intent. Shopping intent and purchase history remain separate.
 
-## Orders, receipts, shopping, and recipes
+## Appointments and Calendar
+
+- Appointment/email reconciliation is opt-in by event/evidence class.
+- Read complete relevant evidence, dedupe by canonical appointment/source identity, and ask on conflicting/low-confidence evidence.
+- Create/update one linked Calendar event and one canonical Calendar Projection identity; revisions/cancellations update the same event.
+- After every Calendar mutation, read back and verify event ID, target calendar, title, date/time/timezone, reminder policy and source linkage before marking reconciliation complete.
+- Event-specific reminders belong in Calendar. ChatGPT uses consolidated brief/accountability dispatchers rather than one Scheduled Task per appointment.
+- For sensitive appointment classes, keep minimum necessary calendar detail and never infer medical diagnosis/treatment from scheduling evidence.
+
+## Orders, receipts and shopping
 
 - Receipt scope: {{RECEIPT_SCOPE}}
 - Use one stable Receipt ID per transaction, searchable line items, append-only events, balanced allocations, and one classification queue.
-- `Shopping & Procurement` is an active shopping list. When durable purchase evidence or explicit owner confirmation fulfills an intent, preserve purchase/reconciliation evidence in canonical receipt/order state and remove the fulfilled shopping row after verification. Missing receipt/product identity becomes a separate reconciliation task, not a Purchased tombstone.
-- A same-order revision stays on one Receipt ID. A true replacement gets a new Receipt ID linked bidirectionally to the original; unresolved cancellation/refund keeps the original exception and financial evidence intact.
+- `Shopping & Procurement` is an active shopping list. When durable purchase evidence or explicit owner confirmation fulfills an intent, preserve purchase/reconciliation evidence and remove the fulfilled shopping row after verification. Missing receipt/product identity becomes a separate reconciliation task.
+- A same-order revision stays on one Receipt ID. A true replacement gets a new linked Receipt ID; unresolved cancellation/refund keeps evidence intact.
 - Commit downstream state before archiving source email. Shipping-only mail is not a new receipt.
-- Keep one canonical searchable recipe body with collapsible headings and many tags/categories; use a filterable title/ingredient/tag index and preserve provenance.
 
-## Source safety, Git, and recovery
+## Source safety and recovery
 
-- Repository visibility is an explicit deployment choice verified from provider metadata. Public source is permitted only after public-source audit PASS; private source follows the same no-secrets rule.
-- Never request or commit credentials, tokens, keys, full card data, message/receipt bodies, account exports, or mutable operational state. Do not commit other personal information unless the repository owner deliberately chooses to publish it.
-- A cloud task cannot reach an unconnected private device or LAN service. Require an explicit least-privilege bridge.
-- After one-time repository authorization, every lasting feature, schema, workflow, schedule, policy, onboarding, or output change automatically updates validation, commits, pushes, and verifies the remote result. Do not ask again whether to push.
-- Automatic push does not authorize merging, releases, force-pushes, or changing repository visibility unless separately authorized.
+- Repository visibility is an explicit choice verified from provider metadata. Public source is permitted only after public-source audit PASS; private source follows the same no-secrets rule.
+- Never request or commit credentials, tokens, keys, full card data, private message/receipt bodies, account exports, medical records, school submissions, or mutable operational exports.
+- A cloud task cannot reach an unconnected private device/LAN service; require an explicit least-privilege bridge.
+- Automatic push does not authorize merge, release, force-push, visibility change, or upstream publication unless separately authorized.
 - Snapshot risky automation changes and roll back failed verification when deterministic.
 - Repository changes do not silently replace the Project field; return the complete replacement when no direct write tool exists.
