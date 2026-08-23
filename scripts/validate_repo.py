@@ -32,7 +32,7 @@ REQUIRED = (
     "skill/ops-brief-policy/references/receipt-photo-intake.md",
     "skill/ops-brief-policy/references/asset-acquisition.md",
     "skill/ops-brief-policy/references/knowledge-manual-ingestion.md",
-    "skill/ops-brief-policy/references/failure-ripcord.md",
+    "skill/ops-brief-policy/references/pants-filling-with-shit-report.md",
     "skill/ops-brief-policy/references/calendar-projection.md",
     "skill/ops-brief-policy/references/household-reimbursement.md",
     "skill/ops-brief-policy/references/payment-reconciliation.md",
@@ -73,7 +73,7 @@ def validate(root: Path) -> list[str]:
     email = text("skill/ops-brief-policy/references/email-reconciliation.md")
     asset = text("skill/ops-brief-policy/references/asset-acquisition.md")
     manual = text("skill/ops-brief-policy/references/knowledge-manual-ingestion.md")
-    ripcord = text("skill/ops-brief-policy/references/failure-ripcord.md")
+    pants = text("skill/ops-brief-policy/references/pants-filling-with-shit-report.md")
     calendar = text("skill/ops-brief-policy/references/calendar-projection.md")
     reimbursement = text("skill/ops-brief-policy/references/household-reimbursement.md")
     payment = text("skill/ops-brief-policy/references/payment-reconciliation.md")
@@ -106,18 +106,19 @@ def validate(root: Path) -> list[str]:
     require(re.fullmatch(r"[0-9a-f]{64}", fingerprint) is not None, "Git-side policy fingerprint is invalid", errors)
     if re.fullmatch(r"[0-9a-f]{64}", fingerprint):
         actual = compute(root / "skill/ops-brief-policy")
-        print(f"POLICY_FINGERPRINT_ACTUAL={actual}")
+        require(fingerprint == actual, f"policy fingerprint mismatch: expected {actual}", errors)
 
     for ref in (
         "receipt-ingestion.md", "receipt-photo-intake.md", "asset-acquisition.md",
-        "knowledge-manual-ingestion.md", "failure-ripcord.md", "calendar-projection.md",
+        "knowledge-manual-ingestion.md", "pants-filling-with-shit-report.md", "calendar-projection.md",
         "household-reimbursement.md", "payment-reconciliation.md", "vendor-contact.md", "chat-portability.md",
     ):
         require(ref in skill, f"skill does not route {ref}", errors)
     require("unique canonical terminal pairs" in skill, "skill may import repeated historical trip occurrences", errors)
     require("FedEx/UPS/DHL/USPS" in skill, "skill lacks USPS carrier-retention scope", errors)
     require("immutable collision-resistant RFC 4122 UUID" in skill, "skill lacks global immutable identity", errors)
-    require("default budget of one retry after the initial attempt" in skill, "skill lacks bounded failure retry budget", errors)
+    require("Retry is not mandatory" in skill, "skill treats retries as mandatory", errors)
+    require("Pants Filling With Shit Report" in skill, "skill lacks named failure circuit breaker", errors)
     require("never create hidden retry jobs" in skill, "skill lacks retry-job prohibition", errors)
 
     require("Partial Cancellation Confirmed" in receipt and "Cancellation Requested" in receipt, "receipt policy lacks cancellation lifecycle handling", errors)
@@ -138,10 +139,11 @@ def validate(root: Path) -> list[str]:
     require("immutable RFC 4122 UUID" in asset and "collision-resistant across deployments/family members" in asset, "asset UUID contract is incomplete", errors)
     require("Manuals & Reference" in manual and "Knowledge Index" in manual and "canonical Drive link" in manual, "manual knowledge contract is incomplete", errors)
     require("immutable RFC 4122 UUID" in manual and "PostgreSQL" in manual, "manual migration identity contract is incomplete", errors)
-    require("same external operation fails twice" in ripcord, "ripcord lacks repeated-failure trigger", errors)
-    require("Default retry budget is one retry after the initial attempt" in ripcord, "ripcord lacks retry budget", errors)
-    require("Stop writes for the affected module" in ripcord and "Continue unrelated modules" in ripcord, "ripcord is not module-scoped", errors)
-    require("do not blind-rerun" in ripcord and "ambiguous" in ripcord.lower(), "ripcord lacks CI/partial-write protection", errors)
+    require("# Pants Filling With Shit Report" in pants, "failure report has wrong name", errors)
+    require("same external operation fails twice" in pants, "failure report lacks repeated-failure trigger", errors)
+    require("Retry is **not mandatory**" in pants, "failure report lacks no-retry boundary", errors)
+    require("Stop writes for the affected module" in pants and "Continue unrelated modules" in pants, "failure report is not module-scoped", errors)
+    require("never blind-rerun" in pants and "ambiguous" in pants.lower(), "failure report lacks CI/partial-write protection", errors)
     require("Calendar Projection" in calendar and "source type + source ID" in calendar and "order delivery dates/windows" in calendar, "calendar projection contract is incomplete", errors)
     require("same paid-mile value" in maintenance, "state maintenance lacks symmetric mileage upsert", errors)
 
@@ -161,7 +163,7 @@ def validate(root: Path) -> list[str]:
     for phrase in (
         "Minimum Useful Setup", "Start now by asking only the four kickoff questions",
         "non-technical user", "exactly what to click", "automatically update validation, commit, and push",
-        "Dependency gate", "Emergency Ripcord", "partial cancellation", "Calendar Projection",
+        "Dependency gate", "Pants Filling With Shit Report", "partial cancellation", "Calendar Projection",
         "immutable UUID", "manual", "Awaiting Settlement", "Do you want me to send this email?", "old chats are deleted",
     ):
         require(phrase.lower() in start.lower(), f"starter onboarding lacks: {phrase}", errors)
