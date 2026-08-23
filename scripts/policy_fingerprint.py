@@ -13,7 +13,12 @@ def policy_files(skill_root: Path) -> list[Path]:
     files.extend(sorted((skill_root / "references").glob("*.md")))
     files.extend(
         skill_root / "scripts" / name
-        for name in ("ops_policy.py", "reconcile_shipments.py")
+        for name in (
+            "financial_resolution.py",
+            "ops_policy.py",
+            "ops_policy_runtime.py",
+            "reconcile_shipments.py",
+        )
     )
     missing = [str(path) for path in files if not path.is_file()]
     if missing:
