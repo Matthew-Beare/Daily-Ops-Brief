@@ -24,7 +24,7 @@ Keep mutable state in the live Sheets, lasting policy/code/tests/bootstrap in th
 - For a scheduled or manual brief, read [the brief-run workflow](references/brief-run.md) completely and execute it. Do not load state-maintenance instructions during the run.
 - For task, control, mode, mileage, automation, or other persistent-state maintenance, read [the state-maintenance workflow](references/state-maintenance.md) completely before acting.
 - For shipment, order-email, inbox-filing, archive-approval, or explicit email-deletion work, read [the email-reconciliation workflow](references/email-reconciliation.md) completely before acting.
-- For purchase-receipt ingestion, Drive receipt filing, monthly receipt rollups, or inventory side effects, read [the receipt-ingestion workflow](references/receipt-ingestion.md) completely before acting.
+- For purchase-receipt ingestion, Drive receipt filing, monthly receipt rollups, cancellation/refund resolution, fitment/part-number assignment, or inventory side effects, read both [the receipt-ingestion workflow](references/receipt-ingestion.md) and [line classification/fitment/financial resolution](references/receipt-classification-fitment.md) completely before acting.
 - For any route, trip, ETA, location, arrival, or ROAD-weather-watch change—or when the brief engine activates route weather—read [the route-weather workflow](references/route-weather.md) completely before acting.
 - For a continuation/recovery phrase, read state maintenance, inspect the live automation list and Sheets, then continue from those authorities without requiring a magic sentence.
 
@@ -34,13 +34,17 @@ Keep mutable state in the live Sheets, lasting policy/code/tests/bootstrap in th
 - Never revive 3:00 AM/PM, Pacific, UTC-shifted, noon, midnight, duplicate, or extra Ops Brief schedules.
 - Keep each scheduled run single-purpose: render one brief and record one deterministic Run Log result.
 - Mode precedence is: live unexpired explicit Mode Override, then an active trip forces ROAD, then the weekly default. Expired overrides are ignored.
+- A clear `got home early` statement is an immediate HOME override and work-cycle close. It keeps briefs HOME through the next Friday 2:45 PM brief; the runtime uses an exclusive Friday 3:00 PM Eastern expiry.
 - Never hard-code task-specific exceptions; use the live row fields and engine result.
 - Never display appointment-confirmation state. It is hidden anti-nag state only.
 - Appointment reminders are mode-independent: Saturday 2:45 AM previews the next seven calendar days (Saturday through Friday); all other 2:45 AM briefs show appointments for that day, and every 2:45 PM brief shows appointments for the next day.
-- Thursday mileage/pay is also mode-independent. HOME on Wednesday PM or Thursday does not suppress the Thursday summary. Use company/user-reported paid miles only; never infer settlement miles from map distance.
+- Thursday mileage/pay is mode-independent. Mileage accrual closes at confirmed HOME arrival, normally Wednesday PM or earlier; Thursday reports the closed work cycle. Use company/user-reported paid miles only; never infer settlement miles from map distance or copy a known terminal-pair mileage into the reverse direction.
 - Reconcile Gmail against the active `Shipments` queue before rendering either brief. Read complete materially relevant threads; snippets alone are not evidence.
 - Delete delivered items from the active `Shipments` queue immediately. Report a newly observed delivery once from `Order Events`, then never re-report it.
+- One Receipt ID may contain line items in different categories and assigned to different assets/projects. Classify items independently; count the transaction once and keep allocations balanced to the one supported total.
+- When an exact part/SKU or sufficiently specific product identity exists, verify identity/fitment against manufacturer/OEM/vendor evidence and the owned-asset registry before final assignment. Auto-assign only when the evidence uniquely resolves the asset; otherwise use `Classification Queue`.
 - Treat a replacement with a new merchant order number as a new Receipt ID linked bidirectionally to the original; never overwrite the cancelled order. A same-order revision stays under the original Receipt ID.
+- Cancellation lifecycle and refund state are separate. Preserve cancelled history, remove it from active fulfillment/spend when confirmed, and require exact merchant/account evidence for any expected settled refund or reversal. If money remains unresolved after five business days, surface one `Action Required` and continue the same lifecycle record.
 - Never guess an unknown purchase classification. Keep it in `Classification Queue` and ask for the smallest useful choice in the next brief.
 - Keep important email in Inbox under `Ops/Archive Approval` until the user approves archiving. Silence is not approval.
 - Never send email automatically. Do not delete Gmail without an explicit bounded request.
