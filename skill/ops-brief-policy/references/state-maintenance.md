@@ -62,48 +62,51 @@ Read `references/email-reconciliation.md` before order-mail processing, shipment
 - Keep the scheduled prompt a thin dispatcher, not a policy copy.
 - Keep exactly one active combined `2:45 AM/PM Eastern Ops Brief` and exactly one active consolidated Receipt & Order Lifecycle schedule.
 - Scheduled runs never inspect/mutate automation definitions.
-- The canonical timezone is scheduling authority. Current device/location/travel timezone is context only.
+- The canonical timezone is scheduling authority. Current device/location/travel timezone and HOME/ROAD mode are context only.
+- Do not delete a chat that currently anchors an active Scheduled Task. OpenAI Scheduled Tasks may pause when their associated chat is deleted. Durable operational content must still live outside chat, but the active task anchor itself is a platform dependency until the task is retired or deliberately migrated.
 
-### Scheduler-timezone integrity gate
+### Scheduler integrity gate
 
-A visible `TZID=America/New_York` or correct RRULE is **necessary but not sufficient**. Some scheduling surfaces/providers also retain a separate stored/default/execution timezone. That second field can govern actual firing time.
+A visible `TZID=America/New_York` or correct RRULE is necessary but not sufficient, but neither is a connector field merely named `default_timezone` automatically authoritative. Scheduler health is an evidence chain.
 
 Before any automation create/update/consolidation:
 1. read the canonical IANA timezone from policy/state;
-2. snapshot each affected job's title, prompt, schedule, enabled state, provider stored/default/execution timezone and last-run metadata;
-3. inspect current provider/task capability and avoid changing a healthy canonical job if the available write path is known to restamp it with a travel-local timezone and offers no way to set the canonical timezone;
+2. snapshot each affected job's title, prompt, schedule, enabled state, timing mode, notification state, last-run metadata, and any provider field whose contract explicitly defines persistent task execution state;
+3. inspect current provider/task capability and prefer editing the existing notification-capable canonical dispatcher rather than replacing it;
 4. perform only the smallest required mutation.
 
 After every automation create/update:
 1. read the task back from the provider;
-2. verify exact title/cadence/local clock time/RRULE and intended TZID;
-3. independently verify the provider stored/default/execution timezone equals the canonical IANA timezone;
+2. verify exact title, enabled state, cadence/local clock time/RRULE, intended TZID, timing mode, required notification state, and duplicate count;
+3. treat `default_timezone` or similar metadata as execution authority only when the provider/tool contract explicitly says it is persistent task execution state. A value that follows current travel/device/session location is diagnostic context, not proof by itself;
 4. require exactly one active canonical job of each required type and no active child/retry/legacy duplicates;
-5. when possible, verify the next provider run time or the next actual Run Log entry resolves to the intended canonical local slot.
+5. require the next actual firing or canonical Run Log evidence to land in the intended canonical local slot before declaring a scheduler incident cleared.
 
-Do **not** report a timezone repair successful from VEVENT text alone.
+For the Ops Brief dispatcher, the first external mutation of every scheduled run should upsert its canonical Run Log row as `Running` with Started (ET) before other module work. At completion, update that same row. This separates “scheduler never entered” from “scheduler entered and a downstream module failed.”
 
-If provider readback stamps a travel/device timezone instead of the canonical timezone and the available API/UI exposes no reliable timezone setter:
-- do not keep repeatedly recreating or editing jobs;
-- restore the last verified healthy snapshot when a deterministic rollback is possible;
-- otherwise preserve exactly the safest known task state, stop further automation writes, and generate `Pants Filling With Shit Report — automation scheduler`;
-- state the exact platform-side action required to make the provider execution timezone canonical;
-- keep manual briefs and unrelated modules operating from canonical state;
-- do not compensate with UTC/Pacific aliases, hidden hourly checks, AM/PM child tasks, or travel-location-specific schedules that violate the deployment contract.
+Do not report a timezone/scheduler repair successful from VEVENT text, a `default_timezone` label, or notification configuration alone.
 
-A repair is not cleared until provider readback shows canonical execution timezone and a subsequent firing/run-log timestamp proves the intended slot.
+If the intended slot is missed despite correct task readback:
+- stop further scheduler mutation after the bounded diagnostic attempt;
+- preserve the safest known canonical dispatcher and manual workflows;
+- generate `Pants Filling With Shit Report — automation scheduler`;
+- diagnose platform pause/deletion/inactivity, notification delivery, usage limits, task-anchor chat deletion, and scheduler/runtime failure as separate possibilities;
+- do not compensate with UTC/Pacific aliases, hidden hourly checks, AM/PM child tasks, or travel-location-specific schedules.
+
+If the provider contract explicitly exposes a persistent execution-timezone field and that authoritative field disagrees with canonical time, treat it as a real integrity failure. If the field's semantics are undocumented/ambiguous, do not repeatedly recreate tasks merely to chase it; require observed execution evidence instead.
 
 ### Healthy consolidation transaction
 
-For ordinary changes, update the existing canonical job in place only when the scheduler-timezone integrity gate is healthy.
+For ordinary changes, update the existing canonical job in place when possible.
 
 To consolidate a healthy legacy AM/PM pair without burning another active task slot:
-1. snapshot exact legacy job IDs/prompts/schedules/titles/timezones/enabled states;
-2. harmlessly verify required authorities and scheduler-timezone integrity;
-3. convert one healthy job into the canonical combined schedule;
-4. read back both TZID and provider execution timezone before pausing the other legacy job;
+1. snapshot exact legacy job IDs/prompts/schedules/titles/timing/notification states;
+2. harmlessly verify required authorities and scheduler capability;
+3. convert one notification-capable job into the canonical combined schedule;
+4. read it back and verify schedule/timing/notification state before pausing the other legacy job;
 5. re-inspect and require exactly one active canonical job;
-6. on failure restore the snapshot and verify rollback.
+6. on failure restore the snapshot when deterministic and verify rollback;
+7. do not clear a prior scheduler incident until the next actual canonical firing is proven.
 
 Never create AM/PM child jobs, hidden retries, per-order jobs or support schedules.
 
