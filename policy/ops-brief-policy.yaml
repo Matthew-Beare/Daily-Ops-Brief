@@ -1,0 +1,63 @@
+version: 3.0.1
+canonical_timezone: America/New_York
+
+brief_schedule:
+  title: "2:45 AM/PM Eastern Ops Brief"
+  times_et: ["02:45", "14:45"]
+  slot_rule:
+    am: "local time before 12:00"
+    pm: "local time at or after 12:00"
+  pm_is_morning_brief: true
+
+mode_resolution:
+  # Evaluate in this exact order. Mutable state must come from the Ops Status Register.
+  priority:
+    - "unexpired explicit Mode Override in Control"
+    - "Active trip in Trips forces ROAD"
+    - "weekly operating window"
+  weekly_operating_window:
+    road_start: "Friday 12:00 ET"
+    road_end: "Wednesday 16:30 ET"
+    home_otherwise: true
+  rules:
+    - "Ignore expired overrides; never let stale HOME state leak past Expires At."
+    - "An Active trip is stronger evidence than the weekly default and keeps ROAD mode through delays."
+    - "A user trip correction must be written to Trips/Routes before the next mode resolution."
+    - "ROAD mode suppresses ordinary HOME-only chores and HOME weather."
+    - "ROAD mode includes the active trip route/location/ETA block when evidence exists."
+
+appointments:
+  saturday_am_weekly_horizon_days: 7
+  routine_reminders:
+    - "day before"
+    - "morning of"
+  never_show_confirmation_status: true
+
+mileage_pay:
+  authority_sheet_id: "1OUzdjZaVTidLnMX2xuIZ3mRVDOF5oAfT8-pdl6KfUfI"
+  rate_per_paid_mile: 0.986
+  thursday_summary: true
+  failure_isolation:
+    non_thursday: "Mileage read/parse failure MUST NOT abort the brief. Continue and log Degraded only if the failed input was actually consulted."
+    thursday: "Emit 'Action Required — mileage/pay Sheet unavailable' and continue all other brief sections."
+    mutation: "Mileage mutation requires readable live mileage authority; never infer paid miles from map distance."
+
+reliability:
+  core_authority_sheet_id: "10WMU_hDMfSJcACel--8LekT7So5MXKgWuLVxvnSCPNU"
+  core_authority_unavailable: "Action Required — Ops Status Register unavailable"
+  section_scoped_failures: true
+  rules:
+    - "One optional/section-specific input failure must not erase otherwise valid brief output."
+    - "Use Error only when a required core authority or required write makes the run invalid; use Degraded for isolated optional failures."
+    - "Never substitute memory for unavailable canonical mutable state."
+
+email_actions:
+  automatic_send: false
+  automatic_delete: false
+  archive_important_without_approval: false
+  rule: "Prompt for approval; never send email automatically."
+
+change_control:
+  git_required: true
+  repository: "Matthew-Beare/Daily-Ops-Brief"
+  rule: "Every durable policy/engine/test change requires a verified Git commit."
