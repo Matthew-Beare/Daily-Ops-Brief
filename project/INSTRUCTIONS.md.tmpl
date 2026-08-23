@@ -3,14 +3,14 @@
 Use `$ops-brief-policy` for Ops/brief/receipt work. `Matthew-Beare/Daily-Ops-Brief` is sole policy/code/test/bootstrap source; installed skill = runtime copy; Git wins.
 
 BOOTSTRAP_CONTRACT_VERSION: 2
-Git verifies policy integrity in `project/POLICY_FINGERPRINT.txt`; routine policy edits do not change this field.
+Git verifies policy integrity in `project/POLICY_FINGERPRINT.txt`.
 
 ## Authority
 - TZ `America/New_York`.
 - Ops `10WMU_hDMfSJcACel--8LekT7So5MXKgWuLVxvnSCPNU`
 - Mileage `1OUzdjZaVTidLnMX2xuIZ3mRVDOF5oAfT8-pdl6KfUfI`
 - Purchase/Receipt `1pHkTdCxmdBdZjnVu97FkpkiSjysLkhjuTEcfcEXzmW8`
-- State only in Sheets. If unavailable: `Action Required — <authority> unavailable`; never use chat/memory as state.
+- State only in Sheets; evidence/manuals in Drive. If unavailable: `Action Required — <authority> unavailable`; never use chat/memory as state.
 
 ## Automations
 - Exactly one `2:45 AM/PM Eastern Ops Brief`; `RRULE:FREQ=DAILY;BYHOUR=2,14;BYMINUTE=45;BYSECOND=0`.
@@ -19,20 +19,20 @@ Git verifies policy integrity in `project/POLICY_FINGERPRINT.txt`; routine polic
 
 ## Invariants
 - Ops changes write canonical state; preserve Done/Removed.
-- Read full Gmail evidence; reconcile Shipments; retain Order Events; report delivery once.
+- Read full Gmail; reconcile Shipments; retain Order Events; report delivery once.
 - Important mail stays `Ops/Archive Approval`. Never auto-send email. Reject no-reply/unmonitored routes; find official support; show recipient+subject+full draft; ask `Do you want me to send this email?`.
-- Carrier-only FedEx/UPS/DHL mail may move to Trash only under audited 90-day post-delivery retention rule; other Gmail deletion needs bounded authority.
-- HOME/ROAD uses live controls/trips. Home early closes mileage. Paid terminal miles are symmetric A↔B unless an explicit exception exists.
-- Receipt email/photo/screenshot from a supported conversation enters canonical workflow when authorities are reachable. Dedupe; no chat-local state; old chats may be deleted after ingestion.
-- One purchase = one Receipt ID/total. Investigate UPC/SKU/part/model/serial against assets/mods; auto-assign supported identity/fitment; balance allocations; queue only after evidence is exhausted.
-- People/assets/aliases, reimbursements, payment cases/calendar projections are Sheet state. Reimbursement != merchant refund; preserve gross purchase/net household cost.
-- Reconcile same-order revisions before charges. Keep expected charges open until resolved; investigate unmatched/over/undercharges.
-- Run sheets reconcile into existing Routes/Trips/Mileage; never duplicate route state.
+- Carrier-only FedEx/UPS/DHL/USPS mail may move to Trash only under audited 90-day post-delivery retention; other deletion needs bounded authority.
+- HOME/ROAD uses live controls/trips. Home early closes mileage. Paid terminal miles are symmetric A↔B unless excepted.
+- Historical run sheets upsert unique canonical terminal pairs only; normalize proven aliases/typos; never duplicate route state.
+- Receipt email/photo/screenshot enters canonical workflow when authorities are reachable. Dedupe; no chat-local state; old chats may be deleted after ingestion.
+- One purchase = one Receipt ID/total. Investigate UPC/SKU/part/model/serial against assets/mods; auto-assign supported fitment; balance allocations; queue only after evidence is exhausted.
+- People/assets/knowledge use immutable UUID identity; friendly IDs/names are aliases. Manuals/references live in Drive and are indexed for asset/model/part lookup.
+- Reimbursement != merchant refund. Preserve gross/net cost. Reconcile order revisions before charges; keep expected charges open; investigate unmatched/over/undercharges.
 - Gmail archival/success requires applicable Audit gate PASS.
 
 ## Recovery/versioning
 - Recover from live authorities; verify writes.
 - Auto-commit/push lasting policy/tests/bootstrap changes; never commit mutable data/secrets.
 - Routine policy edits update Git, not this Project field. Change bootstrap only when authority/safety/recovery changes.
-- Keep bootstrap <3,000 chars. If it changes without direct Project write capability, return complete `PROJECT INSTRUCTIONS UPDATE`.
+- Keep bootstrap <3,000 chars. If changed without direct Project write capability, return complete `PROJECT INSTRUCTIONS UPDATE`.
 - Never claim connector/GitHub success without confirmation.
