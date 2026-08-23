@@ -1,6 +1,6 @@
 ---
 name: ops-brief-policy
-description: Run and maintain the user's Daily Ops Brief and LyfeOS control room using canonical Sheets, Gmail/Drive/Calendar/account evidence, deterministic travel policy, receipt/order/payment reconciliation, asset acquisition, knowledge/manual indexing, reimbursements, fail-fast recovery, and safe external-contact proposals. Use for scheduled/manual briefs; task/control changes; ROAD trips/routes/mileage; order/receipt lifecycle work; receipt photos/screenshots/barcodes; product/serial/model intake; manuals/reference documents; expected charges; reimbursements; calendar projections; Gmail filing/retention; repeated connector/API failures; and clear named-LifeOS changes from supported conversations where required authorities are available.
+description: Run and maintain the user's Daily Ops Brief and LyfeOS control room using canonical Sheets, Gmail/Drive/Calendar/account evidence, deterministic travel policy, receipt/order/payment reconciliation, shopping/procurement reconciliation, asset acquisition, knowledge/manual indexing, reimbursements, fail-fast recovery, and safe external-contact proposals. Use for scheduled/manual briefs; task/control changes; ROAD trips/routes/mileage; order/receipt lifecycle work; shopping-list purchase reconciliation; receipt photos/screenshots/barcodes; product/serial/model intake; manuals/reference documents; expected charges; reimbursements; calendar projections; Gmail filing/retention; repeated connector/API failures; and clear named-LifeOS changes from supported conversations where required authorities are available.
 ---
 
 # Ops Brief Policy
@@ -22,7 +22,7 @@ Keep mutable operational state in canonical Sheets, durable policy/code/tests/on
 - Brief: read `references/brief-run.md` completely.
 - Persistent Ops/mode/mileage/automation state: read `references/state-maintenance.md`.
 - Order/shipment/Gmail filing/archive/deletion: read `references/email-reconciliation.md`.
-- Receipt ingestion/cancellation/refund/Drive filing: read `references/receipt-ingestion.md` plus `references/receipt-classification-fitment.md`.
+- Receipt ingestion/cancellation/refund/Drive filing **and shopping/procurement reconciliation**: read `references/receipt-ingestion.md` plus `references/receipt-classification-fitment.md`.
 - Receipt/image/barcode/label photo: additionally read `references/receipt-photo-intake.md`.
 - New/enriched tool/equipment/asset from photo/model/serial/receipt: additionally read `references/asset-acquisition.md`.
 - Manual, datasheet, technical PDF, download URL, or durable reference: read `references/knowledge-manual-ingestion.md` and link it to asset UUIDs when applicable.
@@ -47,6 +47,7 @@ Keep mutable operational state in canonical Sheets, durable policy/code/tests/on
 - Correlated order mail is grouped under durable Gmail order-history labels. After delivery, carrier-originated FedEx/UPS/DHL/USPS logistics mail may be automatically moved to Trash only under the explicit audited 90-day retention rule in `email-reconciliation.md`; merchant/order/payment/support evidence is retained.
 - One Receipt ID = one underlying merchant transaction/total. Line items may have different categories/assets/projects/beneficiaries; allocations balance to the supported total and spend is counted once.
 - Receipt email/photo/screenshot/account evidence for the same purchase enriches one Receipt ID; do not create chat-local receipt state or duplicates.
+- An evidence-backed purchase must reconcile any matching open `Shopping & Procurement` intent in place. Use the surviving revised/replacement product and Receipt ID, do not duplicate shopping rows, and do not mark an unsupported/cancelled-without-replacement intent fulfilled.
 - Investigate UPC/GTIN/SKU/part/model/serial and exact compatibility against the full owned/external asset registry, modifications and exclusion evidence. Auto-assign unique supported fitment; queue only after reachable evidence is exhausted.
 - Every person/physical asset and retained knowledge object uses an immutable collision-resistant RFC 4122 UUID as canonical cross-database identity. Friendly IDs/names are aliases and UUIDs survive rename, ownership change, family expansion, or database migration.
 - Asset acquisition dedupes by UUID/stable identifiers/evidence and links physical assets to receipt lines/evidence rather than duplicating financial transactions.
