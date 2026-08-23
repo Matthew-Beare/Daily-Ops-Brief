@@ -16,8 +16,11 @@ REQUIRED = (
     "README.md",
     "project/INSTRUCTIONS.md.tmpl",
     "docs/lyfeos-data-model.md",
+    "docs/household-financial-reconciliation.md",
+    "docs/automation-contracts.md",
     "starter/README.md",
     "starter/START_HERE.md",
+    "starter/VERSIONING.md",
     "starter/config.example.json",
     "starter/questions.json",
     "starter/INSTRUCTIONS.md.tmpl",
@@ -25,7 +28,15 @@ REQUIRED = (
     "skill/ops-brief-policy/references/receipt-ingestion.md",
     "skill/ops-brief-policy/references/receipt-classification-fitment.md",
     "skill/ops-brief-policy/references/receipt-photo-intake.md",
+    "skill/ops-brief-policy/references/household-reimbursement.md",
+    "skill/ops-brief-policy/references/payment-reconciliation.md",
+    "skill/ops-brief-policy/references/vendor-contact.md",
+    "skill/ops-brief-policy/references/chat-portability.md",
     "skill/ops-brief-policy/references/state-maintenance.md",
+    "skill/ops-brief-policy/scripts/payment_reconciliation.py",
+    "skill/ops-brief-policy/scripts/test_payment_reconciliation.py",
+    "scripts/audit_starter_privacy.py",
+    "privacy/starter-blocklist.txt",
 )
 
 MAX_PROJECT_INSTRUCTIONS_CHARS = 3_000
@@ -50,6 +61,10 @@ def validate(root: Path) -> list[str]:
     fitment_policy = (root / "skill/ops-brief-policy/references/receipt-classification-fitment.md").read_text(encoding="utf-8")
     photo_policy = (root / "skill/ops-brief-policy/references/receipt-photo-intake.md").read_text(encoding="utf-8")
     email_policy = (root / "skill/ops-brief-policy/references/email-reconciliation.md").read_text(encoding="utf-8")
+    reimbursement_policy = (root / "skill/ops-brief-policy/references/household-reimbursement.md").read_text(encoding="utf-8")
+    payment_policy = (root / "skill/ops-brief-policy/references/payment-reconciliation.md").read_text(encoding="utf-8")
+    contact_policy = (root / "skill/ops-brief-policy/references/vendor-contact.md").read_text(encoding="utf-8")
+    chat_policy = (root / "skill/ops-brief-policy/references/chat-portability.md").read_text(encoding="utf-8")
 
     require(
         len(project) <= MAX_PROJECT_INSTRUCTIONS_CHARS,
@@ -62,6 +77,10 @@ def validate(root: Path) -> list[str]:
     require("exactly one active Ops Brief automation" in skill, "skill invariant is not the one-task design", errors)
     require("receipt-ingestion.md" in skill, "skill does not route receipt ingestion", errors)
     require("receipt-photo-intake.md" in skill, "skill does not route receipt images/screenshots into canonical ingestion", errors)
+    require("household-reimbursement.md" in skill, "skill does not route beneficiary/reimbursement reconciliation", errors)
+    require("payment-reconciliation.md" in skill, "skill does not route expected merchant charge reconciliation", errors)
+    require("vendor-contact.md" in skill, "skill does not route safe vendor contact", errors)
+    require("chat-portability.md" in skill, "skill does not define cross-chat recovery", errors)
     require("receipt photo" in skill.lower() or "receipt, invoice" in skill.lower(), "skill metadata does not advertise photo/receipt intake", errors)
     require("Purchase & Receipt Archive" in project, "project contract is missing purchase authority", errors)
     require("Receipt & Order Lifecycle" in project, "project contract is missing the consolidated receipt lifecycle task", errors)
@@ -69,6 +88,7 @@ def validate(root: Path) -> list[str]:
     require("Audit gate" in project, "project contract is missing the receipt integrity gate", errors)
     require("Order Events" in skill, "skill does not preserve lifecycle history", errors)
     require("Classification Queue" in skill, "skill does not route unknown purchase classification", errors)
+    require("Payment Reconciliation" in skill, "skill lacks persistent expected-charge cases", errors)
     require("Partial Cancellation Confirmed" in receipt_policy, "receipt policy lacks confirmed partial-cancellation handling", errors)
     require("Cancellation Requested" in receipt_policy, "receipt policy lacks pending-cancellation handling", errors)
     require("scope: order" in email_policy, "email policy lacks full-order cancellation scope", errors)
@@ -84,6 +104,14 @@ def validate(root: Path) -> list[str]:
     require("Only after reachable evidence has been exhausted" in photo_policy, "photo intake permits premature unknown classification", errors)
     require("photograph and an email are often two sources for one transaction" in photo_policy, "photo intake lacks cross-source deduplication", errors)
     require("explicit pre-send confirmation" in photo_policy, "photo intake lacks explicit email send confirmation", errors)
+    require("A reimbursement is not a merchant refund" in reimbursement_policy, "reimbursement policy conflates payback with merchant refunds", errors)
+    require("Net Household Cost" in reimbursement_policy, "reimbursement policy lacks household net-cost accounting", errors)
+    require("Awaiting Settlement" in payment_policy, "payment policy lacks persistent unsettled-charge state", errors)
+    require("Overcharged" in payment_policy, "payment policy lacks merchant overcharge detection", errors)
+    require("unmatched" in payment_policy.lower(), "payment policy lacks unmatched charge investigation", errors)
+    require("do not reply" in contact_policy.lower(), "vendor-contact policy does not detect no-reply/unmonitored mail", errors)
+    require("Do you want me to send this email?" in contact_policy, "vendor-contact policy lacks exact pre-send approval", errors)
+    require("deleting the originating ChatGPT conversation" in chat_policy, "chat portability does not make prior chat disposable", errors)
     require("without asking for a separate Git confirmation" in maintenance, "state maintenance lacks automatic Git synchronization", errors)
     require("automatically commit/push" in project, "project contract lacks automatic durable Git synchronization", errors)
     require("sole policy/code/test/bootstrap source" in project, "project contract lacks a sole policy source of truth", errors)
@@ -107,11 +135,15 @@ def validate(root: Path) -> list[str]:
     require(len(question_rows) >= 40, "starter questionnaire is not deep enough", errors)
     require(len(ids) == len(set(ids)), "starter questionnaire contains duplicate IDs", errors)
     require(all(isinstance(key, str) and key.isupper() for key in config), "starter config keys must be uppercase tokens", errors)
-    for required_key in ("ORDER_UPDATE_SLOTS", "ORDER_NOTIFICATION_MODE", "RECIPE_LIBRARY_MODE", "MODE_MODEL", "AUTO_VERSIONING", "MERGE_POLICY"):
+    for required_key in ("ORDER_UPDATE_SLOTS", "ORDER_NOTIFICATION_MODE", "RECIPE_LIBRARY_MODE", "MODE_MODEL", "AUTO_VERSIONING", "MERGE_POLICY", "HOUSEHOLD_MODEL", "PAYMENT_RECONCILIATION", "REIMBURSEMENT_TRACKING"):
         require(required_key in config, f"starter config is missing {required_key}", errors)
+    require(config.get("TIMEZONE") == "REQUIRED_IANA_TIMEZONE", "starter config ships a production timezone instead of requiring first-boot input", errors)
+    require("02:45" not in json.dumps(config) and "14:45" not in json.dumps(config), "starter config ships production schedule times", errors)
     require("Minimum Useful Setup" in start_here, "starter has no minimum-useful-setup path", errors)
     require("no more than four" in start_here.lower(), "starter does not bound first-boot question batches", errors)
     require("explicit approval" in start_here, "starter does not approval-gate consequential actions", errors)
+    require("automatically create" in start_here.lower(), "starter does not automate baseline resource provisioning", errors)
+    require("idempotent" in start_here.lower(), "starter provisioning does not require dedupe/migration instead of duplicate databases", errors)
     require("partial cancellation" in start_here.lower(), "starter lacks order-cancellation lifecycle guidance", errors)
     require("authoritative timezone" in start_here.lower(), "starter does not ask for an authoritative timezone", errors)
     require("exact local times" in start_here.lower(), "starter does not ask for exact local update times", errors)
@@ -121,6 +153,10 @@ def validate(root: Path) -> list[str]:
     require("driving/trucking" in start_here.lower(), "starter does not route travel jobs into HOME/ROAD", errors)
     require("automatically update validation, commit, and push" in start_here, "starter lacks standing automatic Git versioning", errors)
     require("true replacement" in start_here.lower(), "starter lacks linked replacement-order semantics", errors)
+    require("Awaiting Settlement" in start_here, "starter lacks expected-charge follow-through", errors)
+    require("reimbursement" in start_here.lower(), "starter lacks outside-beneficiary reimbursement workflow", errors)
+    require("Do you want me to send this email?" in start_here, "starter lacks explicit email approval prompt", errors)
+    require("old chats are deleted" in start_here.lower(), "starter does not require chat-disposable recovery", errors)
     require("Start now by asking only the four kickoff questions" in start_here, "starter lacks a deterministic conversational entry point", errors)
     for private_marker in ("Matthew-Beare", "jbeare92", "1pHkTdCx", "Mazda Miata", "Subaru WRX", "Civic Type R"):
         require(private_marker not in start_here, f"starter leaks user-specific marker: {private_marker}", errors)
