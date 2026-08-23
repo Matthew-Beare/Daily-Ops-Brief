@@ -8,7 +8,7 @@ Load this reference completely before ingesting purchase receipts, filing receip
 - The Drive archive is `LyfeOS/02 Receipts & Purchases/Receipt Archive` with `00 Index & Database`, `01 Receipt Backups`, and `02 Receipts by Category`.
 - `Purchase & Receipt Archive` (ID `1pHkTdCxmdBdZjnVu97FkpkiSjysLkhjuTEcfcEXzmW8`) is the canonical LyfeOS 0.0.1 purchase system. Preserve its identity, validation, formulas, formatting, stable Receipt IDs, and foreign-key relationships.
 - `Orders - Database` stores one row per underlying transaction; `Receipt Details - Expandable` stores searchable line items; `Order Events` stores append-only lifecycle transitions and related Receipt IDs; `Expense Ledger` stores cost allocations; `Classification Queue` stores unresolved user choices; `Financial Dashboard` is a derived email/receipt-detected view.
-- `Shopping & Procurement` is a user-facing procurement projection. It may contain open shopping intent and resolved purchase status, but receipt/order truth still comes from the canonical Purchase & Receipt Archive. Never create a second purchase ledger there.
+- `Shopping & Procurement` is an **active shopping list**, not purchase history or a second purchase ledger. It contains only open shopping intent. Durable fulfilled-purchase evidence belongs in the canonical Purchase & Receipt Archive/Drive history and any separate unresolved reconciliation queue/task.
 - `Legacy - Purchase Receipts Full Text Archive - Search Backup` is backup text only. Never use it as the user-facing receipt view.
 - User-facing Drive navigation must be a native Google Doc, native Sheet view, or supported Drive shortcut with a readable title. Never place raw HTML, JSON, Markdown, or source-code link cards in an active vehicle/tool hub; retain any such artifact only under backups.
 - Tool Inventory spreadsheet ID: `1fwbt7lDejGJmf_EeY9U1uuwQ8TxXulcnvaKnc_1mNTM`. A tool receipt may update this inventory only after the base receipt record is safely stored.
@@ -28,13 +28,15 @@ Load this reference completely before ingesting purchase receipts, filing receip
 ## Shopping & Procurement reconciliation
 
 - After a receipt/order is identified, compare its line items and intended use against open rows in `Shopping & Procurement` before creating any new shopping row.
-- A supported match updates the existing shopping intent in place with the actual product/model, vendor/order, source link, lifecycle status, Receipt ID, and resolved/purchase date. Do not duplicate the shopping row because fulfillment later arrives through another email, photo, replacement order, or receipt source.
-- Match by strongest available evidence: explicit user intent, exact product/part/SKU/model, vehicle/asset and purpose, merchant/order history, category, and timing. Do not close a vaguely similar shopping item merely because a purchase shares a category.
-- Same-order revisions update the same shopping intent. If an ordered item is cancelled and a supported replacement order fulfills the same intent, keep one shopping row and point it to the surviving replacement Receipt ID/order while preserving the cancelled transaction in `Order Events`/receipt history.
-- A confirmed cancellation with no replacement does **not** mark the shopping intent fulfilled unless the user explicitly abandons/removes that intent. Keep it open or mark it `Needs replacement` as appropriate.
-- Partial fulfillment may mark only the supported portion resolved when the shopping intent is explicitly divisible; otherwise keep the row open with a concise note about what remains.
+- Match by strongest available evidence: explicit user intent/correction, exact product/part/SKU/model, vehicle/asset and purpose, merchant/order history, category, and timing. Do not close a vaguely similar shopping item merely because a purchase shares a category.
+- A supported fulfilled match does **not** become a `Purchased` tombstone. First preserve the durable purchase/order/reconciliation evidence in the canonical Purchase & Receipt Archive, then remove the fulfilled shopping row from the active list after verification/readback.
+- An explicit owner statement that a shopping intent was bought is sufficient to close/remove that active shopping intent even when exact receipt/product identity remains unresolved. Preserve the owner statement as provenance and keep the missing receipt/product identification as a **separate reconciliation task/queue item**; do not keep a known-bought item on the shopping list merely to remember the evidence gap.
+- Same-order revisions and true replacement orders satisfy the same underlying shopping intent. Reconcile to the surviving product/order and remove the one fulfilled intent only after the replacement/purchase evidence is durable. Do not create duplicate shopping rows for the original, revision and replacement.
+- A confirmed cancellation with no supported replacement does **not** fulfill the shopping intent unless the owner explicitly abandons/removes that intent. Leave it open (or clearly needing replacement when the active-list schema supports that distinction).
+- Partial fulfillment closes only a specifically divisible supported portion. If the active-list row represents one indivisible intent and anything remains unfulfilled, keep the intent open with the smallest useful note rather than fabricating completion.
 - `Shopping & Procurement` is not a spending ledger. Never add financial totals there in a way that can be summed as duplicate spend; Receipt IDs and the Purchase Archive remain financial truth.
-- When an already-purchased item is discovered on a stale shopping row, reconcile it retroactively from canonical receipt evidence rather than requiring the user to restate the purchase.
+- When an already-purchased item is discovered on a stale shopping row, reconcile it retroactively from canonical evidence or explicit owner confirmation, then remove the stale active row after verification.
+- Row removal is a state mutation: target by the verified shopping intent/row identity, account for row-index shifts in batch operations, and read back the list after deletion so unrelated rows were not removed. If deletion/readback is ambiguous, stop shopping writes and invoke the Pants Filling With Shit Report rather than issuing blind compensating deletes.
 
 ## Cancellation, return, and refund transitions
 
@@ -56,7 +58,7 @@ Load this reference completely before ingesting purchase receipts, filing receip
 
 ## Commit order
 
-Use this order so Gmail is never cleared before downstream state exists:
+Use this order so Gmail is never cleared and the active shopping row is never removed before downstream state exists:
 
 1. Read and classify the complete receipt evidence.
 2. Check the canonical index and destination folder for duplicates.
@@ -65,10 +67,10 @@ Use this order so Gmail is never cleared before downstream state exists:
 5. Append each new Ordered/Awaiting Shipment, Shipped, Delivered, Exception, Cancellation Requested, Partial Cancellation Confirmed, Cancelled, Returned, Refunded, Replaced By, or Replacement For transition to `Order Events`. Link true replacements with reciprocal Related Receipt IDs and one Replacement Group ID. Idempotency is event ID plus Receipt ID, event type, event time, tracking/package or related Receipt ID, and source.
 6. Upsert `Expense Ledger` allocations and verify that allocations for one Receipt ID sum to the one counted transaction total. Do not invent fuel or other unsupported spending.
 7. Synchronize the active Ops `Shipments` queue: Awaiting Shipment and Shipped remain active; Exception remains actionable; Delivered is removed after the event is durably recorded.
-8. Reconcile any supported existing `Shopping & Procurement` intent in place. Update actual model/vendor/order/status/Receipt ID/resolved date and preserve one shopping row through order revisions/replacements; do not close unsupported or merely similar rows.
+8. Determine whether an open `Shopping & Procurement` intent is fulfilled. Preserve any separate reconciliation task needed for missing identity/evidence, then remove only the fulfilled active-list row after purchase/owner-confirmation evidence is durable. Read back the shopping list and prove unrelated rows remain intact. Unsupported, merely similar or cancelled-without-replacement intents remain open.
 9. Apply supported inventory side effects. For a tool, deduplicate and create or enrich the Tool Inventory row using only evidence-backed attributes. Never guess brand, model, power source, platform, ownership, condition, or classification.
-10. Rebuild or refresh the `Audit` integrity gate. Require PASS for one order row per Receipt ID, at least one detail row, compact detail link, canonical Drive archive link, verified-or-queued classification, exact expense-allocation sum, known vehicle mappings, vehicle-specific Drive placement/link, reciprocal replacement links when present, active Orders-to-Shipments synchronization, and any shopping-row reconciliation that was applicable.
-11. Verify Drive evidence, database rows, lifecycle event, expense allocations, shipment mutation, shopping reconciliation when applicable, classification state, inventory side effects, and the Audit gate as one transaction.
+10. Rebuild or refresh the `Audit` integrity gate. Require PASS for one order row per Receipt ID, at least one detail row, compact detail link, canonical Drive archive link, verified-or-queued classification, exact expense-allocation sum, known vehicle mappings, vehicle-specific Drive placement/link, reciprocal replacement links when present, active Orders-to-Shipments synchronization, and applicable active-shopping-list reconciliation/removal readback.
+11. Verify Drive evidence, database rows, lifecycle event, expense allocations, shipment mutation, shopping reconciliation/removal when applicable, classification state, inventory side effects, and the Audit gate as one transaction.
 12. Only after every required check passes, apply Gmail labels and archive routine threads. Never delete Gmail unless the user explicitly names the bounded messages to delete or the message independently qualifies under a standing audited carrier-retention rule.
 
 If a downstream write fails, leave the Gmail message unarchived and report the exact incomplete stage. Do not claim the receipt was processed merely because a Drive copy exists.
