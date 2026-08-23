@@ -23,6 +23,8 @@ REQUIRED = (
     "starter/INSTRUCTIONS.md.tmpl",
     "skill/ops-brief-policy/SKILL.md",
     "skill/ops-brief-policy/references/receipt-ingestion.md",
+    "skill/ops-brief-policy/references/receipt-classification-fitment.md",
+    "skill/ops-brief-policy/references/receipt-photo-intake.md",
     "skill/ops-brief-policy/references/state-maintenance.md",
 )
 
@@ -45,6 +47,8 @@ def validate(root: Path) -> list[str]:
     skill = (root / "skill/ops-brief-policy/SKILL.md").read_text(encoding="utf-8")
     maintenance = (root / "skill/ops-brief-policy/references/state-maintenance.md").read_text(encoding="utf-8")
     receipt_policy = (root / "skill/ops-brief-policy/references/receipt-ingestion.md").read_text(encoding="utf-8")
+    fitment_policy = (root / "skill/ops-brief-policy/references/receipt-classification-fitment.md").read_text(encoding="utf-8")
+    photo_policy = (root / "skill/ops-brief-policy/references/receipt-photo-intake.md").read_text(encoding="utf-8")
     email_policy = (root / "skill/ops-brief-policy/references/email-reconciliation.md").read_text(encoding="utf-8")
 
     require(
@@ -57,6 +61,8 @@ def validate(root: Path) -> list[str]:
     require("BYHOUR=2,14;BYMINUTE=45;BYSECOND=0" in project, "project contract is missing the twice-daily RRULE", errors)
     require("exactly one active Ops Brief automation" in skill, "skill invariant is not the one-task design", errors)
     require("receipt-ingestion.md" in skill, "skill does not route receipt ingestion", errors)
+    require("receipt-photo-intake.md" in skill, "skill does not route receipt images/screenshots into canonical ingestion", errors)
+    require("receipt photo" in skill.lower() or "receipt, invoice" in skill.lower(), "skill metadata does not advertise photo/receipt intake", errors)
     require("Purchase & Receipt Archive" in project, "project contract is missing purchase authority", errors)
     require("Receipt & Order Lifecycle" in project, "project contract is missing the consolidated receipt lifecycle task", errors)
     require("BYHOUR=1,13;BYMINUTE=45" in project, "project contract is missing the receipt lifecycle RRULE", errors)
@@ -70,6 +76,14 @@ def validate(root: Path) -> list[str]:
     require("Replacement Group ID" in receipt_policy, "receipt policy lacks linked replacement-order handling", errors)
     require("replacement_order_number" in email_policy, "email policy lacks replacement shipment evidence", errors)
     require("Order Events!A1:Q1000" in email_policy, "email policy does not read replacement-link columns", errors)
+    require("Investigation before queue" in fitment_policy, "fitment policy permits premature unknown assignment", errors)
+    require("Unique resolution may be established by exclusion" in fitment_policy, "fitment policy lacks exclusion-based asset assignment", errors)
+    require("card last-four" in fitment_policy, "financial resolution policy lacks payment-account last-four reconciliation", errors)
+    require("UPC/EAN/GTIN" in photo_policy, "photo intake does not extract barcode/product identity", errors)
+    require("chat-local shadow receipt database" in photo_policy, "photo intake does not require canonical LifeOS state", errors)
+    require("Only after reachable evidence has been exhausted" in photo_policy, "photo intake permits premature unknown classification", errors)
+    require("photograph and an email are often two sources for one transaction" in photo_policy, "photo intake lacks cross-source deduplication", errors)
+    require("explicit pre-send confirmation" in photo_policy, "photo intake lacks explicit email send confirmation", errors)
     require("without asking for a separate Git confirmation" in maintenance, "state maintenance lacks automatic Git synchronization", errors)
     require("automatically commit/push" in project, "project contract lacks automatic durable Git synchronization", errors)
     require("sole policy/code/test/bootstrap source" in project, "project contract lacks a sole policy source of truth", errors)
