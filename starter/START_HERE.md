@@ -33,7 +33,7 @@ First-boot rules:
 Stock Minimum Useful Setup:
 - Briefs: one concise manual sample first, then the fewest scheduled dispatchers that deliver the user's chosen local cadence.
 - Orders: searchable receipts, shipment state, delivery/exception notifications, classification questions, and a compact active-order view. Never create one task or calendar event per order.
-- Receipts: optional searchable receipt/purchase database with canonical evidence, deduplication, lifecycle history, category/asset tags, and balanced allocations.
+- Receipts: optional searchable receipt/purchase database with canonical evidence, deduplication, lifecycle history, line-item category/asset tags, and balanced allocations.
 - Inventory: optional receipt-driven asset inventory for only the domains the user selects.
 - Financial views: optional receipt/email-detected weekly, monthly, YTD, rolling-12-month, and calendar-year summaries. Never imply these are complete account ledgers unless an account-level source is connected.
 - Recipes: a searchable, readable recipe library using native collapsible headings plus a filterable title/ingredient/tag index. One recipe may have many categories/tags without duplicate recipe bodies.
@@ -62,8 +62,13 @@ Git checkpoint:
 
 Order and receipt rules:
 - Use one stable Receipt ID per underlying transaction with searchable line items, evidence links, append-only events, and balanced allocations.
-- Ordered, shipped, delivered, exception, cancellation requested/confirmed, returned, refunded, and replaced are state changes, not reasons to erase audit history.
+- Items on the same receipt may belong to different categories, subcategories, cost owners, projects, or assets. Classify line items independently and count the receipt total only once.
+- When a manufacturer part number, SKU, or exact product identity exists, verify identity/fitment against credible manufacturer/OEM/vendor evidence and the user's owned assets. Auto-assign only when evidence uniquely resolves the asset; otherwise ask one classification question.
+- Ordered, shipped, delivered, exception, cancellation requested/confirmed, partial cancellation, returned, refunded, and replaced are state changes, not reasons to erase audit history.
+- For a confirmed partial cancellation, keep cancelled lines as excluded history and update surviving items/totals only from merchant-confirmed evidence.
 - A confirmed cancellation disappears from active orders, active shipments, current spend, dashboards, and inventory side effects, but its Receipt ID/evidence remain auditable with spend excluded.
+- Cancellation and refund are separate facts. If money settled, do not mark the financial correction complete until exact merchant/account evidence verifies the refund/reversal; if the merchant revised the order before settlement, record that instead of inventing a refund.
+- If an expected refund/reversal remains unverified for five business days, surface one Action Required through the normal brief rather than creating a separate reminder automation.
 - If no replacement exists, a confirmed cancelled order simply terminates as Cancelled. A same-merchant-order revision stays on one Receipt ID. A true replacement with a new order number gets a new Receipt ID linked bidirectionally to the original through one replacement group.
 - If original cancellation/refund is unconfirmed, keep the old order as an exception and track the new order separately; never assume the old charge vanished.
 - Unknown ownership/category/asset stays queued for the next chosen brief instead of being guessed.
