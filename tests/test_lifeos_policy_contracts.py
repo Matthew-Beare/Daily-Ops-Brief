@@ -43,6 +43,17 @@ class LifeOSPolicyContractTests(unittest.TestCase):
         self.assertIn("asset UUID", policy)
         self.assertIn("PostgreSQL", policy)
 
+    def test_emergency_ripcord_is_fail_fast_and_module_scoped(self) -> None:
+        policy = self.text("skill/ops-brief-policy/references/failure-ripcord.md")
+        skill = self.text("skill/ops-brief-policy/SKILL.md")
+        self.assertIn("Default retry budget is one retry after the initial attempt", policy)
+        self.assertIn("same external operation fails twice", policy)
+        self.assertIn("Stop writes for the affected module", policy)
+        self.assertIn("Continue unrelated modules", policy)
+        self.assertIn("do not blind-rerun", policy)
+        self.assertIn("failure-ripcord.md", skill)
+        self.assertIn("never create hidden retry jobs", skill)
+
     def test_calendar_projection_updates_in_place(self) -> None:
         policy = self.text("skill/ops-brief-policy/references/calendar-projection.md")
         self.assertIn("Google Calendar event ID", policy)
@@ -58,12 +69,14 @@ class LifeOSPolicyContractTests(unittest.TestCase):
         self.assertIn("do not manufacture hundreds of historical `Trips`", skill)
         self.assertIn("same paid-mile value", maintenance)
 
-    def test_starter_guides_nontechnical_users_and_auto_versions(self) -> None:
+    def test_starter_guides_nontechnical_users_auto_versions_and_fails_fast(self) -> None:
         guide = self.text("starter/START_HERE.md")
         deps = self.text("starter/DEPENDENCIES.md")
         self.assertIn("non-technical user", guide)
         self.assertIn("exactly what to click", guide)
-        self.assertIn("automatically validate, commit, push and verify", guide)
+        self.assertIn("automatically update validation, commit, and push", guide)
+        self.assertIn("Emergency Ripcord", guide)
+        self.assertIn("same operation fails twice", guide)
         self.assertIn("GitHub side", deps)
         self.assertIn("ChatGPT side", deps)
 
