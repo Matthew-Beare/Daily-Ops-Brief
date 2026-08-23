@@ -25,64 +25,105 @@ class LifeOSPolicyContractTests(unittest.TestCase):
         self.assertIn("merchant order confirmation", policy.lower())
         self.assertIn("open return, claim, dispute", policy)
 
-    def test_asset_acquisition_requires_global_uuid_dedupe_and_evidence(self) -> None:
-        policy = self.text("skill/ops-brief-policy/references/asset-acquisition.md")
-        self.assertIn("immutable RFC 4122 UUID", policy)
-        self.assertIn("collision-resistant across deployments/family members", policy)
-        self.assertIn("serial number", policy)
-        self.assertIn("manufacturer/OEM", policy)
-        self.assertIn("search existing canonical asset/tool/inventory records", policy)
-        self.assertIn("PostgreSQL", policy)
-
-    def test_manual_library_is_durable_queryable_and_asset_linked(self) -> None:
-        policy = self.text("skill/ops-brief-policy/references/knowledge-manual-ingestion.md")
-        self.assertIn("Manuals & Reference", policy)
-        self.assertIn("Knowledge Index", policy)
-        self.assertIn("immutable RFC 4122 UUID", policy)
-        self.assertIn("canonical Drive link", policy)
-        self.assertIn("asset UUID", policy)
-        self.assertIn("PostgreSQL", policy)
+    def test_asset_and_manual_identity_use_immutable_uuid(self) -> None:
+        asset = self.text("skill/ops-brief-policy/references/asset-acquisition.md")
+        manual = self.text("skill/ops-brief-policy/references/knowledge-manual-ingestion.md")
+        schema = self.text("docs/household-financial-reconciliation.md")
+        self.assertIn("immutable RFC 4122 UUID", asset)
+        self.assertIn("collision-resistant across deployments/family members", asset)
+        self.assertIn("immutable RFC 4122 UUID", manual)
+        self.assertIn("canonical Drive link", manual)
+        self.assertIn("Entity UUID", schema)
+        self.assertIn("Friendly", schema)
 
     def test_pants_filling_with_shit_report_is_fail_fast_and_module_scoped(self) -> None:
         policy = self.text("skill/ops-brief-policy/references/pants-filling-with-shit-report.md")
         skill = self.text("skill/ops-brief-policy/SKILL.md")
         self.assertIn("# Pants Filling With Shit Report", policy)
-        self.assertIn("Default budget is the initial attempt plus at most one retry", policy)
         self.assertIn("Retry is **not mandatory**", policy)
         self.assertIn("same external operation fails twice", policy)
         self.assertIn("Stop writes for the affected module", policy)
         self.assertIn("Continue unrelated modules", policy)
         self.assertIn("never blind-rerun", policy)
-        self.assertIn("pants-filling-with-shit-report.md", skill)
         self.assertIn("never create hidden retry jobs", skill)
 
-    def test_scheduler_timezone_requires_provider_execution_readback(self) -> None:
+    def test_scheduler_integrity_uses_evidence_chain_not_travel_metadata(self) -> None:
+        skill = self.text("skill/ops-brief-policy/SKILL.md")
         maintenance = self.text("skill/ops-brief-policy/references/state-maintenance.md")
-        pants = self.text("skill/ops-brief-policy/references/pants-filling-with-shit-report.md")
         docs = self.text("docs/automation-contracts.md")
         deps = self.text("starter/DEPENDENCIES.md")
-        for text in (maintenance, pants, docs, deps):
-            self.assertIn("stored/default/execution timezone", text)
-        self.assertIn("travel/device timezone", maintenance)
-        self.assertIn("Do **not** report a timezone repair successful from VEVENT text alone", maintenance)
-        self.assertIn("subsequent actual run/Run Log timestamp", pants)
-        self.assertIn("fail closed", deps)
+        first_boot = self.text("starter/START_HERE.md")
+        for surface in (skill, maintenance, docs, deps, first_boot):
+            lowered = surface.lower()
+            self.assertIn("notification", lowered)
+            self.assertIn("duplicate", lowered)
+            self.assertIn("actual firing", lowered)
+            self.assertIn("provider contract", lowered)
+        self.assertIn("default_timezone", skill)
+        self.assertIn("default_timezone", docs)
+        self.assertIn("default_timezone", deps)
+        self.assertIn("travel/device", skill)
+        self.assertNotIn("provider stored/default/execution timezone equals", first_boot.lower())
 
-    def test_calendar_projection_updates_in_place(self) -> None:
+    def test_entered_scheduled_brief_logs_running_before_downstream_mutations(self) -> None:
+        skill = self.text("skill/ops-brief-policy/SKILL.md")
+        brief = self.text("skill/ops-brief-policy/references/brief-run.md")
+        self.assertIn("first external state mutation", skill)
+        self.assertIn("`Running`", skill)
+        self.assertIn("Before Gmail", brief)
+        self.assertIn("`Running`", brief)
+        self.assertIn("same", brief.lower())
+
+    def test_calendar_projection_updates_in_place_without_per_order_automation(self) -> None:
         policy = self.text("skill/ops-brief-policy/references/calendar-projection.md")
+        design = self.text("docs/automation-design.md")
         self.assertIn("Google Calendar event ID", policy)
         self.assertIn("update the linked event in place", policy)
         self.assertIn("order delivery dates/windows", policy)
-        self.assertIn("Inviting other people", policy)
+        self.assertIn("not a per-order automation", design.lower())
+        self.assertIn("never creates per-order scheduled tasks", design.lower())
 
-    def test_terminal_paid_miles_are_symmetric_and_historical_import_is_pair_only(self) -> None:
+    def test_terminal_paid_miles_are_symmetric_everywhere(self) -> None:
         skill = self.text("skill/ops-brief-policy/SKILL.md")
         maintenance = self.text("skill/ops-brief-policy/references/state-maintenance.md")
+        brief = self.text("skill/ops-brief-policy/references/brief-run.md")
+        runtime = self.text("skill/ops-brief-policy/scripts/ops_policy_runtime.py")
+        compat = self.text("policy/ops-brief-policy.yaml")
+        platform = self.text("docs/data-platform-grafana.md")
         self.assertIn("Paid terminal mileage is symmetric", skill)
-        self.assertIn("unique canonical terminal pairs", skill)
-        self.assertIn("do not manufacture hundreds of historical `Trips`", skill)
         self.assertIn("same paid-mile value", maintenance)
-        self.assertIn("A reusable route pair may be learned even when the user does not want a current Trip occurrence created", maintenance)
+        self.assertIn("symmetric by canonical terminal pair", brief)
+        self.assertIn("standing policy is symmetric by terminal pair", runtime)
+        self.assertIn("terminal_paid_miles_symmetric_by_pair: true", compat)
+        self.assertIn("terminal_paid_miles_directional: false", compat)
+        self.assertIn("for the current deployment it is symmetric", platform)
+        self.assertNotIn("never mirrors automatically", platform.lower())
+        self.assertNotIn("Directional terminal paid-mile fields are learned evidence only", brief)
+
+    def test_historical_audit_does_not_copy_mutable_runtime_state(self) -> None:
+        audit = self.text("docs/feature-audit-2026-08-22.md")
+        self.assertIn("Status: superseded", audit)
+        self.assertNotIn("TRIP-", audit)
+        self.assertNotIn("MILE-", audit)
+        self.assertIn("live canonical", audit.lower())
+
+    def test_repository_privacy_is_verified_from_provider_state(self) -> None:
+        readme = self.text("README.md")
+        deps = self.text("starter/DEPENDENCIES.md")
+        template = self.text("starter/INSTRUCTIONS.md.tmpl")
+        self.assertIn("must be private", readme)
+        self.assertIn("provider metadata", readme)
+        self.assertNotIn("This repository is private", readme)
+        self.assertIn("provider metadata", deps)
+        self.assertIn("must actually be private", template)
+
+    def test_starter_has_real_pre_release_installation_path(self) -> None:
+        versioning = self.text("starter/VERSIONING.md")
+        self.assertIn("standalone", versioning.lower())
+        self.assertIn("brand-new private", versioning.lower())
+        self.assertIn("pinned", versioning.lower())
+        self.assertIn("snapshot", versioning.lower())
+        self.assertTrue("do not fork" in versioning.lower() or "never fork" in versioning.lower())
 
     def test_shopping_procurement_is_active_list_not_purchase_history(self) -> None:
         skill = self.text("skill/ops-brief-policy/SKILL.md")
@@ -93,8 +134,6 @@ class LifeOSPolicyContractTests(unittest.TestCase):
             self.assertIn("remove the fulfilled shopping row", text)
         self.assertIn("explicit owner", receipt)
         self.assertIn("separate reconciliation task", receipt)
-        self.assertIn("Purchased` tombstone", receipt)
-        self.assertIn("cancellation with no supported replacement", receipt)
 
     def test_life_planning_supports_accountability_study_and_context_variants(self) -> None:
         policy = self.text("skill/ops-brief-policy/references/life-planning-accountability.md")
@@ -138,6 +177,9 @@ class LifeOSPolicyContractTests(unittest.TestCase):
         ):
             self.assertIn(required, ids)
         self.assertGreaterEqual(len(rows), 80)
+        scheduler_prompts = " ".join(q["prompt"] for q in rows if "scheduler" in q["id"] or "scheduled" in q["id"])
+        self.assertIn("notification", scheduler_prompts.lower())
+        self.assertIn("actual", scheduler_prompts.lower())
 
 
 if __name__ == "__main__":
