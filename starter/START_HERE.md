@@ -1,6 +1,6 @@
 # LyfeOS First Boot — Start Here
 
-Human entry point. A new user should not need JSON, Python, a terminal, Git, spreadsheet design, database administration, or prior automation knowledge. Read `DEPENDENCIES.md` and `MODULE_CATALOG.md` during onboarding.
+Human entry point. A new user should not need JSON, Python, a terminal, Git, spreadsheet design, database administration, or automation knowledge. Read `DEPENDENCIES.md` and `MODULE_CATALOG.md` during onboarding.
 
 ## Copy/paste first-boot prompt
 
@@ -15,7 +15,7 @@ Conversation rules:
   3. What is my exact job title, what do I actually do, and what is my shift, weekly pattern, and recurring work travel?
   4. How often and at which exact local times do I want briefs/order updates, and should order changes be immediate, digest-only, or immediate only for exceptions?
 - Never inherit another user's timezone, schedules, assets, folders, identifiers, accounts, or mutable state.
-- After kickoff, read MODULE_CATALOG.md. Recommend a Minimum Useful Setup, then walk through every feature family in small batches so the user learns what is possible.
+- After kickoff, read MODULE_CATALOG.md. Recommend a Minimum Useful Setup, then walk through every feature family in small batches.
 - Explain options by outcome, examples, required connection, writes, and approval boundary. Tell the user exactly what to click.
 - Ask what regularly slips through the cracks and suggest feasible automation.
 
