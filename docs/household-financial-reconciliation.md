@@ -1,6 +1,6 @@
 # Household Financial Reconciliation Extension
 
-This extends LyfeOS 0.0.1 without changing the one-transaction/one-Receipt-ID invariant.
+This extends LyfeOS without changing the one-transaction/one-Receipt-ID invariant.
 
 ## New canonical mutable tables
 
@@ -8,9 +8,13 @@ This extends LyfeOS 0.0.1 without changing the one-transaction/one-Receipt-ID in
 
 Stores people/entities, aliases, relationship, household financial scope, and optional asset rows. It is the canonical mutable identity/asset layer for household members and outside beneficiaries. External assets are allowed and remain distinguishable from household-owned assets.
 
+Every person and physical asset uses one immutable collision-resistant RFC 4122 `Entity UUID` as canonical cross-database identity. Friendly IDs, display names, Asset IDs, tool IDs and aliases are human-facing attributes and must never replace, recycle, or mutate the UUID.
+
 Suggested columns:
 
-`Entity ID`, `Display Name`, `Entity Type`, `Relationship`, `Aliases`, `Financial Scope`, `Asset ID`, `Asset Type`, `Asset Label`, `Year`, `Make`, `Model`, `Notes`, `Updated ET`.
+`Entity UUID`, `Friendly Entity ID`, `Display Name`, `Entity Type`, `Relationship`, `Aliases`, `Financial Scope`, `Friendly Asset ID`, `Asset Type`, `Asset Label`, `Year`, `Make`, `Model`, `Notes`, `Updated ET`.
+
+When a person and an asset are modeled as distinct physical/logical entities, each receives its own Entity UUID and the ownership/beneficiary relationship links them. Do not stuff two independently addressable objects under one reused UUID merely because one row layout is convenient.
 
 ### Reimbursements
 
@@ -18,7 +22,7 @@ Stores expected/received money back from an outside beneficiary or other reimbur
 
 Suggested columns:
 
-`Reimbursement ID`, `Receipt ID`, `Beneficiary / Cost Owner`, `Related Asset(s)`, `Purchase Amount Allocated`, `Amount Expected Back`, `Amount Received`, `Status`, `Payment Evidence / Account Ref`, `Expected / Received Date`, `Net Household Cost`, `Source`, `Notes`, `Updated ET`.
+`Reimbursement ID`, `Receipt ID`, `Beneficiary Entity UUID`, `Beneficiary / Cost Owner`, `Related Asset UUID(s)`, `Purchase Amount Allocated`, `Amount Expected Back`, `Amount Received`, `Status`, `Payment Evidence / Account Ref`, `Expected / Received Date`, `Net Household Cost`, `Source`, `Notes`, `Updated ET`.
 
 ### Payment Reconciliation
 
@@ -34,7 +38,7 @@ Suggested columns:
 - `Expense Ledger.Receipt ID` -> one or more cost allocations whose included rows reconcile to the merchant transaction total.
 - `Reimbursements.Receipt ID` -> zero or more non-merchant paybacks reducing net household cost without mutating gross merchant spend.
 - `Payment Reconciliation.Receipt ID` -> one or more settlement cases when a merchant legitimately settles separately; normally one case per current merchant order financial outcome.
-- `People & Assets` supplies stable beneficiary/asset identities referenced by allocations/reimbursements.
+- `People & Assets` supplies immutable beneficiary/asset UUIDs plus friendly aliases referenced by allocations/reimbursements.
 
 ## Financial views
 
@@ -65,4 +69,4 @@ Future relational tables map naturally to:
 - `order_events`
 - `evidence_objects`
 
-Use stable IDs and append-only events. The migration must not reinterpret an outside-person reimbursement as revenue or a merchant refund.
+Use immutable UUIDs and append-only events. The migration must preserve existing canonical Entity UUIDs exactly and must not reinterpret an outside-person reimbursement as revenue or a merchant refund.
