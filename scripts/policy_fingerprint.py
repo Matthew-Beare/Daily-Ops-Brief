@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compute the stable policy-source fingerprint embedded in Project instructions."""
+"""Compute the stable deployed-policy fingerprint stored inside Git."""
 
 from __future__ import annotations
 
@@ -11,13 +11,12 @@ from pathlib import Path
 def policy_files(skill_root: Path) -> list[Path]:
     files = [skill_root / "SKILL.md"]
     files.extend(sorted((skill_root / "references").glob("*.md")))
+    scripts = skill_root / "scripts"
     files.extend(
-        skill_root / "scripts" / name
-        for name in (
-            "financial_resolution.py",
-            "ops_policy.py",
-            "ops_policy_runtime.py",
-            "reconcile_shipments.py",
+        sorted(
+            path
+            for path in scripts.glob("*.py")
+            if path.is_file() and not path.name.startswith("test_") and path.name != "__init__.py"
         )
     )
     missing = [str(path) for path in files if not path.is_file()]
