@@ -5,7 +5,7 @@ Human entry point for a **non-technical user**. Read `DEPENDENCIES.md`, `LIFE_IN
 ## Copy/paste first-boot prompt
 
 ```text
-Help me set up my own LyfeOS personal-operations system as a whole-life organizer. Discover where AI can reduce forgotten work, decision friction, inconsistent routines, and information scattered across apps.
+Help me set up my own LyfeOS personal-operations system as a whole-life organizer. Discover where AI can reduce forgotten work, decision friction, inconsistent routines, and scattered information.
 
 Conversation rules:
 - Ask no more than four related questions at a time.
@@ -16,18 +16,16 @@ Conversation rules:
   4. How often and at which exact local times do I want briefs/order updates, and should order changes be immediate, digest-only, or immediate only for exceptions?
 - Never inherit another deployment's timezone, schedules, accounts, assets, routines, goals, school records, identifiers, or mutable state.
 - After kickoff, read LIFE_INTERVIEW.md and conduct its adaptive whole-life interview. Do not dump a giant questionnaire. Ask the next smallest useful batch and skip non-applicable branches.
-- Then read MODULE_CATALOG.md. Recommend a Minimum Useful Setup based on problems the user actually described, then walk through adjacent feature families so useful capabilities can be discovered rather than guessed in advance.
+- Then read MODULE_CATALOG.md. Recommend a Minimum Useful Setup based on actual problems, then walk through adjacent feature families so useful capabilities can be discovered.
 - Explain outcomes, connections, writes and approval boundaries in ordinary language. Tell the user exactly what to click.
 
 Work-away routing:
 - Question 3 is the gate. If the user does not regularly work/sleep away, mark HOME/ROAD bypassed unless another context split is deliberately useful.
-- If yes, interview the real away pattern, solo/team arrangement, departure/return evidence, sleep/work schedule, devices/connectivity, what can happen away versus only at home, and paid route/unit rules when relevant.
-- Use natural context names such as HOME/ROAD, HOME/TRUCK, HOME/FIELD, or user-defined labels.
-- Mode transitions must be deterministic. Current travel/device timezone never replaces the canonical scheduling timezone.
+- If yes, interview away pattern, solo/team arrangement, departure/return evidence, sleep/work schedule, devices/connectivity, home-only versus away-capable work, and paid route/unit rules when relevant.
+- Use natural context names such as HOME/ROAD, HOME/TRUCK, HOME/FIELD, or user-defined labels. Mode changes must be deterministic; travel/device timezone never replaces canonical scheduling time.
 
 Dependency gate:
-- Read DEPENDENCIES.md before provisioning. Verify selected GitHub, Drive/Sheets/Docs, Gmail, Calendar, financial-account, Scheduled Tasks, and other dependencies with harmless reads before claiming a module works.
-- If a dependency is missing/partial, block only that module, provide exact ChatGPT-side and provider-side steps, and continue healthy onboarding.
+- Read DEPENDENCIES.md before provisioning. Verify selected integrations with harmless reads and block only dependent modules when access is missing.
 - Private Git is required for durable deployment. Verify repo read and, after provisioning approval, one harmless write/readback before automatic versioning.
 - Scheduled modules require timezone integrity: visible TZID/local time AND provider stored/default/execution timezone must equal the canonical IANA timezone. A travel-local timezone is not healthy merely because the RRULE contains the desired TZID.
 
@@ -46,8 +44,8 @@ Minimum Useful Setup:
 Whole-life accountability:
 - Use LIFE_INTERVIEW.md to discover exercise, school/study, household, administration, projects, hobbies, maintenance, documents, purchases and other selected goals.
 - For a routine, capture frequency, time budget/components, context, resources, minimum viable version, completion definition, check-in style, miss policy and progression/review rule.
-- Exercise may use cardio, strength, mobility/stretching, yoga or user-defined blocks and home/away variants. Track only user-selected evidence and never invent medical restrictions or unsafe progression.
-- For school/study, capture verified courses/deadlines, current work, weekly target, source materials, home/away options, offline needs, accountability cadence and the rule for answering “what should I do next?” Help plan/explain/quiz; never fabricate completed work or encourage academic dishonesty.
+- Exercise may use cardio, strength, mobility/stretching, yoga or user-defined blocks and home/away variants. Track user-selected evidence; never invent medical restrictions or unsafe progression.
+- For school/study, capture verified courses/deadlines, current work, weekly target, materials, home/away options, offline needs, accountability cadence and the rule for answering “what should I do next?” Help plan/explain/quiz; never fabricate completed work or encourage academic dishonesty.
 
 Orders and purchases:
 - One Receipt ID = one underlying transaction/total; multi-category/asset allocations still sum to that one total.
@@ -55,7 +53,7 @@ Orders and purchases:
 - `Shopping & Procurement` is an active shopping list, not purchase history. Once durable evidence or explicit owner confirmation proves intent fulfilled, preserve purchase/reconciliation evidence in canonical receipt/order authorities and remove the fulfilled row after verification. Missing receipt/product identity becomes a separate reconciliation task, not a Purchased tombstone.
 - Same-order revisions remain one Receipt ID; a true replacement with a distinct merchant order gets a separate linked Receipt ID.
 - Investigate part/SKU/UPC/model/serial and full asset fitment before classification queue.
-- Keep supported expected charges `Awaiting Settlement` until matched, split-matched, resolved as no-settlement, or otherwise resolved. Merchant refund and household reimbursement are separate.
+- Keep supported expected charges `Awaiting Settlement` until matched, split-matched, no-settlement, or otherwise resolved. Merchant refund and household reimbursement are separate.
 
 Calendar Projection:
 - Ask which verified event classes should project: appointments, deliveries, work travel, school/work deadlines, routines/study, trials/bills, maintenance or selected tasks.
@@ -70,11 +68,10 @@ Scheduling safety:
 Pants Filling With Shit Report:
 - Retry is optional. At most one retry after an initial failure only for a plausibly transient read/idempotent operation or a materially corrected request.
 - No blind retries for permission/auth, deterministic validation, bad arguments, destructive/ambiguous writes, CI loops or scheduler-timezone mismatch.
-- If the same operation fails twice, two cycles make no progress, a mutation is ambiguous, or scheduler readback contradicts canonical time: stop that module, read back/preserve known-good state, continue unrelated healthy modules, and report exactly one `Pants Filling With Shit Report` with trigger, preserved state, blocked operation and specific next action. Never create hidden retry jobs.
+- If the same operation fails twice, two cycles make no progress, a mutation is ambiguous, or scheduler readback contradicts canonical time: stop that module, read back/preserve known-good state, continue unrelated healthy modules, and report one `Pants Filling With Shit Report` with trigger, preserved state, blocked operation and specific next action. Never create hidden retry jobs.
 
 Email/contact:
-- Never send email automatically.
-- Reject no-reply/unmonitored routes and research official support when needed.
+- Never send email automatically. Reject no-reply/unmonitored routes and research official support when needed.
 - Show recipient/channel, subject and complete proposed body, then ask exactly `Do you want me to send this email?`
 
 Initial provisioning and Git:
