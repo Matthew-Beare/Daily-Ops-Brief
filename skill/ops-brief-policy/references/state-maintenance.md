@@ -22,23 +22,34 @@ Load this reference completely before changing task, control, mode, mileage, aut
 
 Use only Control type `Mode Override`; Vacation and Home early are `Item` values, not separate engines.
 
-- For an unambiguous “got home early” statement, run `python3 scripts/ops_policy.py home-early --now <current-Eastern-ISO> --pretty`, then add or update the `Home early` row from `sheet_fields`. Reuse the active row or allocate the next stable `CTRL-###`. Do not ask for priority/classification.
+- For an unambiguous “got home early” statement, run `python3 scripts/ops_policy_runtime.py home-early --now <current-Eastern-ISO> --pretty`, then add or update the `Home early` row from `sheet_fields`. Reuse the active row or allocate the next stable `CTRL-###`. Do not ask for priority/classification.
+- `Home early` starts immediately and remains HOME through the next Friday 2:45 PM brief. Its exclusive expiry is Friday 3:00 PM Eastern, giving the scheduled 2:45 PM run enough execution grace. A later explicit work departure may start the next work cycle after the override expires.
+- When Home early is confirmed, close current work-cycle mileage accrual at the confirmed home-arrival time and mark the final active leg `Arrived` when the user's statement supports that transition. Do not fabricate an arrival time or company-paid miles.
 - For vacation or another temporary HOME interval, create a HOME Mode Override with an explicit Eastern start and exclusive expiry. Ask only when a required boundary is materially ambiguous.
 - Never manually clear an expired override; the engine ignores it.
 
 ## Mileage and pay
 
 - Log only company-paid miles stated by the user or shown by credible company/settlement evidence. Never substitute map, odometer, route, or estimated distance.
+- Treat a work cycle as the actual sequence of paid dispatch legs from the first work departure until confirmed HOME arrival. It normally closes Wednesday PM but closes earlier when the user reports Home early. Thursday is reporting-only unless a real paid leg is explicitly recorded after HOME.
+- The Thursday `Week Ending` remains the reporting/grouping bucket. It is not permission to keep accruing phantom miles after the user is HOME.
+- Every actual dispatch leg gets its own Trip ID and mileage entry. Never assume the first outbound destination returns directly to the home terminal. Example: Morristown → Rialto, Rialto → Phoenix, Phoenix → Dallas, and Dallas → another terminal are separate legs whose paid miles are aggregated into the same work-cycle/reporting bucket when applicable.
+- Start the next cycle with the next actual work departure/first new paid leg, normally Friday. Do not pre-create mileage for a planned leg whose company-paid miles are unknown.
 - Use a stable `MILE-###` row with Thursday week ending, Trip ID, route, departure/arrival, endpoints, company-paid miles, miles source, status, notes, and update timestamp.
 - For a new actual entry, replace that row's rate formula with the current numeric `Rate per mile` value so historical pay remains frozen when the default changes.
 - Gross estimate equals company-paid miles times that row's frozen rate.
-- One pay week runs Friday 12:00 AM through the next Friday 12:00 AM and is labeled by the ending Thursday.
 - Use `Planned`, `Estimated`, `Final`, or `Voided`. Correct or void in place; never delete history. Settlement evidence outranks an earlier estimate.
-- On both Thursday briefs, render the engine's mileage summary. If a known trip lacks a mileage entry or company-paid miles, ask only for the missing company-paid miles.
+- On both Thursday briefs, render the engine's mileage summary even though mode is normally HOME. If a known completed/active paid leg lacks company-paid mileage, ask only for the missing company-paid miles.
 
-## Routes, trips, and watches
+## Routes, terminal pairs, trips, and watches
 
 Read `references/route-weather.md` before changing any route, trip, runtime, departure, ETA, location, arrival, or watch. Write explicit changes immediately; never rely on conversational memory.
+
+- `Routes` is the learned terminal-pair database. Store route geometry/runtime and company-paid mileage separately for A → B and B → A.
+- `Paid Miles A → B` and `Paid Miles B → A` are independent facts, each with its own `Miles Source`. Never mirror, average, or infer the reverse company's paid mileage from the known direction or from map distance.
+- A reverse route geometry/runtime may use an explicitly documented fallback when no reverse observation exists, but the paid-mile fields may not.
+- When a user/company source provides a terminal-pair paid mileage, update the matching directional Route field and still write the actual Trip/Mileage Log entry. The Route row is learned reusable knowledge; the Mileage Log is the auditable occurrence used for pay.
+- If terminal codes or endpoint identities are ambiguous, preserve the known code/location and ask rather than merging two terminals based only on similar names.
 
 ## Inbox and shipment maintenance
 
