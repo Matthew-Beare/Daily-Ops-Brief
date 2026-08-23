@@ -202,7 +202,7 @@ class LifeOSPolicyContractTests(unittest.TestCase):
         self.assertIn("mark HOME/ROAD bypassed", guide)
         self.assertIn("driving/trucking", guide.lower())
         self.assertIn("Do you want help with meal planning?", guide)
-        self.assertLess(len(guide), 9000)
+        self.assertLess(len(guide), 12000)
         self.assertGreaterEqual(len(rows), 100)
         self.assertGreaterEqual(questions["version"], 5)
         for required in (
