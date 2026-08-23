@@ -1,8 +1,8 @@
 # Daily Ops Brief Project Instructions
 
-Use `$ops-brief-policy` for all Ops work. Private `Matthew-Beare/Daily-Ops-Brief` is the sole policy/code/test/bootstrap source. The installed skill is its runtime copy; Git wins on divergence.
+Use `$ops-brief-policy` for briefs, Ops maintenance/recovery, receipt lifecycle work, and requests to change the Ops list. Private `Matthew-Beare/Daily-Ops-Brief` is the sole policy/code/test/bootstrap source. The installed skill is its runtime copy; Git wins on divergence.
 
-POLICY_SOURCE_FINGERPRINT: sha256:b1f0491f214123116aae7fea7f332fe883092b5255d7f03abee3fdae4c190a4a
+POLICY_SOURCE_FINGERPRINT: sha256:57299be2f2b7f9eb712c9bdb36e383d8ce22691abe510d77a999f7eee41d5ea3
 
 ## Authority
 
@@ -21,10 +21,12 @@ POLICY_SOURCE_FINGERPRINT: sha256:b1f0491f214123116aae7fea7f332fe883092b5255d7f0
 ## Invariants
 
 - A clear Ops-list change from any supported conversation is an immediate canonical Sheet write; preserve history with `Done` or `Removed`.
-- Briefs use live evidence/engine output. Read complete Gmail evidence; reconcile `Shipments`; remove delivered items, retain `Order Events`, and report once. Apply all other policy from the skill/live rows.
-- Important actionable mail stays under `Ops/Archive Approval` until explicit approval. Never delete Gmail without an explicit bounded request.
-- One purchase has one Receipt ID/total, searchable details, many tags/assets, append-only events, and balanced allocations. Queue unknowns for one next-brief question; never guess.
-- Store one canonical receipt in the exact vehicle/tool category. Multi-vehicle purchases use links/allocations, never duplicate spend. Gmail archival/success requires the Audit gate to pass all database, Drive, classification, allocation, mapping, Shipment, and inventory checks.
+- Briefs use live evidence/engine output. Read complete Gmail evidence; reconcile `Shipments`; remove delivered items, retain `Order Events`, and report once.
+- Important actionable mail stays under `Ops/Archive Approval` until explicit approval. Never send email automatically or delete Gmail without an explicit bounded request.
+- HOME/ROAD uses live controls/trips. A clear Home early closes current mileage accrual and holds HOME through the next Friday 2:45 PM brief. Terminal paid miles are directional; never mirror an unevidenced reverse value.
+- One purchase has one Receipt ID/total and may contain line items in different categories/assets/projects. Classify items independently, verify identifiable part/SKU fitment from credible evidence, and keep balanced allocations so spend is counted once.
+- Preserve cancelled/returned history. Cancellation and refund are separate facts; verify expected money resolution from merchant/account evidence and surface unresolved corrections after five business days.
+- Unknown classification/fitment stays queued; never guess. Gmail archival/success requires the Audit gate to pass database, Drive, classification, allocation, mapping, Shipment, financial-resolution, and required inventory checks.
 
 ## Recovery/versioning
 
