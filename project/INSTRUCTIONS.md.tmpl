@@ -10,7 +10,7 @@ Git verifies policy integrity in `project/POLICY_FINGERPRINT.txt`.
 - Ops `10WMU_hDMfSJcACel--8LekT7So5MXKgWuLVxvnSCPNU`
 - Mileage `1OUzdjZaVTidLnMX2xuIZ3mRVDOF5oAfT8-pdl6KfUfI`
 - Purchase/Receipt `1pHkTdCxmdBdZjnVu97FkpkiSjysLkhjuTEcfcEXzmW8`
-- State only in Sheets; evidence/manuals in Drive. If unavailable: `Action Required — <authority> unavailable`; never use chat/memory as state.
+- Mutable state only in Sheets; evidence/manuals in Drive. If unavailable: `Action Required — <authority> unavailable`; never use chat/memory as state.
 
 ## Automations
 - Exactly one `2:45 AM/PM Eastern Ops Brief`; `RRULE:FREQ=DAILY;BYHOUR=2,14;BYMINUTE=45;BYSECOND=0`.
@@ -22,16 +22,15 @@ Git verifies policy integrity in `project/POLICY_FINGERPRINT.txt`.
 - Read full Gmail; reconcile Shipments; retain Order Events; report delivery once.
 - Important mail stays `Ops/Archive Approval`. Never auto-send email. Reject no-reply/unmonitored routes; find official support; show recipient+subject+full draft; ask `Do you want me to send this email?`.
 - Carrier-only FedEx/UPS/DHL/USPS mail may move to Trash only under audited 90-day post-delivery retention; other deletion needs bounded authority.
-- HOME/ROAD uses live controls/trips. Home early closes mileage. Paid terminal miles are symmetric A↔B unless excepted.
-- Historical run sheets upsert unique canonical terminal pairs only; normalize proven aliases/typos; never duplicate route state.
+- HOME/ROAD uses live controls/trips. Home early closes mileage. Paid terminal miles are symmetric A↔B unless excepted. Historical run sheets upsert unique terminal pairs only.
 - Receipt email/photo/screenshot enters canonical workflow when authorities are reachable. Dedupe; no chat-local state; old chats may be deleted after ingestion.
 - One purchase = one Receipt ID/total. Investigate UPC/SKU/part/model/serial against assets/mods; auto-assign supported fitment; balance allocations; queue only after evidence is exhausted.
-- People/assets/knowledge use immutable UUID identity; friendly IDs/names are aliases. Manuals/references live in Drive and are indexed for asset/model/part lookup.
-- Reimbursement != merchant refund. Preserve gross/net cost. Reconcile order revisions before charges; keep expected charges open; investigate unmatched/over/undercharges.
+- People/assets/knowledge use immutable UUID identity. Manuals/references live in Drive and are indexed for asset/model/part lookup.
+- Reimbursement != merchant refund. Reconcile order revisions before charges; keep expected charges open; investigate unmatched/over/undercharges.
 - Gmail archival/success requires applicable Audit gate PASS.
 
 ## Recovery/versioning
-- Failures use the `Pants Filling With Shit Report`: retries are optional/bounded; stop the affected module on repeated/no-progress/ambiguous failure, preserve/read back canonical state, continue healthy modules, never spawn hidden retries.
+- Failures use the `Pants Filling With Shit Report`: retries are optional/bounded; stop repeated/no-progress/ambiguous failures at the affected module, read back/preserve canonical state, continue healthy modules, never spawn hidden retries.
 - Recover from live authorities; verify writes.
 - Auto-commit/push lasting policy/tests/bootstrap changes; never commit mutable data/secrets.
 - CI validates coherent checkpoints, not knowingly incomplete intermediate feature commits.
