@@ -55,7 +55,9 @@ Cancellation state and money state are related but separate facts.
 ## Five-business-day unresolved-money rule
 
 - Start the clock when merchant cancellation/refund eligibility is credibly confirmed or when a return is credibly accepted, whichever event creates the expected financial correction.
-- If an expected refund/reversal or confirmed revised charge is still not proven after five business days, surface one compact `Action Required` in the next brief: vendor/order, unresolved amount if known, what evidence is missing, and the recommended bounded follow-up.
+- Normalize each unresolved case with Receipt ID, vendor/order, expected amount when known, financial-resolution status, start time, and the missing evidence.
+- Run `python3 scripts/financial_resolution.py resolve --input <json-file> --pretty` through the lifecycle workflow. Its five-business-day deadline preserves the local clock time and counts Monday through Friday; never replace this with a separate reminder job.
+- If an expected refund/reversal or confirmed revised charge is still not proven when the deterministic gate becomes due, surface its compact `financial_resolution_overdue` action in the next brief: vendor/order, unresolved amount if known, and the missing proof.
 - Continue checking the existing receipt/order record; never create a separate reminder automation, duplicate receipt, or replacement financial transaction just to track the deadline.
 - Clear the action once exact merchant or financial-account evidence resolves the money state. Append the resolution event; never erase the earlier exception.
 
