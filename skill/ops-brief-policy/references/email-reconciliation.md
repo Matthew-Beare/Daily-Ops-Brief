@@ -68,17 +68,17 @@ For a delivered order:
 - apply `Orders/History` plus the specific order-history label to all correlated merchant/carrier evidence;
 - remove active order labels;
 - archive routine correlated mail after the Audit gate passes;
-- additionally label carrier-originated FedEx/UPS/DHL tracking/progress/delivery messages `Orders/Carrier Retention/90d` so they can be purged later without touching merchant evidence.
+- additionally label carrier-originated FedEx/UPS/DHL/USPS tracking/progress/delivery messages `Orders/Carrier Retention/90d` so they can be purged later without touching merchant evidence.
 
 Never place a merchant order confirmation, invoice/receipt, cancellation/refund notice, warranty/support message, payment evidence, user correspondence, or mixed merchant/carrier thread in the carrier-purge class merely because it mentions tracking.
 
 ## 90-day carrier-email retention exception
 
-The user has explicitly authorized automatic deletion-to-Trash of qualifying **FedEx, UPS and DHL carrier-originated logistics messages** beginning 90 calendar days after the related canonical delivery time. This is a narrow standing exception to the normal no-auto-delete rule.
+The user has explicitly authorized automatic deletion-to-Trash of qualifying **FedEx, UPS, DHL and USPS carrier-originated logistics messages** beginning 90 calendar days after the related canonical delivery time. This is a narrow standing exception to the normal no-auto-delete rule.
 
 A message may be deleted only when all are true:
 
-1. it is carrier-originated FedEx/UPS/DHL logistics mail, not merchant/support/user correspondence;
+1. it is carrier-originated FedEx/UPS/DHL/USPS logistics mail, not merchant/support/user correspondence;
 2. exact tracking/order correlation resolves to a canonical Delivered event;
 3. at least 90 calendar days have elapsed since that Delivered event;
 4. carrier, tracking number, delivery timestamp/status and needed shipment history are already durable in canonical Sheets/Drive;
@@ -88,7 +88,7 @@ A message may be deleted only when all are true:
 
 When eligible, move the message to Gmail Trash, remove it from active retention labels as appropriate, and append/log a concise `Carrier Email Purged` audit fact without preserving Gmail message IDs in Git. Gmail Trash behavior is the deletion mechanism; do not attempt permanent provider-side purge.
 
-USPS and any carrier not named above remain retention-only unless the user later extends this rule. Any deletion outside this exact 90-day carrier class still requires an explicit bounded user request.
+Any carrier not named above remains retention-only unless the user later extends this rule. Any deletion outside this exact 90-day carrier class still requires an explicit bounded user request.
 
 ## Important and unknown mail
 
