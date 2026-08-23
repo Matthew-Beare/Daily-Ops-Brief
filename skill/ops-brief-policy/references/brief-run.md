@@ -35,7 +35,7 @@ Read connected Google Calendar far enough ahead to cover the next seven days. Ca
 
 Appointment rendering is slot-based and independent of HOME/ROAD mode: the Saturday 2:45 AM brief shows appointments from Saturday through Friday (a half-open seven-calendar-day window); every other 2:45 AM brief shows appointments occurring that calendar day; every 2:45 PM brief shows appointments occurring the following calendar day. This produces the requested day-before and morning-of reminders without exposing confirmation state.
 
-## Deterministic pass
+## Deterministic pass and entry log
 
 1. Capture the actual start time in Eastern.
 2. Build UTF-8 JSON with the raw range arrays and Calendar evidence:
@@ -59,15 +59,16 @@ Appointment rendering is slot-based and independent of HOME/ROAD mode: the Satur
 When mileage/pay is unavailable, omit or pass the failed mileage datasets as unavailable input to the hardened runtime; do not manufacture a readable-looking fake range.
 
 3. Run `python3 scripts/ops_policy_runtime.py resolve --input <json-file> --pretty` from the skill directory.
-4. Treat the result as authoritative for mode, input health, weather gates, mowing focus, route-watch eligibility, trip status, mileage/pay summary, actions, appointment items, task rendering, Run ID, and Run Log base fields. Mode precedence is live unexpired explicit override, then an active trip, then the weekly default. Directional terminal paid-mile fields are learned evidence only; never mirror A → B into B → A.
+4. Treat the result as authoritative for mode, input health, weather gates, mowing focus, route-watch eligibility, trip status, mileage/pay summary, actions, appointment items, task rendering, Run ID, and Run Log base fields. Mode precedence is live unexpired explicit override, then an active trip, then the weekly default. Company-paid terminal mileage is symmetric by canonical terminal pair unless an explicit exception is recorded; route geometry/runtime may remain directional.
 5. Accept `status: ok` or `status: degraded` as completed deterministic results. If execution fails or returns `status: error`, render its error compactly under `ACTION REQUIRED`; never improvise the failed policy.
-6. Set `Weather Watch` to `Off` for every returned `expired_watch_trip_ids` value while retaining the trip row.
+6. **Before Gmail, Calendar-projection, shipment, weather-state or other downstream mutations**, locate the deterministic Run ID in the loaded Run Log and upsert that exact row as `Running`, setting `Started (ET)` to the actual Eastern start time and preserving the engine policy version/mode/input health/action count. If the Run Log itself cannot be written, do not continue state-changing downstream modules; report the blocker. A retry updates the same Run ID and never creates a second row.
+7. Set `Weather Watch` to `Off` for every returned `expired_watch_trip_ids` value while retaining the trip row.
 
-Loss of the Ops Status Register as a whole, a deterministic policy failure unrelated to an isolated section, or a required mutation failure makes the run `Error`. A mileage/pay read failure alone is never a global `Error`; Thursday becomes `Degraded` with the explicit mileage action, and other days simply continue without that section.
+Loss of the Ops Status Register as a whole, deterministic policy failure unrelated to an isolated section, or a required mutation failure makes the run `Error`. A mileage/pay read failure alone is never a global `Error`; Thursday becomes `Degraded` with the explicit mileage action, and other days simply continue without that section.
 
 ## Bounded evidence pass
 
-Perform one bounded pass per applicable external source. Run only the planned queries and never retry failures, recursively delegate, or block completion on Gmail, Calendar, NWS, or DOT/511. A failed non-authoritative source makes the run `Degraded`; finish with the evidence that succeeded.
+Perform one bounded pass per applicable external source. Run only the planned queries and never recursively delegate or block completion on Gmail, Calendar, NWS, or DOT/511. A failed non-authoritative source makes the run `Degraded`; finish with the evidence that succeeded. Retry only when the failure is plausibly transient/idempotent and the Pants Filling With Shit policy permits the one bounded retry.
 
 ### Gmail
 
@@ -75,7 +76,7 @@ Perform one bounded pass per applicable external source. Run only the planned qu
 - Search new material since the latest completed brief, or the prior 24 hours if none exists.
 - Separately inspect each active shipment by exact order number and tracking number, then inspect carrier/vendor delivery evidence first received since the latest completed brief. Search USPS, FedEx, UPS, and DHL evidence when applicable; absence of one carrier is not evidence of delivery.
 - Cap each search at 50 results and read at most 20 materially relevant complete threads total.
-- Surface only material medical, financial, employment, WGU, VA/USAJOBS, vendor, appointment, subscription, fraud, or security changes.
+- Surface only material medical, financial, employment, school, vendor, appointment, subscription, fraud, or security changes relevant to the deployment.
 - Normalize materially relevant order/carrier facts and run `python3 scripts/reconcile_shipments.py reconcile --input <json-file> --pretty` with the pre-reconciliation `Shipments` values. Apply its active-row upserts and delivered-row deletions to the Sheet, then perform the Gmail filing transaction in the email-reconciliation workflow.
 - Explicit user delivery statements outrank carrier evidence; carrier delivery/progress evidence outranks vendor status. Never infer delivery from age, an ETA, or a vendor's shipped notice.
 - Re-read `Shipments!A1:N500` after mutations. Show active rows as `Item — ETA <date>` or `Item — No ETA`; add status only for a material exception.
@@ -83,27 +84,26 @@ Perform one bounded pass per applicable external source. Run only the planned qu
 - From `Classification Queue`, render unresolved rows under `ACTION REQUIRED` as compact questions with exact vendor/order/item and the smallest useful choices. Do not infer an answer from silence.
 - From current unresolved financial-resolution events, render one compact `ACTION REQUIRED` line per overdue Receipt ID after the five-business-day gate. Do not create a new reminder job or send a vendor email automatically.
 - Search `in:inbox label:"Ops/Archive Approval"` after filing. Group related messages into concise decisions under `IMPORTANT EMAIL`, retain them in Inbox, and end that section with the exact line `Is it OK to archive these emails?`. If the user did not answer the prior brief, repeat the queue unchanged. Do not treat silence as approval.
-- Never send email automatically. Do not delete Gmail without an explicit bounded request.
+- Never send email automatically. Do not delete Gmail outside the standing audited carrier-retention rule or an explicit bounded user request.
 - Do not search promotions, calculate discounts, or monitor sales.
-- Exclude obvious wife-only cosmetics/beauty purchases from shared Amazon results. Include ambiguous/shared goods and surface wife-only items only for household-level exceptions.
 
 ### Weather
 
-- When `home_weather_allowed` is true, check Shady Valley, Tennessee only if weather materially affects a HOME decision.
-- When `mowing_weather_focus` is true, prioritize recent/forecast rain, drying, wetness, and realistic mowing windows. Mowing season is April 1 inclusive through November 1 exclusive.
-- Never render Shady Valley weather in ROAD mode.
+- When `home_weather_allowed` is true, check the configured home location only if weather materially affects a HOME decision.
+- When `mowing_weather_focus` is true, prioritize recent/forecast rain, drying, wetness, and realistic mowing windows. Use the deployment's configured mowing season.
+- Never render HOME weather in ROAD mode unless deployment policy explicitly allows it.
 - When `route_weather_allowed` is true or a travel action requires input, load and follow `references/route-weather.md`. Otherwise do not mention or inspect route weather.
 
-## Run Log
+## Finalize Run Log
 
-After evidence and required mutations finish, locate the exact deterministic Run ID in the loaded Run Log. Update that row on retries; otherwise use the first blank row. Never create two rows for one Run ID.
+After evidence and required mutations finish, update the **same** deterministic Run ID row created as `Running` at entry. Never create two rows for one Run ID.
 
-- Set `Started (ET)` and `Completed (ET)` to actual Eastern timestamps.
+- Keep the original `Started (ET)` and set `Completed (ET)` to the actual Eastern completion timestamp.
 - Preserve engine policy version, mode, input health, action count, and error notes.
 - Use `OK` when all requested checks complete, `Degraded` for a completed brief with a non-authoritative or isolated section failure including Thursday mileage/pay unavailability, and `Error` only for core policy/authority or required-mutation failure.
 - In `External Evidence`, write only concise tokens such as `Calendar: OK; Gmail: 2 material threads; NWS: clear`.
 - In `Mutations`, write only stable IDs or `None`; never copy message bodies, secrets, or the full brief.
-- If the register itself is unavailable, report the blocker without claiming the run was logged.
+- If final logging fails after downstream work, preserve the known-good mutations, do not create a second Run ID, and surface the incomplete final-log state under the Pants Filling With Shit recovery boundary.
 
 ## Output contract
 
