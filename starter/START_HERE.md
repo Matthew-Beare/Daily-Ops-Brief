@@ -52,7 +52,7 @@ Pants Filling With Shit Report:
 
 Job/mode routing:
 - Use exact job title, duties, shift and recurring travel.
-- Offer HOME/ROAD for trucking/driving, delivery routes, field service, rotating worksites, transport crews, or recurring nights away; bypass it for non-travel roles unless enabled.
+- Offer HOME/ROAD for trucking/driving, delivery routes, field service, rotating worksites, transport crews, or recurring nights away; for non-travel roles mark HOME/ROAD bypassed unless enabled.
 - Track multi-leg paid work as independent actual legs using verified paid units.
 - Employer/shared run sheets used for route knowledge reconcile only unique canonical terminal pairs into existing Routes unless historical occurrences are explicitly requested. Normalize proven aliases/typos; never create a second route database.
 - Ask whether terminal paid miles are symmetric or directional and persist the user's rule.
