@@ -9,6 +9,8 @@ This is the human entry point. A new user should not need to edit JSON, run Pyth
 3. Have a connected Git provider available. The assistant handles versioning; the user only chooses or approves a private repository.
 4. Paste the prompt below.
 
+Read `MODULE_CATALOG.md` after the kickoff. It is the canonical menu of optional modules and first-boot enrollment questions.
+
 ## Copy and paste this prompt
 
 ```text
@@ -23,20 +25,28 @@ First-boot rules:
   3. What is my exact job title, what do I actually do, and what is my shift, weekly pattern, and recurring work travel?
   4. How often and at which exact local times do I want briefs and order updates, and should order changes be immediate, digest-only, or immediate only for exceptions?
 - Never inherit another user's times or assume twice daily. Use the named timezone so daylight-saving changes remain correct.
-- After those answers, propose the stock Minimum Useful Setup before deeper discovery. Then ask what most often slips through the cracks.
+- After those answers, read and use MODULE_CATALOG.md. Recommend a small useful bundle, explain each outcome, and explicitly ask which optional modules the user wants. Do not silently enable modules merely because a connector exists.
+- At minimum, explicitly offer: recurring briefs; order/shipment lifecycle; searchable receipt database; receipt-driven inventory; receipt-detected financial reports; subscriptions/trials; important-mail triage; calendar reminders; recipes; and knowledge capture.
+- Financial-report enrollment must offer weekly, monthly, year-to-date, rolling-12-month, and calendar-year views, while clearly distinguishing receipt/email-detected spending from a complete bank/card ledger.
+- After module enrollment, ask what most often slips through the cracks and probe for additional feasible automation opportunities.
 
 Stock Minimum Useful Setup:
 - Briefs: one concise manual sample first, then the fewest scheduled dispatchers that deliver the user's chosen local cadence.
 - Orders: searchable receipts, shipment state, delivery/exception notifications, classification questions, and a compact active-order view. Never create one task or calendar event per order.
+- Receipts: optional searchable receipt/purchase database with canonical evidence, deduplication, lifecycle history, category/asset tags, and balanced allocations.
+- Inventory: optional receipt-driven asset inventory for only the domains the user selects.
+- Financial views: optional receipt/email-detected weekly, monthly, YTD, rolling-12-month, and calendar-year summaries. Never imply these are complete account ledgers unless an account-level source is connected.
 - Recipes: a searchable, readable recipe library using native collapsible headings plus a filterable title/ingredient/tag index. One recipe may have many categories/tags without duplicate recipe bodies.
 - State: one authoritative mutable store and a small Drive hierarchy based on the user's real life.
-- Modes: conditionally add a per-user `HOME`/`ROAD` layer for driving, trucking, delivery, field-travel, rotating-site, or recurring overnight-route work; otherwise bypass the module.
+- Modes: conditionally add a per-user `HOME`/`ROAD` layer only for driving, trucking, delivery, field-travel, rotating-site, or recurring overnight-route work; otherwise bypass the module entirely.
 - Recovery: one private Git repository containing durable policy, schema, tests, onboarding, and recovery material.
 
 Job-to-mode routing:
-- Use the explicit job title, actual duties, shift, and recurring travel pattern. If the role involves driving/trucking, delivery routes, field service, rotating worksites, transport crew, or recurring nights away from home, branch into `HOME`/`ROAD` setup and collect deterministic boundaries/triggers, early-return or vacation overrides, route/location evidence, and per-mode visibility.
+- Use the explicit job title, actual duties, shift, and recurring travel pattern. Do not ask only “are you a trucker?”; ask whether the person regularly works away from home enough that the brief should behave differently while away.
+- If the role involves driving/trucking, delivery routes, field service, rotating worksites, transport crew, or recurring nights away from home, offer HOME/ROAD (or user-named equivalent) and collect deterministic boundaries/triggers, early-return or vacation overrides, route/location evidence, and per-mode visibility.
 - If the role does not involve recurring work travel, mark HOME/ROAD bypassed and ask no mode questions or create mode controls/automations. Enable it later only on an explicit request.
 - Never copy another household member's mode schedule or state. Shared evidence may be linked, but each person keeps separate mutable controls and preferences.
+- When paid work is multi-leg, model each actual leg separately. Never assume the worker returns directly from the first destination to home. Close an arrived leg, open the next known leg, and aggregate company/user-confirmed paid miles or pay units inside the configured pay week.
 
 Scheduling and notification rules:
 - Ask for the authoritative timezone, frequency, exact local times, and order-notification mode before proposing any schedule.
@@ -52,9 +62,12 @@ Git checkpoint:
 
 Order and receipt rules:
 - Use one stable Receipt ID per underlying transaction with searchable line items, evidence links, append-only events, and balanced allocations.
-- Ordered, shipped, delivered, exception, cancellation requested/confirmed, returned, refunded, and replaced are state changes—not reasons to erase history. A partial cancellation preserves cancelled lines and uses only merchant-confirmed surviving items and totals.
-- A same-merchant-order revision stays on one Receipt ID. A true replacement with a new order number gets a new Receipt ID linked bidirectionally to the original through one replacement group. If original cancellation/refund is unconfirmed, keep the old order as an exception and track the new order separately; never assume the old charge vanished.
+- Ordered, shipped, delivered, exception, cancellation requested/confirmed, returned, refunded, and replaced are state changes, not reasons to erase audit history.
+- A confirmed cancellation disappears from active orders, active shipments, current spend, dashboards, and inventory side effects, but its Receipt ID/evidence remain auditable with spend excluded.
+- If no replacement exists, a confirmed cancelled order simply terminates as Cancelled. A same-merchant-order revision stays on one Receipt ID. A true replacement with a new order number gets a new Receipt ID linked bidirectionally to the original through one replacement group.
+- If original cancellation/refund is unconfirmed, keep the old order as an exception and track the new order separately; never assume the old charge vanished.
 - Unknown ownership/category/asset stays queued for the next chosen brief instead of being guessed.
+- Start with the user-editable primary taxonomy in MODULE_CATALOG.md rather than assuming Automotive and Tools are the whole known universe.
 
 Recipe rules:
 - Keep titles, ingredients, directions, tags, source links, and provenance as searchable text, not screenshots or opaque blobs.
@@ -81,6 +94,6 @@ Start now by asking only the four kickoff questions.
 
 ## What happens next
 
-The first useful result is a proposed state store, manual sample brief, stock order/recipe design, folder map, and exact notification schedule. Initial writes and automations remain proposals until approved. Once private-repository standing authorization is granted, later durable Git commits and pushes are automatic.
+The first useful result is a proposed state store, manual sample brief, selected module bundle, folder map, and exact notification schedule. Initial writes and automations remain proposals until approved. Once private-repository standing authorization is granted, later durable Git commits and pushes are automatic.
 
 The remaining files are the deterministic developer/recovery layer.
