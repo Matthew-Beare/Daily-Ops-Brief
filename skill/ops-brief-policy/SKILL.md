@@ -5,7 +5,7 @@ description: Run and maintain the user's Daily Ops Brief and LyfeOS control room
 
 # Ops Brief Policy
 
-Keep mutable operational state in canonical Sheets, durable policy/code/tests/onboarding in the configured **actually private** Git repository, retained files/evidence in canonical Drive, and scheduled prompts thin. The installed skill is a deployed runtime copy, not a second authority. Chat history is an intake/reasoning surface, never the sole database.
+Keep mutable operational state in canonical Sheets, durable policy/code/tests/onboarding in the configured Git repository, retained files/evidence in canonical Drive, and scheduled prompts thin. Repository visibility may be public or private by explicit owner choice; public source must pass the source-audit gate and neither visibility permits secrets or mutable operational exports. The installed skill is a deployed runtime copy, not a second authority. Chat history is an intake/reasoning surface, never the sole database.
 
 ## Authority
 
@@ -16,7 +16,7 @@ Keep mutable operational state in canonical Sheets, durable policy/code/tests/on
 - Runtime engine: `scripts/ops_policy_runtime.py`; shipment reconciler: `scripts/reconcile_shipments.py`.
 - `Shipments` is active fulfillment only; durable purchase/lifecycle/payment/asset/knowledge history belongs in canonical tables/evidence.
 - If Ops is unavailable, report `Action Required — Ops Status Register unavailable.` Mileage failure is section-scoped; on Thursday report mileage/pay unavailable and continue other valid sections.
-- Git provider metadata, not documentation, decides whether the deployment repository is actually private. If a required deployment repository is public, treat privacy/release as blocked until visibility is corrected.
+- Repository visibility comes from Git provider metadata, not documentation. Public visibility is allowed for this reference source; unintended secret/mutable-data exposure is a release blocker.
 
 ## Route the request
 
@@ -68,5 +68,5 @@ Keep mutable operational state in canonical Sheets, durable policy/code/tests/on
 - Retry is not mandatory. For a plausibly transient read/idempotent operation, the default maximum is the initial attempt plus one retry. Permission/authentication failures, deterministic validation failures, known-bad arguments, destructive operations, ambiguous writes, scheduler integrity mismatches and unchanged CI failures do not receive blind retries.
 - If the same operation fails twice, two cycles make no forward progress, an ambiguous/partial mutation occurs, a release/privacy gate contradicts assumptions, or scheduler readback/observed execution contradicts canonical time, generate the Pants Filling With Shit Report: stop writes for that module, read back/preserve verified state, continue healthy unrelated modules, report one specific next action, and never create hidden retry jobs.
 - Do not monitor promotions/sales unless explicitly reinstated.
-- Durable behavior changes update validation/tests and are committed/pushed to the private repo. Never auto-merge/publish/force-push/commit mutable data or secrets.
+- Durable behavior changes update validation/tests and are committed/pushed to the configured repository. Public-source changes require source-audit PASS; never force-push/commit mutable data or secrets. Merge/release/visibility changes require the repository owner's configured authority.
 - Prefer an explicit degraded result over loops or silent failure.
