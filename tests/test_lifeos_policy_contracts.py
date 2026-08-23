@@ -16,20 +16,32 @@ class LifeOSPolicyContractTests(unittest.TestCase):
         self.assertIn("project/POLICY_FINGERPRINT.txt", project)
         self.assertNotIn("POLICY_SOURCE_FINGERPRINT:", project)
 
-    def test_carrier_retention_is_narrow(self) -> None:
+    def test_carrier_retention_includes_usps_and_stays_narrow(self) -> None:
         policy = self.text("skill/ops-brief-policy/references/email-reconciliation.md")
         self.assertIn("90 calendar days", policy)
-        self.assertIn("FedEx, UPS and DHL", policy)
-        self.assertIn("USPS", policy)
+        self.assertIn("FedEx, UPS, DHL and USPS", policy)
+        self.assertIn("carrier-originated FedEx/UPS/DHL/USPS", policy)
         self.assertIn("merchant order confirmation", policy.lower())
         self.assertIn("open return, claim, dispute", policy)
+        self.assertNotIn("USPS and any carrier not named above remain retention-only", policy)
 
-    def test_asset_acquisition_requires_dedupe_and_evidence(self) -> None:
+    def test_asset_acquisition_requires_global_uuid_dedupe_and_evidence(self) -> None:
         policy = self.text("skill/ops-brief-policy/references/asset-acquisition.md")
-        self.assertIn("one stable Asset/Tool ID", policy)
+        self.assertIn("immutable RFC 4122 UUID", policy)
+        self.assertIn("collision-resistant across deployments/family members", policy)
         self.assertIn("serial number", policy)
         self.assertIn("manufacturer/OEM", policy)
         self.assertIn("search existing canonical asset/tool/inventory records", policy)
+        self.assertIn("PostgreSQL", policy)
+
+    def test_manual_library_is_durable_queryable_and_asset_linked(self) -> None:
+        policy = self.text("skill/ops-brief-policy/references/knowledge-manual-ingestion.md")
+        self.assertIn("Manuals & Reference", policy)
+        self.assertIn("Knowledge Index", policy)
+        self.assertIn("immutable RFC 4122 UUID", policy)
+        self.assertIn("canonical Drive link", policy)
+        self.assertIn("asset UUID", policy)
+        self.assertIn("PostgreSQL", policy)
 
     def test_calendar_projection_updates_in_place(self) -> None:
         policy = self.text("skill/ops-brief-policy/references/calendar-projection.md")
@@ -38,10 +50,22 @@ class LifeOSPolicyContractTests(unittest.TestCase):
         self.assertIn("order delivery dates/windows", policy)
         self.assertIn("Inviting other people", policy)
 
-    def test_terminal_paid_miles_are_symmetric(self) -> None:
-        policy = self.text("skill/ops-brief-policy/references/state-maintenance.md")
-        self.assertIn("company-paid terminal mileage is symmetric by terminal pair", policy)
-        self.assertIn("same paid-mile value", policy)
+    def test_terminal_paid_miles_are_symmetric_and_historical_import_is_pair_only(self) -> None:
+        skill = self.text("skill/ops-brief-policy/SKILL.md")
+        maintenance = self.text("skill/ops-brief-policy/references/state-maintenance.md")
+        self.assertIn("Paid terminal mileage is symmetric", skill)
+        self.assertIn("unique canonical terminal pairs", skill)
+        self.assertIn("do not manufacture hundreds of historical `Trips`", skill)
+        self.assertIn("same paid-mile value", maintenance)
+
+    def test_starter_guides_nontechnical_users_and_auto_versions(self) -> None:
+        guide = self.text("starter/START_HERE.md")
+        deps = self.text("starter/DEPENDENCIES.md")
+        self.assertIn("non-technical user", guide)
+        self.assertIn("exactly what to click", guide)
+        self.assertIn("automatically validate, commit, push and verify", guide)
+        self.assertIn("GitHub side", deps)
+        self.assertIn("ChatGPT side", deps)
 
 
 if __name__ == "__main__":
