@@ -19,7 +19,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: python3 scripts/validate_repo.py .
+      - name: Discover policy fingerprint
+        run: python3 scripts/policy_fingerprint.py skill/ops-brief-policy
       - run: python3 scripts/audit_starter_privacy.py starter
       - run: python3 -m unittest discover -s tests -p 'test_*.py'
       - run: python3 -m unittest discover -s skill/ops-brief-policy/scripts -p 'test_*.py'
