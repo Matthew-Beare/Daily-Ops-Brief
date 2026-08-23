@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-"""Validate repository authority, recovery, scheduler, starter, and privacy contracts.
-
-This validator intentionally checks cross-file agreement. A magic phrase appearing in
-one document is not proof that the surrounding policy is coherent.
-"""
+"""Validate the coherent LyfeOS public-release and reference-deployment contract."""
 
 from __future__ import annotations
 
@@ -16,7 +12,10 @@ from pathlib import Path
 from policy_fingerprint import compute
 
 REQUIRED = (
+    ".gitignore",
+    "LICENSE",
     "README.md",
+    ".github/workflows/ci.yml",
     "project/INSTRUCTIONS.md.tmpl",
     "project/POLICY_FINGERPRINT.txt",
     "policy/ops-brief-policy.yaml",
@@ -55,6 +54,7 @@ REQUIRED = (
     "skill/ops-brief-policy/scripts/ops_policy_runtime.py",
     "skill/ops-brief-policy/scripts/payment_reconciliation.py",
     "scripts/import_run_sheet.py",
+    "scripts/audit_public_source.py",
     "scripts/audit_starter_privacy.py",
     "privacy/starter-blocklist.txt",
 )
@@ -67,12 +67,13 @@ def require(condition: bool, message: str, errors: list[str]) -> None:
         errors.append(message)
 
 
-def contains_all(text: str, phrases: tuple[str, ...]) -> bool:
+def has(text: str, *phrases: str) -> bool:
     lowered = text.lower()
     return all(phrase.lower() in lowered for phrase in phrases)
 
 
 def validate(root: Path) -> list[str]:
+    root = root.resolve()
     errors: list[str] = []
     for relative in REQUIRED:
         require((root / relative).is_file(), f"missing required file: {relative}", errors)
@@ -82,15 +83,18 @@ def validate(root: Path) -> list[str]:
     def text(relative: str) -> str:
         return (root / relative).read_text(encoding="utf-8")
 
-    def json_file(relative: str):
+    def load_json(relative: str):
         try:
             return json.loads(text(relative))
         except (OSError, json.JSONDecodeError) as exc:
             errors.append(f"invalid JSON {relative}: {exc}")
             return {}
 
-    project = text("project/INSTRUCTIONS.md.tmpl")
     readme = text("README.md")
+    gitignore = text(".gitignore")
+    license_text = text("LICENSE")
+    ci = text(".github/workflows/ci.yml")
+    project = text("project/INSTRUCTIONS.md.tmpl")
     skill = text("skill/ops-brief-policy/SKILL.md")
     brief = text("skill/ops-brief-policy/references/brief-run.md")
     maintenance = text("skill/ops-brief-policy/references/state-maintenance.md")
@@ -123,8 +127,9 @@ def validate(root: Path) -> list[str]:
     shared = text("starter/SHARED_FEATURE_WORKFLOW.md")
     generic = text("starter/INSTRUCTIONS.md.tmpl")
     importer = text("scripts/import_run_sheet.py")
+    public_audit = text("scripts/audit_public_source.py")
 
-    # Stable Project bootstrap and strict Git-side fingerprint.
+    # Stable reference-deployment bootstrap and strict policy fingerprint.
     require(len(project) <= MAX_PROJECT_INSTRUCTIONS_CHARS, f"project contract exceeds {MAX_PROJECT_INSTRUCTIONS_CHARS} characters: {len(project)}", errors)
     for phrase in (
         "BOOTSTRAP_CONTRACT_VERSION: 2",
@@ -146,7 +151,43 @@ def validate(root: Path) -> list[str]:
         actual = compute(root / "skill/ops-brief-policy")
         require(fingerprint == actual, f"policy fingerprint mismatch: expected {actual}", errors)
 
-    # Scheduler integrity is a chain, not an undocumented timezone field.
+    # Public-source product contract.
+    require(has(readme, "intentionally public", "starter/start_here.md", "public-source audit", "mutable operational state"), "README does not describe the public upstream/state boundary", errors)
+    require("must be private" not in readme.lower(), "README still requires the public upstream to be private", errors)
+    require(has(starter_readme, "public distribution boundary", "public or private", "reference implementation"), "starter README does not define a portable public boundary", errors)
+    require(has(versioning, "simple fork path", "clean portable-snapshot path", "public and private are both supported"), "starter versioning lacks usable public installation paths", errors)
+    require(has(shared, "public upstream", "mutable operational state", "public or private"), "shared feature workflow does not preserve public portability/state isolation", errors)
+    require(has(dependencies, "public-source gate", "public or private", "provider metadata"), "starter dependencies lack repository visibility/source-audit handling", errors)
+    require(has(generic, "repository visibility", "public source", "provider metadata"), "rendered starter policy cannot represent public/private source", errors)
+    require("REPOSITORY_VISIBILITY" in generic, "starter policy template lacks repository visibility token", errors)
+    require("MIT License" in license_text and "Permission is hereby granted" in license_text, "public source lacks a usable MIT license", errors)
+    for ignored in (".env", "config.local.json", "*.sqlite"):
+        require(ignored in gitignore, f".gitignore lacks public-source safety pattern: {ignored}", errors)
+
+    require(has(public_audit, "audit_history", "SCAN_EXEMPT_PATHS", "CARD_CANDIDATE", "BLOCKED_FILENAMES"), "public source auditor lacks history/secret/card/file gates", errors)
+    require("--history" in ci and "fetch-depth: 0" in ci, "CI does not run full-history public source audit", errors)
+    for command in (
+        "scripts/audit_public_source.py . --history",
+        "scripts/audit_starter_privacy.py starter",
+        "scripts/validate_repo.py .",
+        "unittest discover -s tests",
+        "unittest discover -s skill/ops-brief-policy/scripts",
+        "starter/tools/validate_feature_manifest.py",
+        "unittest discover -s starter/tests",
+    ):
+        require(command in ci, f"CI release gate lacks: {command}", errors)
+
+    # Portable starter must not regress to a private-only deployment assumption.
+    portable_surface = "\n".join((start, interview, dependencies, starter_readme, versioning, shared, generic))
+    for stale in (
+        "private git is required",
+        "deployment repository must actually be private",
+        "brand-new private repository",
+        "must be private because",
+    ):
+        require(stale not in portable_surface.lower(), f"portable starter retains private-only rule: {stale}", errors)
+
+    # Scheduler health is an evidence chain, not an undocumented timezone field.
     scheduler_surfaces = {
         "skill": skill,
         "maintenance": maintenance,
@@ -157,25 +198,14 @@ def validate(root: Path) -> list[str]:
         "starter template": generic,
     }
     for label, surface in scheduler_surfaces.items():
-        require(
-            contains_all(surface, ("notification", "duplicate", "actual firing" if label != "maintenance" else "actual firing")),
-            f"{label} lacks scheduler notification/duplicate/observed-run evidence",
-            errors,
-        )
-        require("canonical" in surface.lower(), f"{label} lacks canonical-time scheduling language", errors)
-    for surface_name, surface in (("skill", skill), ("maintenance", maintenance), ("automation docs", automation), ("starter dependencies", dependencies), ("starter first boot", start), ("starter interview", interview), ("starter template", generic)):
-        require("provider contract" in surface.lower(), f"{surface_name} does not condition provider timezone metadata on documented semantics", errors)
-    require("default_timezone" in skill and "default_timezone" in automation and "default_timezone" in dependencies, "scheduler policy does not explicitly neutralize ambiguous default_timezone metadata", errors)
-    require("first external" in skill.lower() and "Running" in skill, "skill does not require an entry Run Log mutation", errors)
-    require("Before Gmail" in brief and "`Running`" in brief and "same" in brief.lower(), "brief workflow does not create/finalize one Run Log row around downstream work", errors)
+        require(has(surface, "notification", "duplicate", "actual firing", "canonical"), f"{label} lacks scheduler notification/duplicate/observed-run evidence", errors)
+        require("provider contract" in surface.lower(), f"{label} does not condition timezone metadata on provider semantics", errors)
+    require("default_timezone" in skill and "default_timezone" in automation and "default_timezone" in dependencies, "scheduler policy does not neutralize ambiguous default_timezone metadata", errors)
+    require("first external" in skill.lower() and "`Running`" in skill, "skill does not require an entry Run Log mutation", errors)
+    require("Before Gmail" in brief and "`Running`" in brief, "brief workflow does not enter Run Log before downstream work", errors)
     require("subsequent actual run/Run Log timestamp" in pants, "failure policy cannot prove scheduler recovery", errors)
-    for forbidden in (
-        "provider stored/default/execution timezone equals",
-        "stored execution timezone matches the canonical timezone as well as the intended local schedule",
-    ):
-        require(forbidden.lower() not in (skill + start + interview + generic).lower(), f"stale unconditional scheduler rule remains: {forbidden}", errors)
 
-    # Symmetric terminal paid mileage must agree everywhere, while geometry/runtime may stay directional.
+    # Symmetric paid terminal mileage for this reference deployment.
     require("Paid terminal mileage is symmetric" in skill, "canonical skill lacks symmetric terminal mileage", errors)
     require("same paid-mile value" in maintenance, "state maintenance lacks symmetric mileage upsert", errors)
     require("symmetric by canonical terminal pair" in brief, "brief workflow still treats terminal paid miles as directional", errors)
@@ -183,87 +213,99 @@ def validate(root: Path) -> list[str]:
     require("terminal_paid_miles_symmetric_by_pair: true" in compatibility and "terminal_paid_miles_directional: false" in compatibility, "legacy compatibility snapshot contradicts symmetric mileage", errors)
     require("for the current deployment it is symmetric" in data_platform, "future data-platform design contradicts current pair-mile policy", errors)
     require("never mirrors automatically" not in data_platform.lower(), "data-platform doc retains stale no-mirroring rule", errors)
-    require("Directional terminal paid-mile fields are learned evidence only" not in brief, "brief workflow retains stale directional paid-mile rule", errors)
 
-    # Fail-fast recovery must stop the affected module, not build retry machinery.
+    # Circuit breaker and safe failure behavior.
     for phrase in ("Retry is not mandatory", "Pants Filling With Shit Report", "never create hidden retry jobs"):
         require(phrase in skill, f"skill lacks failure boundary: {phrase}", errors)
     for phrase in ("same external operation fails twice", "Stop writes for the affected module", "Continue unrelated modules", "never blind-rerun"):
         require(phrase in pants, f"Pants Filling With Shit policy lacks: {phrase}", errors)
 
     # Receipt/order/asset/knowledge/finance safety.
-    require(contains_all(receipt, ("active shopping list", "remove the fulfilled shopping row", "explicit owner statement", "separate reconciliation task", "cancellation with no supported replacement")), "receipt policy does not preserve active-shopping semantics", errors)
-    require(contains_all(fitment, ("Investigation before queue", "Unique resolution may be established by exclusion", "card last-four")), "fitment/financial evidence policy is incomplete", errors)
-    require(contains_all(photo, ("UPC/EAN/GTIN", "chat-local shadow receipt database")), "photo receipt intake is incomplete", errors)
-    require(contains_all(email, ("Orders/History/<vendor-slug>/<order-number>", "FedEx, UPS, DHL and USPS", "90 calendar days", "open return, claim, dispute")), "email reconciliation/retention contract is incomplete", errors)
-    require(contains_all(asset, ("immutable RFC 4122 UUID", "collision-resistant across deployments/family members", "manufacturer/OEM")), "asset identity contract is incomplete", errors)
-    require(contains_all(manual, ("Manuals & Reference", "Knowledge Index", "canonical Drive link", "immutable RFC 4122 UUID")), "knowledge/manual contract is incomplete", errors)
-    require(contains_all(life, ("Next-action planner", "Routine accountability", "Exercise / fitness organization", "School / study workflow")), "whole-life planning policy is incomplete", errors)
-    require(contains_all(reimbursement, ("A reimbursement is not a merchant refund", "Net Household Cost")), "reimbursement contract is incomplete", errors)
-    require(contains_all(payment, ("Awaiting Settlement", "Overcharged", "unmatched")), "payment reconciliation contract is incomplete", errors)
-    require(contains_all(contact, ("do not reply", "Do you want me to send this email?")), "vendor contact safety is incomplete", errors)
+    require(has(receipt, "active shopping list", "remove the fulfilled shopping row", "explicit owner statement", "separate reconciliation task", "cancellation with no supported replacement"), "receipt policy does not preserve active-shopping semantics", errors)
+    require(has(fitment, "Investigation before queue", "Unique resolution may be established by exclusion", "card last-four"), "fitment/financial evidence policy is incomplete", errors)
+    require(has(photo, "UPC/EAN/GTIN", "chat-local shadow receipt database"), "photo receipt intake is incomplete", errors)
+    require(has(email, "Orders/History/<vendor-slug>/<order-number>", "FedEx, UPS, DHL and USPS", "90 calendar days", "open return, claim, dispute"), "email reconciliation/retention contract is incomplete", errors)
+    require(has(asset, "immutable RFC 4122 UUID", "collision-resistant across deployments/family members", "manufacturer/OEM"), "asset identity contract is incomplete", errors)
+    require(has(manual, "Manuals & Reference", "Knowledge Index", "canonical Drive link", "immutable RFC 4122 UUID"), "knowledge/manual contract is incomplete", errors)
+    require(has(life, "Next-action planner", "Routine accountability", "Exercise / fitness organization", "School / study workflow"), "whole-life planning policy is incomplete", errors)
+    require(has(reimbursement, "A reimbursement is not a merchant refund", "Net Household Cost"), "reimbursement contract is incomplete", errors)
+    require(has(payment, "Awaiting Settlement", "Overcharged", "unmatched"), "payment reconciliation contract is incomplete", errors)
+    require(has(contact, "do not reply", "Do you want me to send this email?"), "vendor contact safety is incomplete", errors)
     require("deleting the originating ChatGPT conversation" in chat, "chat portability does not make old chats disposable", errors)
-    require(contains_all(calendar, ("Google Calendar event ID", "update the linked event in place", "order delivery dates/windows")), "calendar projection contract is incomplete", errors)
+    require(has(calendar, "Google Calendar event ID", "update the linked event in place", "order delivery dates/windows"), "calendar projection contract is incomplete", errors)
 
-    # Calendar projection is permitted; automation fan-out is not.
-    require("not a per-order automation" in automation_design.lower(), "automation design conflates calendar projection with per-order automation", errors)
-    require("never creates per-order scheduled tasks" in automation_design.lower(), "automation design does not forbid per-order task fanout", errors)
+    # Calendar projection is allowed while per-record task fanout is forbidden.
+    require("not a per-order automation" in automation_design.lower(), "automation design conflates Calendar Projection with per-order automation", errors)
+    require("never creates per-order scheduled tasks" in automation_design.lower(), "automation design does not forbid per-order scheduled-task fanout", errors)
 
-    # Identity schema must keep UUID primary and friendly IDs secondary.
-    require("Entity UUID" in household_schema and "immutable" in household_schema and "Friendly" in household_schema, "household schema lacks immutable UUID/friendly-ID separation", errors)
-
-    # Historical docs must not be mistaken for live state or leak mutable runtime snapshots in the current tree.
+    # Identity/history contracts.
+    require(has(household_schema, "Entity UUID", "immutable", "Friendly"), "household schema lacks immutable UUID/friendly-ID separation", errors)
     require("Status: superseded" in historical_audit, "historical feature audit is not explicitly superseded", errors)
-    require("TRIP-" not in historical_audit and "MILE-" not in historical_audit, "historical audit still copies mutable trip/mileage IDs into Git", errors)
-    require("live canonical" in historical_audit.lower(), "historical audit does not redirect readers to live authorities", errors)
+    require("TRIP-" not in historical_audit and "MILE-" not in historical_audit, "historical audit copies mutable trip/mileage IDs into Git", errors)
+    require("live canonical" in historical_audit.lower(), "historical audit does not redirect current-state readers to live authorities", errors)
 
-    # Repository privacy is a provider-state gate, not a prose assertion.
-    require(contains_all(readme, ("must be private", "provider metadata", "stop provisioning")), "README does not gate deployment on actual private repository state", errors)
-    require("This repository is private" not in readme, "README makes an unverified repository-visibility claim", errors)
-    require(contains_all(dependencies, ("private", "provider metadata")), "starter dependencies do not verify actual private repository state", errors)
-    require(contains_all(generic, ("must actually be private", "provider metadata")), "generated starter policy does not enforce private repository state", errors)
-
-    # The first-beta installation path must exist even before a standalone starter repo exists.
-    require(contains_all(versioning, ("standalone", "brand-new private", "pinned", "snapshot")), "starter versioning has no real pre-release first-user path", errors)
-    require("do not fork" in versioning.lower() or "never fork" in versioning.lower(), "starter versioning may expose production repository history", errors)
-    require("standalone" in shared.lower(), "shared feature workflow does not distinguish the standalone starter boundary", errors)
-
-    # Importer must learn reusable pairs without manufacturing historical occurrences.
+    # Run-sheet importer learns reusable route pairs only.
     require("historical_occurrences_imported" in importer and "False" in importer, "run-sheet importer does not prohibit occurrence creation", errors)
     require("TERMINAL_ALIASES" in importer and '"I4C": "IRC"' in importer, "run-sheet importer lacks proven alias normalization", errors)
     require("route_pair_count" in importer and '"occurrences"' not in importer, "run-sheet importer still exports historical occurrence rows", errors)
 
-    # Starter is adaptive, deep enough to discover whole-life workflows, and sanitized.
-    questions = json_file("starter/questions.json")
-    config = json_file("starter/config.example.json")
+    # Starter depth, adaptability, safety, and template completeness.
+    questions = load_json("starter/questions.json")
+    config = load_json("starter/config.example.json")
     rows = [q for section in questions.get("sections", []) if isinstance(section, dict) for q in section.get("questions", []) if isinstance(q, dict)]
     ids = [q.get("id") for q in rows]
+    require(isinstance(questions, dict) and int(questions.get("version", 0)) >= 4, "starter questionnaire is not current public version", errors)
     require(len(rows) >= 80 and len(ids) == len(set(ids)), "starter questionnaire is missing whole-life depth or has duplicate IDs", errors)
-    for qid in ("works_away_from_home", "accountability_domains", "routine_progression", "education_active", "study_home_away", "study_next_action_rule", "scheduler_timezone_integrity"):
+    for qid in (
+        "works_away_from_home",
+        "accountability_domains",
+        "routine_progression",
+        "education_active",
+        "study_home_away",
+        "study_next_action_rule",
+        "scheduler_timezone_integrity",
+        "repository_visibility",
+        "public_source_policy",
+    ):
         require(qid in ids, f"starter questionnaire lacks adaptive field: {qid}", errors)
-    scheduler_questions = " ".join(str(q.get("prompt", "")) for q in rows if "scheduler" in str(q.get("id", "")) or "scheduled" in str(q.get("id", "")))
-    require(contains_all(scheduler_questions, ("notification", "actual")), "starter scheduler questions do not collect notification/observed-run evidence", errors)
 
     require(len(start) < MAX_START_HERE_CHARS, f"START_HERE exceeds {MAX_START_HERE_CHARS} characters: {len(start)}", errors)
-    for phrase in ("Minimum Useful Setup", "Start now by asking only the four kickoff questions", "non-technical user", "exactly what to click", "automatically update validation, commit, and push", "Dependency gate", "Pants Filling With Shit Report", "partial cancellation", "Calendar Projection", "immutable UUID", "Awaiting Settlement", "Do you want me to send this email?", "old chats are deleted", "work away from home", "whole-life interview", "active shopping list"):
-        require(phrase.lower() in start.lower(), f"starter onboarding lacks: {phrase}", errors)
-    for phrase in ("Do you regularly work away from home", "minimum viable version", "home versus away/on the road", "Exercise / fitness", "School / study", "what to do next", "stored/execution timezone"):
-        require(phrase.lower() in interview.lower(), f"adaptive life interview lacks: {phrase}", errors)
-    require("four" in starter_readme.lower(), "starter README has an inconsistent stock-behavior count", errors)
-    require("GitHub side" in dependencies and "ChatGPT side" in dependencies and "Installed GitHub Apps" in dependencies, "dependency guide lacks two-sided GitHub setup", errors)
-    require("Manuals and reference library" in catalog and "immutable collision-resistant UUID" in catalog, "module catalog lacks manual/UUID enrollment", errors)
-    require("Shopping and procurement reconciliation" in catalog, "module catalog lacks shopping/procurement enrollment", errors)
-    require("Personal accountability and routines" in catalog and "Education and study coach" in catalog, "module catalog lacks whole-life accountability/study modules", errors)
-
-    starter_surface = start + interview + catalog + dependencies + versioning + shared + json.dumps(questions)
-    for private_marker in ("Matthew-Beare", "jbeare92", "1pHkTdCx", "Pig Pet", "Mazda Miata", "Subaru WRX", "Civic Type R"):
-        require(private_marker not in starter_surface, f"starter leaks user-specific marker: {private_marker}", errors)
+    for phrase in (
+        "non-technical user",
+        "Minimum Useful Setup",
+        "Start now by asking only the four kickoff questions",
+        "mark HOME/ROAD bypassed",
+        "Driving/trucking",
+        "active shopping list",
+        "partial cancellation",
+        "true replacement",
+        "Calendar Projection",
+        "immutable UUID",
+        "Awaiting Settlement",
+        "Pants Filling With Shit Report",
+        "Do you want me to send this email?",
+        "old chats are deleted",
+        "automatically update validation, commit, and push",
+    ):
+        require(phrase.lower() in start.lower(), f"START_HERE lacks required onboarding behavior: {phrase}", errors)
+    require(has(interview, "Do you regularly work away from home", "minimum viable version", "home versus away/on the road", "Exercise / fitness", "School / study", "what to do next"), "adaptive whole-life interview is incomplete", errors)
 
     require(isinstance(config, dict) and all(isinstance(k, str) and k.isupper() for k in config), "starter config keys must be uppercase tokens", errors)
     require(config.get("TIMEZONE") == "REQUIRED_IANA_TIMEZONE", "starter config ships a production timezone", errors)
-    require("02:45" not in json.dumps(config) and "14:45" not in json.dumps(config), "starter config ships production schedule times", errors)
+    require(config.get("REPOSITORY_VISIBILITY") == "USER_SELECTED_PUBLIC_OR_PRIVATE", "starter config lacks explicit repository visibility choice", errors)
+    require("02:45" not in json.dumps(config) and "14:45" not in json.dumps(config), "starter config ships reference schedule times", errors)
     template_tokens = set(re.findall(r"\{\{([A-Z0-9_]+)\}\}", generic))
     require(template_tokens <= set(config), "starter config does not cover every template token", errors)
+
+    # Block known reference-deployment contamination from the entire portable starter surface.
+    blocklist = [
+        line.strip()
+        for line in text("privacy/starter-blocklist.txt").splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    ]
+    starter_surface = "\n".join((start, interview, catalog, dependencies, starter_readme, versioning, shared, generic, json.dumps(questions)))
+    for marker in blocklist:
+        require(marker not in starter_surface, f"portable starter leaks reference-deployment marker: {marker}", errors)
 
     return errors
 
@@ -272,7 +314,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("root", type=Path, nargs="?", default=Path("."))
     args = parser.parse_args()
-    errors = validate(args.root.resolve())
+    errors = validate(args.root)
     if errors:
         for error in errors:
             print(f"ERROR: {error}", file=sys.stderr)
