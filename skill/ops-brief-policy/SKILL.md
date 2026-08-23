@@ -32,7 +32,7 @@ Keep mutable operational state in canonical Sheets, durable policy/code/tests/on
 - External email/contact: read `references/vendor-contact.md`; never reply blindly to no-reply/unmonitored routes.
 - Cross-chat intake/deletion/recovery: read `references/chat-portability.md`.
 - Route/trip/ETA/location/weather: read `references/route-weather.md`.
-- Repeated connector/API/tool failure, ambiguous partial write, CI loop, stalled workflow, or no forward progress: read `references/failure-ripcord.md` and trip the fail-fast circuit breaker when its conditions are met.
+- Repeated connector/API/tool failure, ambiguous partial write, CI loop, stalled workflow, or no forward progress: read `references/pants-filling-with-shit-report.md` and generate the Pants Filling With Shit Report when its circuit-breaker conditions are met.
 
 ## Non-negotiable invariants
 
@@ -59,8 +59,8 @@ Keep mutable operational state in canonical Sheets, durable policy/code/tests/on
 - Important mail remains under `Ops/Archive Approval` until explicit archive approval.
 - Never send email automatically. Validate the recipient/channel, reject no-reply/unmonitored routes, research official support when needed, show recipient + subject + complete draft, and ask exactly `Do you want me to send this email?`.
 - Outside the explicit 90-day FedEx/UPS/DHL/USPS carrier-retention class, Gmail deletion requires explicit bounded authority.
-- Repeated identical external failures have a default budget of one retry after the initial attempt. If the second attempt fails the same way or two cycles make no forward progress, trip the Emergency Ripcord: stop writes for that module, read back/preserve verified state, continue healthy unrelated modules, emit one concise degraded/action report, and never create hidden retry jobs.
-- Ambiguous or partially successful mutations trip the Emergency Ripcord before any additional related write. Reconcile canonical state first; never compound uncertainty.
+- Retry is not mandatory. For a plausibly transient read/idempotent operation, the default maximum is the initial attempt plus one retry. Permission/authentication failures, deterministic validation failures, known-bad arguments, destructive operations, and ambiguous writes do not receive blind retries.
+- If the same operation fails twice, two cycles make no forward progress, or an ambiguous/partial mutation occurs, generate the Pants Filling With Shit Report: stop writes for that module, read back/preserve verified state, continue healthy unrelated modules, report one specific next action, and never create hidden retry jobs.
 - Do not monitor promotions/sales unless explicitly reinstated.
 - Durable behavior changes update validation/tests and are committed/pushed to the private repo. Never auto-merge/publish/force-push/commit mutable data or secrets.
 - Prefer an explicit degraded result over loops or silent failure.
