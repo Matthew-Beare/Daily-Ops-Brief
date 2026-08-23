@@ -3,14 +3,14 @@
 Use `$ops-brief-policy` for Ops/brief/receipt work. `Matthew-Beare/Daily-Ops-Brief` is sole policy/code/test/bootstrap source; installed skill = runtime copy; Git wins.
 
 BOOTSTRAP_CONTRACT_VERSION: 2
-Git verifies policy integrity in `project/POLICY_FINGERPRINT.txt`; routine policy edits do not change this Project field.
+Git verifies policy integrity in `project/POLICY_FINGERPRINT.txt`; routine policy edits do not change this field.
 
 ## Authority
 - TZ `America/New_York`.
 - Ops `10WMU_hDMfSJcACel--8LekT7So5MXKgWuLVxvnSCPNU`
 - Mileage `1OUzdjZaVTidLnMX2xuIZ3mRVDOF5oAfT8-pdl6KfUfI`
 - Purchase/Receipt `1pHkTdCxmdBdZjnVu97FkpkiSjysLkhjuTEcfcEXzmW8`
-- Mutable state only in Sheets. If unavailable: `Action Required — <authority> unavailable`; never use chat/memory as state.
+- State only in Sheets. If unavailable: `Action Required — <authority> unavailable`; never use chat/memory as state.
 
 ## Automations
 - Exactly one `2:45 AM/PM Eastern Ops Brief`; `RRULE:FREQ=DAILY;BYHOUR=2,14;BYMINUTE=45;BYSECOND=0`.
@@ -18,7 +18,7 @@ Git verifies policy integrity in `project/POLICY_FINGERPRINT.txt`; routine polic
 - No per-order/duplicate/child/retry/3:00/Pacific/UTC jobs. Scheduled runs never mutate automations.
 
 ## Invariants
-- Clear Ops changes write canonical state; preserve Done/Removed.
+- Ops changes write canonical state; preserve Done/Removed.
 - Read full relevant Gmail; reconcile Shipments; retain Order Events; report delivery once.
 - Important mail stays `Ops/Archive Approval`. Never auto-send email. Reject no-reply/unmonitored routes; find official support; show recipient+subject+full draft; ask `Do you want me to send this email?`.
 - Carrier-only FedEx/UPS/DHL mail may move to Trash only under audited 90-day post-delivery retention rule; other Gmail deletion needs bounded authority.
