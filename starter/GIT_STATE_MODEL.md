@@ -55,6 +55,8 @@ state/
 - Evidence references may store provider message/event/file IDs and supported extracted facts, but not credentials.
 - Large binaries and raw provider bodies are not required for canonical state. They may remain in the originating provider or an optional evidence store, with a Git reference to them.
 
+The zero-dependency validator is `starter/tools/validate_state.py`. A deployment may run `python3 starter/tools/validate_state.py state` before committing a state transaction.
+
 ## Transaction contract
 
 Every coherent state-changing action or reconciliation cycle is one Git transaction:
@@ -69,7 +71,7 @@ Every coherent state-changing action or reconciliation cycle is one Git transact
 8. read back the remote commit and affected state;
 9. only then report the mutation complete.
 
-If the remote branch moved, do not force-push. Re-read the new HEAD, reconcile the intended state change, and create a new transaction. Ambiguous writes get readback before any corrected retry.
+**Never force-push personal state history.** If the remote branch moved, re-read the new HEAD, reconcile the intended state change, and create a new transaction. Ambiguous writes get readback before any corrected retry.
 
 Recommended commit examples:
 
