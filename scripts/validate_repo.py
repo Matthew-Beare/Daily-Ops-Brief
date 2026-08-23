@@ -32,6 +32,7 @@ REQUIRED = (
     "skill/ops-brief-policy/references/receipt-photo-intake.md",
     "skill/ops-brief-policy/references/asset-acquisition.md",
     "skill/ops-brief-policy/references/knowledge-manual-ingestion.md",
+    "skill/ops-brief-policy/references/failure-ripcord.md",
     "skill/ops-brief-policy/references/calendar-projection.md",
     "skill/ops-brief-policy/references/household-reimbursement.md",
     "skill/ops-brief-policy/references/payment-reconciliation.md",
@@ -72,6 +73,7 @@ def validate(root: Path) -> list[str]:
     email = text("skill/ops-brief-policy/references/email-reconciliation.md")
     asset = text("skill/ops-brief-policy/references/asset-acquisition.md")
     manual = text("skill/ops-brief-policy/references/knowledge-manual-ingestion.md")
+    ripcord = text("skill/ops-brief-policy/references/failure-ripcord.md")
     calendar = text("skill/ops-brief-policy/references/calendar-projection.md")
     reimbursement = text("skill/ops-brief-policy/references/household-reimbursement.md")
     payment = text("skill/ops-brief-policy/references/payment-reconciliation.md")
@@ -108,13 +110,15 @@ def validate(root: Path) -> list[str]:
 
     for ref in (
         "receipt-ingestion.md", "receipt-photo-intake.md", "asset-acquisition.md",
-        "knowledge-manual-ingestion.md", "calendar-projection.md", "household-reimbursement.md",
-        "payment-reconciliation.md", "vendor-contact.md", "chat-portability.md",
+        "knowledge-manual-ingestion.md", "failure-ripcord.md", "calendar-projection.md",
+        "household-reimbursement.md", "payment-reconciliation.md", "vendor-contact.md", "chat-portability.md",
     ):
         require(ref in skill, f"skill does not route {ref}", errors)
     require("unique canonical terminal pairs" in skill, "skill may import repeated historical trip occurrences", errors)
     require("FedEx/UPS/DHL/USPS" in skill, "skill lacks USPS carrier-retention scope", errors)
     require("immutable collision-resistant RFC 4122 UUID" in skill, "skill lacks global immutable identity", errors)
+    require("default budget of one retry after the initial attempt" in skill, "skill lacks bounded failure retry budget", errors)
+    require("never create hidden retry jobs" in skill, "skill lacks retry-job prohibition", errors)
 
     require("Partial Cancellation Confirmed" in receipt and "Cancellation Requested" in receipt, "receipt policy lacks cancellation lifecycle handling", errors)
     require("Replacement Group ID" in receipt, "receipt policy lacks linked replacement handling", errors)
@@ -134,6 +138,10 @@ def validate(root: Path) -> list[str]:
     require("immutable RFC 4122 UUID" in asset and "collision-resistant across deployments/family members" in asset, "asset UUID contract is incomplete", errors)
     require("Manuals & Reference" in manual and "Knowledge Index" in manual and "canonical Drive link" in manual, "manual knowledge contract is incomplete", errors)
     require("immutable RFC 4122 UUID" in manual and "PostgreSQL" in manual, "manual migration identity contract is incomplete", errors)
+    require("same external operation fails twice" in ripcord, "ripcord lacks repeated-failure trigger", errors)
+    require("Default retry budget is one retry after the initial attempt" in ripcord, "ripcord lacks retry budget", errors)
+    require("Stop writes for the affected module" in ripcord and "Continue unrelated modules" in ripcord, "ripcord is not module-scoped", errors)
+    require("do not blind-rerun" in ripcord and "ambiguous" in ripcord.lower(), "ripcord lacks CI/partial-write protection", errors)
     require("Calendar Projection" in calendar and "source type + source ID" in calendar and "order delivery dates/windows" in calendar, "calendar projection contract is incomplete", errors)
     require("same paid-mile value" in maintenance, "state maintenance lacks symmetric mileage upsert", errors)
 
@@ -152,9 +160,9 @@ def validate(root: Path) -> list[str]:
     require(len(start) < 9000, f"START_HERE exceeds 9000 characters: {len(start)}", errors)
     for phrase in (
         "Minimum Useful Setup", "Start now by asking only the four kickoff questions",
-        "non-technical user", "exactly what to click", "automatically validate, commit, push and verify",
-        "Dependency gate", "Calendar Projection", "immutable UUID", "manual", "Awaiting Settlement",
-        "Do you want me to send this email?", "old chats are deleted",
+        "non-technical user", "exactly what to click", "automatically update validation, commit, and push",
+        "Dependency gate", "Emergency Ripcord", "partial cancellation", "Calendar Projection",
+        "immutable UUID", "manual", "Awaiting Settlement", "Do you want me to send this email?", "old chats are deleted",
     ):
         require(phrase.lower() in start.lower(), f"starter onboarding lacks: {phrase}", errors)
     require("GitHub side" in dependencies and "ChatGPT side" in dependencies and "Installed GitHub Apps" in dependencies, "dependency guide lacks two-sided GitHub setup", errors)
