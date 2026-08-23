@@ -4,23 +4,29 @@ Scheduled prompts are dispatchers, not policy databases. Durable behavior lives 
 
 ## Scheduling timezone integrity
 
-Every deployment has one canonical IANA timezone. A scheduled job is healthy only when **both** of these agree with that timezone:
+Every deployment has one canonical IANA timezone. A scheduled job is healthy only when the evidence that actually controls execution agrees with that timezone.
 
-1. the visible VEVENT/RRULE definition and its intended local clock time;
-2. the provider's stored/default/execution timezone returned by readback.
+Required evidence:
 
-Do not infer scheduler health from `TZID` text alone. A provider may retain a separate execution timezone and may silently stamp the current travel/device timezone during a task edit. Current location is context, not scheduling authority.
+1. the normalized VEVENT/RRULE contains the intended local clock time and an explicit canonical `TZID` when the scheduler supports it;
+2. exactly one intended dispatcher is enabled, with the expected `timing_mode`;
+3. notification channels required by the user are enabled;
+4. after creation or repair, an actual firing and canonical Run Log entry land in the intended local slot.
+
+Do not infer scheduler health from a field merely named `default_timezone`. Connector/tool readbacks may expose the current session, device, or travel timezone rather than a persistent scheduler execution timezone. Treat such a field as authoritative only when the provider/tool contract explicitly defines it as the task's stored execution timezone. A value that changes as the user travels is diagnostic context, not scheduling authority.
 
 For every create/update/consolidation:
 - snapshot existing jobs before mutation;
+- prefer editing the existing notification-capable canonical dispatcher over replacing it;
 - write the smallest required change;
 - read the task back;
-- verify title, enabled state, exact recurrence, local time, visible TZID, provider execution timezone and duplicate count;
-- when available, verify the next provider firing or next canonical Run Log entry lands in the intended local slot.
+- verify title, enabled state, exact recurrence, intended local time, visible TZID, timing mode, required notification state, and duplicate count;
+- if replacement is unavoidable, verify the replacement's notification state before disabling the known-good dispatcher;
+- verify the next actual firing or canonical Run Log entry before declaring a scheduler incident cleared.
 
-If provider execution timezone differs from canonical timezone and the available scheduler path exposes no reliable setter, fail the automation-maintenance module closed. Do not repeatedly recreate the task, create hidden retry/watchdog jobs, or compensate with a travel-local/UTC schedule that violates the canonical contract. Manual workflows continue while the scheduling layer is degraded.
+Do not repeatedly recreate tasks to chase travel-local metadata. Do not compensate with hidden retry/watchdog jobs or a travel-local/UTC schedule that violates the deployment contract. If the intended scheduled slot is missed despite correct readback, generate the Pants Filling With Shit Report, preserve manual workflows and canonical state, and treat the scheduler as degraded until a subsequent actual firing proves recovery.
 
-A timezone incident clears only after provider readback and a subsequent actual firing prove the canonical slot.
+Leaving ChatGPT Work, closing the app, changing HOME/ROAD mode, or being physically away from home does not redefine the canonical schedule. Platform-level task pause/deletion/inactivity behavior is a separate condition and must be diagnosed separately.
 
 ## Ops Brief
 
@@ -31,6 +37,8 @@ Schedule: `RRULE:FREQ=DAILY;BYHOUR=2,14;BYMINUTE=45;BYSECOND=0` with `TZID=Ameri
 The dispatcher invokes `$ops-brief-policy` for the current Eastern slot. It must not contain mutable task/route/order/routine data or inspect/mutate automations during a scheduled run.
 
 Context such as HOME/ROAD may change brief contents; it does not change the dispatcher timezone. Being physically away from home, offline, or outside a work context must not be treated as a timezone change.
+
+The dispatcher must write the canonical Run Log for every attempted scheduled slot. Missing Run Log evidence after the intended slot is a scheduler/runtime incident, not a silent success.
 
 ## Receipt & Order Lifecycle
 
@@ -57,4 +65,4 @@ Only meaningful lifecycle/payment/reimbursement/shopping changes, exceptions, cl
 
 ## Accountability / study scheduling
 
-Starter deployments may opt into recurring routine or study check-ins. These must use the fewest scheduled dispatchers practical, preserve mutable routine/study state in canonical authorities, and obey the same scheduler-timezone integrity gate. Do not create one permanent automation per exercise, assignment, course, project, or session when a consolidated dispatcher can resolve due items from state.
+Starter deployments may opt into recurring routine or study check-ins. These must use the fewest scheduled dispatchers practical, preserve mutable routine/study state in canonical authorities, and obey the same scheduler integrity gate. Do not create one permanent automation per exercise, assignment, course, project, or session when a consolidated dispatcher can resolve due items from state.
