@@ -1,9 +1,9 @@
 # Daily Ops Brief Project Instructions
 
-Use `$ops-brief-policy` for Ops/brief/receipt work. Private `Matthew-Beare/Daily-Ops-Brief` is the sole policy/code/test/bootstrap source; installed skill = runtime copy; Git wins on divergence.
+Use `$ops-brief-policy` for Ops/brief/receipt work. Private `Matthew-Beare/Daily-Ops-Brief` is sole policy/code/test/bootstrap source; installed skill = runtime copy; Git wins.
 
 BOOTSTRAP_CONTRACT_VERSION: 2
-Policy integrity is verified by `project/POLICY_FINGERPRINT.txt`; routine policy edits do not change this Project field.
+Git verifies policy integrity in `project/POLICY_FINGERPRINT.txt`; routine policy edits do not change this Project field.
 
 ## Authority
 - TZ `America/New_York`.
@@ -21,18 +21,18 @@ Policy integrity is verified by `project/POLICY_FINGERPRINT.txt`; routine policy
 - Clear Ops changes write canonical state; preserve Done/Removed.
 - Read full relevant Gmail; reconcile Shipments; retain Order Events; report delivery once.
 - Important mail stays `Ops/Archive Approval`. Never auto-send email. Reject no-reply/unmonitored routes; find official support; show recipient+subject+full draft; ask `Do you want me to send this email?`.
-- Carrier-only FedEx/UPS/DHL logistics mail may move to Trash only under the audited 90-day post-delivery retention rule; all other Gmail deletion needs bounded authority.
-- HOME/ROAD uses live controls/trips. Home early closes mileage. Paid terminal miles are symmetric A↔B unless an explicit exception is recorded.
-- Receipt email/photo/screenshot from a supported conversation enters canonical workflow when required authorities are reachable. Dedupe; no chat-local state; old chats may be deleted after ingestion.
+- Carrier-only FedEx/UPS/DHL mail may move to Trash only under audited 90-day post-delivery retention; all other Gmail deletion needs bounded authority.
+- HOME/ROAD uses live controls/trips. Home early closes mileage. Paid terminal miles are symmetric A↔B unless an explicit exception exists.
+- Receipt email/photo/screenshot from a supported conversation enters canonical workflow when authorities are reachable. Dedupe; no chat-local state; old chats may be deleted after ingestion.
 - One purchase = one Receipt ID/total. Investigate UPC/SKU/part/model/serial against assets/mods; auto-assign unique supported identity/fitment; balance allocations; queue only after evidence is exhausted.
 - People/assets/aliases, reimbursements, payment cases and calendar projections are Sheet state. Reimbursement != merchant refund; preserve gross purchase and net household cost.
 - Reconcile same-order revisions before charges. Keep expected charges open until resolved; investigate unmatched/over/undercharges.
-- Run sheets reconcile into existing Routes/Trips/Mileage; never create a duplicate route database.
+- Run sheets reconcile into existing Routes/Trips/Mileage; never duplicate route state.
 - Gmail archival/success requires applicable Audit gate PASS.
 
 ## Recovery/versioning
 - Recover from live authorities; verify writes.
 - Automatically commit/push lasting policy/tests/bootstrap changes; never commit mutable data/secrets.
-- Routine policy edits update Git integrity/versioning, not this Project field. Change this bootstrap only when authority/safety/recovery contract changes.
-- Bootstrap <3,000 chars. If it genuinely changes without direct Project write capability, return complete `PROJECT INSTRUCTIONS UPDATE`.
+- Routine policy edits update Git, not this Project field. Change bootstrap only when authority/safety/recovery contract changes.
+- Bootstrap <3,000 chars. If it changes without direct Project write capability, return complete `PROJECT INSTRUCTIONS UPDATE`.
 - Never claim connector/GitHub success without confirmation.
