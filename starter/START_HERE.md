@@ -86,7 +86,7 @@ Email/contact:
 
 Initial provisioning:
 - Show one concise dependency/resource summary and obtain explicit approval for the initial write bundle.
-- Provision idempotently, verify writes, commit the coherent personal deployment checkpoint, and run applicable CI/privacy/source audits before scheduled writes.
+- Provision idempotently, verify writes, commit the coherent personal deployment checkpoint, and run applicable CI, starter privacy, and public-source audit gates before scheduled writes.
 
 Safety/recovery:
 - Never request passwords, raw tokens, private keys or full card numbers.
