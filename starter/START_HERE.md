@@ -31,7 +31,7 @@ Minimum Useful Setup:
 - Orders/receipts: one transaction identity, searchable evidence/lines, fulfillment history, balanced allocations and payment reconciliation.
 - Assets: optionally ingest receipts/photos/model/serial/UPC/SKU/parts. Every person/physical asset uses one immutable UUID plus friendly aliases.
 - Manuals/knowledge: optionally retain each manual/reference in Drive, index by immutable Knowledge UUID/model/part/asset, and return its Drive link later.
-- Recipes: one readable searchable library.
+- Recipe library: one readable searchable library.
 - State: one authoritative mutable store plus a small Drive hierarchy; no chat-local databases.
 - Modes: enable HOME/ROAD only when recurring work-away behavior makes it useful.
 - Recovery: private Git stores policy/schema/tests/onboarding/recovery. State must survive after old chats are deleted.
