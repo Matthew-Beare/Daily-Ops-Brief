@@ -1,0 +1,40 @@
+{
+  "manifest_version": 1,
+  "id": "appointment-reconciliation",
+  "version": "0.1.0-beta.1",
+  "summary": "Evidence-backed appointment email reconciliation with verified update-in-place Calendar projection and reminder policy.",
+  "portable": true,
+  "compatibility": {"core": ">=0.1.0-beta.1"},
+  "dependencies": [],
+  "entrypoints": {
+    "references": ["FEATURE.md"],
+    "scripts": [],
+    "schemas": [],
+    "migrations": []
+  },
+  "permissions": {
+    "connectors": ["email evidence source when enabled", "calendar projection target when enabled"],
+    "network_domains": [],
+    "writes": ["canonical appointment reconciliation state", "calendar event create/update/cancel"],
+    "approval_required": ["appointment class policy enablement", "attendee invitations", "external messages", "public feature contribution"]
+  },
+  "data_boundary": {
+    "source_contains_personal_data": false,
+    "shared_logs_contain_personal_data": false,
+    "runtime_state": "external-authority",
+    "forbidden_source_data": ["credentials", "private email bodies", "medical records", "calendar exports", "personal appointment history"]
+  },
+  "config_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": {"type": "boolean"},
+      "appointment_classes": {"type": "string"},
+      "calendar_target": {"type": "string"},
+      "confidence_policy": {"type": "string"},
+      "reminder_policy": {"type": "string"},
+      "sensitive_detail_policy": {"type": "string"}
+    }
+  },
+  "tests": ["tests/contract.md"]
+}
