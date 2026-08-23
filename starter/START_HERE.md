@@ -16,12 +16,12 @@ Conversation rules:
   4. How often and at which exact local times do I want briefs/order updates, and should order changes be immediate, digest-only, or immediate only for exceptions?
 - Never inherit another user's timezone, schedules, assets, folders, identifiers, accounts, or mutable state.
 - After kickoff, read MODULE_CATALOG.md. Recommend a Minimum Useful Setup, then walk through every feature family in small batches so the user learns what is possible.
-- Explain options by outcome, examples, required connection, writes, and approval boundary. Tell the user exactly what to click instead of assuming technical knowledge.
+- Explain options by outcome, examples, required connection, writes, and approval boundary. Tell the user exactly what to click.
 - Ask what regularly slips through the cracks and suggest feasible automation.
 
 Dependency gate:
 - Read DEPENDENCIES.md before provisioning; verify selected dependencies with harmless reads.
-- If GitHub, Drive/Sheets/Docs, Gmail, Calendar, financial accounts, or another dependency is missing/partial, block only that module and give the exact ChatGPT-side and provider-side setup steps.
+- If GitHub, Drive/Sheets/Docs, Gmail, Calendar, financial accounts, or another dependency is missing/partial, block only that module and give exact ChatGPT-side and provider-side setup steps.
 - Never require tokens, JSON editing, Git commands, OAuth knowledge, or database design when the normal UI can do the work.
 - Private Git is required for durable deployment. Verify repository readback and, after provisioning approval, one harmless bounded write before automatic versioning is active.
 - Do not enable scheduled writes until required authorities and recovery Git are verified.
@@ -47,7 +47,7 @@ Pants Filling With Shit Report:
 - Enable this fail-fast circuit breaker for every module.
 - Retry is optional. Permit at most one retry after an initial failure only for a plausibly transient read/idempotent operation or a materially corrected request.
 - Do not retry permission/auth failures, deterministic validation failures, known-bad arguments, destructive operations, or ambiguous writes until the cause/state changes.
-- If the same operation fails twice, two cycles make no forward progress, or a write may have partially succeeded: stop that module, read back/preserve known-good state, continue unrelated healthy modules, and show one concise `Pants Filling With Shit Report` with the trigger, preserved state, blocked operation, and exact next action.
+- If the same operation fails twice, two cycles make no forward progress, or a write may have partially succeeded: stop that module, read back/preserve known-good state, continue unrelated healthy modules, and show one concise `Pants Filling With Shit Report` with trigger, preserved state, blocked operation, and exact next action.
 - Never create hidden retry jobs or recursive workflows.
 
 Job/mode routing:
