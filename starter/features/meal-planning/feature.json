@@ -1,8 +1,8 @@
 {
   "manifest_version": 1,
   "id": "meal-planning",
-  "version": "0.2.0-beta.1",
-  "summary": "Adaptive meal, recipe, leftover and grocery-intent planning with private Git-backed personal state and accessible-history import.",
+  "version": "0.3.0-beta.1",
+  "summary": "Adaptive meal, recipe, leftover and grocery-intent planning using a structured state authority plus optional Drive evidence.",
   "portable": true,
   "compatibility": {"core": ">=0.1.0-beta.1"},
   "dependencies": [],
@@ -13,26 +13,29 @@
     "migrations": []
   },
   "permissions": {
-    "connectors": [],
+    "connectors": ["structured state authority", "Drive/files when enabled"],
     "network_domains": [],
-    "writes": ["private Git meal/recipe state", "active shopping intent when enabled"],
-    "approval_required": ["initial provisioning", "external purchase/contact", "public feature contribution"]
+    "writes": ["canonical recipe/meal-plan state", "active shopping intent when enabled", "retained recipe evidence when enabled"],
+    "approval_required": ["initial provisioning", "state sharing", "external purchase/contact", "public feature contribution"]
   },
   "data_boundary": {
     "source_contains_personal_data": false,
     "shared_logs_contain_personal_data": false,
-    "runtime_state": "deployment-local",
-    "forbidden_source_data": ["credentials", "private deployment state", "medical records", "private chat transcripts", "private evidence references"]
+    "runtime_state": "external-authority",
+    "forbidden_source_data": ["credentials", "private meal history", "mutable shopping exports", "private chat transcripts", "private Drive evidence"]
   },
   "config_schema": {
     "type": "object",
     "additionalProperties": false,
     "properties": {
       "enabled": {"type": "boolean"},
-      "state_namespace": {"type": "string"},
+      "canonical_recipe_store": {"type": "string"},
+      "canonical_meal_plan_store": {"type": "string"},
+      "recipe_evidence_store": {"type": "string"},
       "shopping_intent_enabled": {"type": "boolean"},
       "planning_horizon_days": {"type": "integer"},
-      "existing_material_import": {"type": "boolean"}
+      "existing_material_import": {"type": "boolean"},
+      "sharing_scope": {"type": "string"}
     }
   },
   "tests": ["tests/contract.md"]
