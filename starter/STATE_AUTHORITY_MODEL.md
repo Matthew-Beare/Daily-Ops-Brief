@@ -116,7 +116,7 @@ This registry is observability/configuration, not a second mutable business-stat
 
 ## Recovery snapshots
 
-A recovery copy is not a second live authority.
+A recovery copy is not a second live authority and is **never a second writable master**.
 
 Where the provider supports version history/export/snapshots, first boot should offer a recovery policy appropriate to the selected state store. A recovery snapshot:
 
