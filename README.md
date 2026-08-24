@@ -2,121 +2,137 @@
 
 LyfeOS is a version-controlled personal-operations framework for briefs, persistent state, receipts/orders, planning/accountability, work/context, meal planning, appointments/calendar reconciliation, assets/knowledge, travel/hobbies, and evidence-backed automation.
 
-This repository is **intentionally public**. It is the stable upstream plus a public reference deployment.
+This repository is **intentionally public**. It is the stable upstream plus a public reference deployment. Mutable operational state does not belong in portable Git source.
 
-There are now two deliberately different state models:
+## State and source architecture
 
-- **New-user starter deployments:** mutable personal state lives in the user's **private Git deployment repository** under `starter/GIT_STATE_MODEL.md`, alongside policy/configuration/schemas/features/tests/version history.
-- **Current Daily Ops reference deployment:** its established **Mutable operational state** remains in its configured Sheets/Drive authorities under `skill/ops-brief-policy/`. That is a deployment-specific compatibility exception, not the generic starter architecture.
+For new-user starter deployments:
 
-The public upstream never receives another user's private `state/` tree.
+- **Git** is source/version lineage: policy, schemas, migrations, non-secret configuration, enabled features, tests, onboarding, provenance, and custom feature work.
+- **Google Sheets** is the default structured mutable state authority.
+- **Google Drive** is the default retained evidence/document authority when selected modules need files.
+- **Google Calendar** is an optional projection/reminder surface.
+- Another supported database may replace Sheets when explicitly selected.
+
+The current Daily Ops reference deployment already follows this external-authority model with its configured Sheets/Drive authorities.
+
+See `starter/STATE_AUTHORITY_MODEL.md`. `starter/GIT_STATE_MODEL.md` is retained only as a compatibility redirect from the short-lived Git-native-state design.
 
 ## Start here as a new user
 
 Use [`starter/START_HERE.md`](starter/START_HERE.md). The normal lifecycle is:
 
-1. pin an audited public LyfeOS release/commit/tree;
-2. create a private user-owned deployment repository seeded from that upstream source and record provenance;
-3. run the adaptive first boot;
-4. inspect existing capabilities/evidence before making the user rebuild information manually;
-5. create the user's initial private Git state/config/features/policy;
-6. validate, commit, push, and read back the first coherent personal checkpoint;
-7. enable only selected provider/scheduler adapters whose own gates pass;
-8. record later coherent state/reconciliation changes as small verified Git transactions;
-9. evolve custom behavior in the user's own repository;
-10. when a personal feature becomes reusable, ask whether the user wants to sanitize and contribute it upstream.
+1. inherit a pinned public LyfeOS release/commit/tree into a user-controlled Git repository;
+2. run adaptive first boot;
+3. inspect existing capabilities/evidence before asking the user to recreate information;
+4. create/select the structured state authority and Drive evidence root;
+5. create an `Authority Registry` and durable `Interview Ledger`;
+6. generate schemas/migrations/configuration/feature lock/policy in Git;
+7. verify state-authority writes and Git source checkpoint independently;
+8. continue unresolved interview items across future conversations instead of assuming one perfect setup chat;
+9. evolve custom behavior on feature branches;
+10. when a feature becomes reusable, ask whether the user wants to contribute a sanitized portable version upstream.
 
-A standard GitHub fork of a public repository is public, so it is **code-only** for this architecture. Personal-state mode uses a private deployment repository that preserves upstream lineage/provenance. If a provider supports a genuinely private fork, that may satisfy the same contract.
+**Do not inherit the reference deployment's Google IDs, schedules, aliases, vehicles, tasks, receipts, or mutable state.**
 
-**Do not inherit the reference deployment's Google IDs, schedules, aliases, vehicles, tasks, receipts, or mutable state.** Those are reference configuration/state, not starter defaults.
+## Fail-forward onboarding
+
+The interview is tracked in canonical state, not merely remembered in chat. Each question ID becomes one of:
+
+`Unresolved` · `Asked` · `Answered` · `Resolved from evidence` · `Not applicable` · `Deferred`
+
+Setup is complete only when every applicable question is resolved. A user may change topics freely: LyfeOS handles the immediate request, records any incidental answers, then resumes the next useful open interview item later. Evidence can resolve factual questions; preferences/permissions cannot be silently inferred.
+
+See `starter/INTERVIEW_LEDGER.md`.
 
 ## Inherit → customize → improve → share
 
 ```text
 public LyfeOS upstream
-        ↓ pin + seed private lineage
-private user-owned LyfeOS
-        ↓ first-boot Git state checkpoint
-personal state transactions + feature/fix branches
-        ↓ tested personal release
-        ↓ opt-in sanitization
-public upstream pull request
-        ↓ public review/release
-other private personal deployments
+        ↓ inherit
+user Git source lineage + selected state authorities
+        ↓ personal customization
+feature/* + optional experimental integration
+        ↓ tested personal feature
+        ↓ "Do you want to make this feature available to other people?"
+sanitation + synthetic fixtures + CI
+        ↓
+public upstream PR
 ```
 
-Custom features commit to the user's own Git lineage under their authorization. Sharing is separate. When a coherent feature passes tests/privacy/source checks, LyfeOS asks exactly: `Do you want to make this feature available to other people?` A yes prepares a sanitized portable contribution that excludes private state; it never silently publishes the user's life.
-
-See `starter/GIT_STATE_MODEL.md`, `starter/PERSONAL_FORK_LIFECYCLE.md`, and `starter/SHARED_FEATURE_WORKFLOW.md`.
+Sharing a **feature** is different from sharing **state**. A deployment may explicitly share a whole Google authority or a scoped shared workbook/folder with another person. That is recorded and verified separately from public Git contribution.
 
 ## What LyfeOS can organize
 
-The adaptive interview can surface domains the user did not know to request, including:
+The adaptive interview can surface domains the user may not know to request, including:
 
-- concise briefs and prioritized next actions;
+- briefs and prioritized next actions;
 - working/retired/other life-pattern discovery;
 - tasks, projects, household/admin, and recurring accountability;
 - exercise/fitness/hiking with optional supported wearable/activity evidence;
 - school/study planning and context-aware coaching;
-- **meal planning**, grocery intent, recipes, leftovers/pantry/freezer workflows;
+- meal planning, recipes, pantry/freezer/leftovers, grocery intent, and cost/waste workflows;
 - hobbies, hiking/outdoor preparation, vacations/trip planning, and travel logistics;
-- appointments/reservations with verified email → Calendar reconciliation and Git state readback;
+- appointments/reservations with verified email → Calendar reconciliation;
 - orders, receipts, cancellations, replacements, refunds, and active shopping intent;
-- assets, fitment, manuals/reference knowledge, warranties, and maintenance;
+- assets, manuals/reference knowledge, warranties, and maintenance;
 - household/reimbursement and optional finance evidence;
 - actionable email and durable reference material.
 
-Before proposing new connections, first boot follows `starter/CAPABILITY_DISCOVERY.md`: inspect current context/files and relevant already-connected capabilities when possible. Arbitrary old ChatGPT conversations are not assumed globally searchable; inaccessible prior-chat content gets an explicit ingestion path into durable Git state.
+Before proposing new connections, first boot follows `starter/CAPABILITY_DISCOVERY.md` and reuses accessible existing systems when possible.
 
-## State and dependency design
+## Meal planning
 
-For starter deployments, private Git is the **one canonical personal-state authority**. Optional integrations are adapters:
+First boot explicitly asks `Do you want help with meal planning?` If selected, existing accessible recipes/meal plans are reconciled before starting over. Structured recipe indexes, accepted plans, pantry/freezer state, meal history, and shopping intent live in the canonical structured state authority. Long recipe bodies/images/documents may live in Drive with stable links.
 
-- Gmail/email → evidence;
-- Calendar → projections/reminders;
-- fitness/wearable → optional activity evidence;
-- finance → optional account evidence;
-- Drive/files → optional bulky evidence/import/export;
-- maps/weather/travel tools → current planning inputs.
+## Appointments and reminders
 
-Accepted operational state and stable provider references commit into Git. Provider credentials do not.
+Appointment reconciliation can:
 
-Each coherent state mutation/reconciliation cycle reads remote HEAD, appends/updates state, validates, commits, pushes fast-forward only, and reads back the remote result. If the branch moved, re-read/reconcile instead of force-pushing.
+1. read complete evidence;
+2. dedupe against canonical appointment/source state;
+3. identify provider type from evidence;
+4. if still unclear and research is allowed, research the provider using official/reliable public sources;
+5. create/update one linked Calendar event;
+6. apply a configured reminder profile;
+7. read the Calendar event back;
+8. write/read back canonical appointment + Calendar Projection state;
+9. only then mark the source reconciled.
 
-This intentionally minimizes the number of independent state layers that can fail together.
+Supported organizational labels can include cardiology, endocrinology, audiology, primary care, dental, etc. Specialty is never treated as diagnosis/treatment evidence.
 
-## Meal-planning model
+Reminder profiles may include multiple reminders such as day-before, a configured morning-of local clock time, and one hour before. Calendar owns event-specific reminders rather than spawning one ChatGPT Scheduled Task per appointment.
 
-First boot explicitly asks `Do you want help with meal planning?` If selected, it looks for accessible existing recipes/meal plans before rebuilding them. Accepted recipes, meal plans, pantry/freezer facts, meal history, and shopping intent become private Git state. Shopping intent remains distinct from purchase history.
+## Canonical scheduler clock
 
-## Appointment verification model
+Recurring dispatchers use a canonical IANA timezone. Runtime comparisons convert the current instant into that timezone and compare the canonical local clock with the intended slot. They never depend on travel/device timezone or a hand-maintained UTC offset.
 
-For an approved appointment-email class:
+For example, a 2:45 New York dispatcher asks whether `America/New_York` is 02:45 or 14:45 at that instant, regardless of where the user currently is. IANA timezone rules handle DST.
 
-1. read complete relevant evidence;
-2. dedupe against canonical private Git appointment/source state;
-3. create/update one linked Calendar event when Calendar is enabled;
-4. read the Calendar event back and verify ID/calendar/title/time/timezone/reminders/source linkage;
-5. commit the verified appointment/reconciliation state plus provider references into Git;
-6. read the Git commit back;
-7. only then mark reconciliation complete.
+## Dependency design
 
-Revisions/cancellations update the same Git appointment and linked Calendar event. Ambiguity asks instead of guessing. Calendar handles event-specific reminders rather than spawning one ChatGPT task per appointment.
+Use the fewest authorities necessary:
+
+- one canonical mutable authority per data class;
+- Drive only when retained files/evidence are useful;
+- Git for durable source/versioning;
+- optional integrations as module-scoped adapters;
+- one consolidated scheduler per purpose/cadence;
+- Calendar events for event-specific reminders;
+- write/readback verification at every authority boundary.
 
 ## Repository layout
 
 - `starter/` — portable onboarding/distribution boundary
-- `starter/GIT_STATE_MODEL.md` — canonical private Git state contract for new-user deployments
+- `starter/STATE_AUTHORITY_MODEL.md` — mutable-state/evidence authority contract
+- `starter/INTERVIEW_LEDGER.md` — durable fail-forward onboarding contract
 - `starter/features/` — portable feature contracts/manifests
-- `skill/ops-brief-policy/` — current public reference deployment policy/runtime
+- `skill/ops-brief-policy/` — current reference deployment policy/runtime
 - `project/INSTRUCTIONS.md.tmpl` — reference deployment bootstrap
 - `scripts/` — validation/source/privacy/bootstrap/fingerprint/import tools
 - `tests/` and `starter/tests/` — regression and portable lifecycle tests
-- `docs/` — architecture/data/automation/privacy/lifecycle notes
 
 ## Validate
-
-The public upstream release gate runs:
 
 ```bash
 python3 scripts/validate_repo.py .
@@ -128,28 +144,10 @@ python3 starter/tools/validate_feature_manifest.py
 python3 -m unittest discover -s starter/tests -p 'test_*.py'
 ```
 
-CI runs the coherent checkpoint on pull requests and `main`.
-
-## Source and privacy policy
-
-The public upstream is intentionally public. **Unintended private state exposure is an error.**
-
-Never publish upstream:
-- private deployment `state/`;
-- credentials/secrets/tokens/keys;
-- private provider/evidence references;
-- private message/receipt bodies;
-- medical/school/account records;
-- full payment-card/account authentication data;
-- private deployment configuration not deliberately intended for publication.
-
-Portable features use placeholders and synthetic fixtures and pass the **public-source audit** before publication.
-
 ## Reliability rules
 
-- Starter personal state is canonical in private Git; chat is never the database.
-- The current reference deployment continues using its established Sheets/Drive authority contract.
-- Scheduled prompts remain thin and do not mutate their own automation definitions.
+- Mutable state lives in canonical authorities, never only chat/Git.
+- Important mutations receive provider/state readback before success.
 - Use the fewest recurring dispatchers; no hidden retry/child/per-order/per-appointment task fan-out.
 - Retry is optional/bounded. Repeated/no-progress/ambiguous failure trips the **Pants Filling With Shit Report** circuit breaker and stops only the affected module.
 - One purchase is one Receipt ID/total; shopping intent, refund, and reimbursement remain distinct.
@@ -157,6 +155,4 @@ Portable features use placeholders and synthetic fixtures and pass the **public-
 - Email sending remains approval-gated.
 - CI success never substitutes for live provider readback when provider behavior matters.
 
-## Public distribution and releases
-
-`main` is the stable public upstream only after repository validation, public-source audit, starter privacy audit, deterministic/runtime tests, portable feature/starter tests, and merge authority pass. Feature branches are development surfaces, not installation targets.
+`main` is the stable public upstream only after repository validation, public-source audit, starter privacy audit, deterministic/runtime tests, portable feature/starter tests, and merge authority pass.

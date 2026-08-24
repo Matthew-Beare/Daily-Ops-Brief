@@ -2,123 +2,83 @@
 
 ## Decision
 
-LyfeOS is an ecosystem of private personal deployments built from a stable **public upstream**. Each user's private repository versions personal state, behavior, configuration, schemas, tests, and features. Portable improvements flow upstream/downstream only through a sanitized, reviewed boundary.
+LyfeOS is an ecosystem of personal deployments built from a stable **public upstream**. Git versions portable behavior/config/schema/tests/features. Mutable operational state stays in the deployment's selected canonical authorities, normally Sheets + Drive for the starter.
 
 | Surface | Contents | Rule |
 |---|---|---|
-| Public upstream | portable core/starter/features/tests/reference implementation | no private deployment state or secrets |
-| Private user deployment | `state/`, policy/config/schema/tests/personal features/provider refs | canonical personal source of truth |
-| Optional providers | email/calendar/finance/wearable/files/maps/etc. | evidence/projection/action adapters; credentials stay provider-side |
-
-The current public Daily Ops reference deployment has its own established external state authorities. That exception is not the generic starter model.
+| Public upstream | portable core/starter/features/tests/reference implementation | no secrets or mutable personal data |
+| User Git repository | policy/config/schema/tests/personal features/provenance | source/version lineage |
+| Structured state authority | tasks, interview ledger, appointments, routines, meal plans, shopping, indexes | canonical mutable state |
+| Drive/evidence authority | retained documents/images/receipt/manual/recipe bodies when selected | evidence/documents |
+| Calendar/email/finance/wearable/maps | evidence/projection/action/current inputs | optional adapters |
 
 ## Non-compromise invariants
 
-- Personal state lives in the private deployment Git repository under `GIT_STATE_MODEL.md`.
-- A normal public GitHub fork must not receive personal state.
-- Shared defaults never override a deployment owner's timezone, provider choices, schedules, goals, or local features.
+- Shared defaults never override a deployment owner's timezone, provider choices, schedules, goals, state authorities, sharing scopes, or local features.
 - Adoption is explicit. Importing an upstream feature is a reviewed source/config/migration change.
-- Public contributions contain no `state/`, credentials, secrets, private provider/evidence references, receipt/mail bodies, account/medical/school records, or unintended personal information.
-- If portability extraction would destabilize a working deployment, preserve the working private repository and extract the reusable behavior separately.
-- Dependencies and permissions are declared, not assumed from whatever happens to be connected on the author's account.
+- Public contributions contain no credentials, secrets, mutable Sheet/database exports, private Drive evidence, Calendar history, receipt/mail bodies, account/medical/school records, or unintended personal information.
+- If portability extraction would destabilize a working deployment, preserve the deployment and extract reusable behavior separately.
+- Dependencies and permissions are declared rather than assumed from the author's connected apps.
 
 ## Personal feature lifecycle
 
 1. User identifies a problem or LyfeOS discovers a useful workflow opportunity.
-2. Create/modify the feature on the user's feature branch.
-3. Add/update policy, config schema, migrations, and tests as needed.
-4. Test against synthetic fixtures plus the private deployment interfaces without copying private state into portable source.
-5. Commit/push a coherent personal feature checkpoint under standing authorization.
-6. Integrate with other personal experiments on `experimental` when needed.
-7. When coherent and useful, ask exactly: **Do you want to make this feature available to other people?**
+2. Create/modify the feature on a feature branch.
+3. Add/update policy, configuration schema, state-store schema/migrations, and tests as needed.
+4. Test against synthetic fixtures plus the deployment interfaces without copying live state into portable source.
+5. Commit/push a coherent feature checkpoint under standing Git authorization.
+6. Integrate with other experiments on `experimental` when useful.
+7. When coherent, ask exactly: **Do you want to make this feature available to other people?**
 
-If no, stop there. The feature remains a valid private personal feature.
-
-If yes, continue through the portability gate.
+If no, keep it personal. If yes, continue through the portability gate.
 
 ## Portability gate
 
 Before an upstream contribution:
 1. state the reusable problem/behavior without personal assumptions;
-2. replace user identifiers, provider IDs, and deployment-specific constants with configuration;
-3. exclude the entire private `state/` surface and private deployment configuration;
-4. remove real private evidence and create synthetic fixtures;
+2. replace user identifiers, authority IDs, provider IDs, and deployment-specific constants with configuration;
+3. remove real Sheet/database rows, Drive evidence, Calendar events, private provider references, and local configuration;
+4. create synthetic fixtures;
 5. minimize dependencies and declare optional/required connectors;
-6. define permissions, state/event schemas, and provider adapter boundaries;
+6. define permissions, authority/state schemas, migrations, and adapter boundaries;
 7. make migrations idempotent and reversible when practical;
 8. add feature version/manifest and compatibility range;
 9. run feature tests, repository validation, starter privacy audit, and public-source history/current-tree audit;
-10. show the user the exact public contribution diff and what will become public;
+10. show the exact public contribution diff and what becomes public;
 11. open an upstream PR only under explicit publication authority.
 
-Never interpret permission to auto-version a private personal deployment as permission to publish upstream.
+Never interpret permission to auto-version a personal source repository as permission to publish upstream.
 
 ## Portable feature boundary
 
-Portable modules live under `starter/features/<feature-id>/` when an independent module boundary is useful:
-
-```text
-starter/features/<feature-id>/
-├── feature.json
-├── FEATURE.md
-├── references/
-├── scripts/
-├── schemas/
-├── migrations/
-└── tests/
-```
-
-Only needed directories should exist. `feature.json` follows the feature-manifest validator.
-
-Portable source describes how a feature reads/writes deployment-local Git state and optional provider adapters. It never contains a real user's state.
-
-## Feature contract
-
-Every portable manifest declares feature version, stable ID/purpose, compatible core version, dependencies, entrypoints, permissions, runtime data boundary, forbidden public-source data, per-user configuration schema, and tests.
-
-Avoid a handwritten global feature registry when manifests can be discovered automatically.
+Portable modules live under `starter/features/<feature-id>/` when useful. Their source describes behavior, schema/migrations, configuration, tests, and optional provider adapters. It never contains a real user's mutable authority data.
 
 ## Bidirectional exchange
 
 ```text
 public upstream release
-        ↓ seed private lineage
-private personal deployment
-        ↓ personal state + customization
+        ↓ inherit
+personal source repository + selected state authorities
+        ↓ customization
 personal feature
         ↓ opt-in sanitization + PR
 public upstream
         ↓ review/release
-other private personal deployments
+other deployments
 ```
-
-Another user may improve the feature and contribute a later portable version. Git commits/releases preserve provenance/authorship without making anybody's private state part of the exchange.
 
 ## Moving a feature between deployments
 
 1. Pin a reviewed feature/core version.
 2. Import only portable source plus declared dependencies.
-3. Supply private configuration from the receiving deployment.
+3. Supply configuration/authority references from the receiving deployment.
 4. Run synthetic tests and dependency checks before writes.
-5. Apply migrations transactionally/idempotently to private Git state and verify state.
+5. Apply state-store migrations transactionally/idempotently and verify readback.
 6. Record installed version/commit/migration in `features.lock.json`.
-7. Preserve local overrides and never silently overwrite private state with upstream defaults.
+7. Preserve local overrides and never silently overwrite canonical state with upstream defaults.
 
 ## Dependency minimization
 
-Portable modules should depend on Git state interfaces plus the smallest optional provider capabilities they need. Example: exercise accountability works manually with Git state and may optionally consume a wearable/activity adapter. Appointment reconciliation works with manual Git-backed appointments, while email evidence and Calendar projection are optional adapters.
+Portable modules depend on the smallest state-authority interface and optional capabilities they actually need. Exercise accountability can work with the structured state authority and optionally consume wearable evidence. Appointment reconciliation can work with canonical appointment state, while email evidence and Calendar projection are optional adapters.
 
 A missing optional dependency fails that adapter path only. Avoid central middleware whose failure disables unrelated life domains.
-
-## New-user onboarding
-
-1. Pin the public upstream release/commit/tree.
-2. Create a private user-owned deployment repository and record upstream provenance.
-3. Run `START_HERE.md`, `GIT_STATE_MODEL.md`, and `CAPABILITY_DISCOVERY.md`.
-4. Build private Git state/configuration from interview plus reachable existing evidence; never reuse reference deployment state.
-5. Commit/push/read back the first coherent personal deployment checkpoint after approval.
-6. Pin core and selected feature versions before scheduled/provider writes.
-7. Let the private deployment evolve independently.
-8. Offer reusable personal improvements upstream only through the opt-in portability gate.
-
-This supports easy inherit → customize → improve → share → re-inherit cycles while keeping each person's actual life in their own private Git history.

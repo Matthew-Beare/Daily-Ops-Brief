@@ -18,6 +18,19 @@ Keep mutable operational state in canonical Sheets, durable policy/code/tests/on
 - If Ops is unavailable, report `Action Required — Ops Status Register unavailable.` Mileage failure is section-scoped; on Thursday report mileage/pay unavailable and continue other valid sections.
 - Repository visibility comes from Git provider metadata, not documentation. Public visibility is allowed for this reference source; unintended secret/mutable-data exposure is a release blocker.
 
+### Failure-domain map
+
+Treat each canonical authority/module family as its own failure domain unless a workflow explicitly declares a dependency:
+
+- **Core Ops:** Ops Status Register, deterministic mode/tasks/routes/trips/active Shipments and brief Run Log.
+- **Mileage/Pay:** Mileage & Pay Tracker; never a global prerequisite for non-mileage work.
+- **Commerce:** Purchase & Receipt Archive plus required receipt evidence; canonical purchase state is independent from downstream Ops Shipment or Tool Inventory projections.
+- **Evidence/projections:** Gmail, Calendar, Drive evidence paths and account data are adapter capabilities whose failure scope follows the workflow that selected them.
+
+A provider-wide outage can affect more than one authority hosted by that provider, but that does not authorize shadow state or a global retry loop. Stop only modules whose own required authorities/invariants are unavailable and continue unrelated healthy modules.
+
+Cross-authority writes use source-first reconciliation, not a distributed all-or-nothing transaction: commit and read back the canonical source state, then update each declared projection/side effect with stable IDs and target readback. If a downstream projection fails, preserve the canonical source record, mark only that projection degraded/pending, and re-derive the desired target from canonical state on a later run. Never roll back, clone, or renumber canonical source identity merely because an unrelated target is unavailable.
+
 ## Route the request
 
 - Brief: read `references/brief-run.md` completely.
@@ -41,7 +54,10 @@ Keep mutable operational state in canonical Sheets, durable policy/code/tests/on
 - Exactly one active Ops Brief automation at 2:45 AM/PM Eastern and exactly one consolidated Receipt & Order Lifecycle at 1:45 AM/PM Eastern. No per-order/child/retry/3:00/UTC/Pacific duplicates.
 - Scheduled runs perform their work and do not mutate automation definitions.
 - Scheduler health is an **evidence chain**, not a timezone-looking string. After every automation create/update, read back title, enabled state, exact recurrence/local time/TZID, timing mode, required notification state and duplicate count. A provider field described as `default_timezone`, stored/default/execution timezone, or similar is execution authority only when the provider/tool contract explicitly defines it as persistent task execution state. Travel/device/session timezone is context. Prefer editing the existing notification-capable canonical dispatcher; if replacement is unavoidable, prove the replacement can notify before disabling the known-good dispatcher. A scheduler incident is not cleared until a subsequent actual firing or canonical Run Log entry lands in the intended `America/New_York` slot.
+- **Scheduled runtime time authority is the IANA canonical clock.** Convert the current offset-aware instant through `ZoneInfo("America/New_York")` and compare the resulting local hour/minute to the configured slot. Never use the travel/device/session clock or a hand-maintained UTC offset as the scheduled-entry gate. Ops Brief scheduled entry requires canonical `02:45` or `14:45`; Receipt & Order Lifecycle requires canonical `01:45` or `13:45`. A scheduled canonical-slot mismatch is a scheduler-integrity failure and must stop downstream state-changing modules under the Pants Filling With Shit Report boundary. Manual runs are not rejected merely for occurring outside a scheduled slot.
 - The first external state mutation of an entered scheduled Ops Brief should upsert the canonical Run Log for that deterministic Run ID as `Running` with Started (ET), before downstream Gmail/Calendar/Drive/mileage mutations. Completion updates that same row. Absence of a Run Log entry after a scheduled slot helps distinguish “scheduler never entered” from “scheduler entered and downstream work failed.”
+- Module dependencies are explicit and minimal. A required-authority failure blocks only that module/failure domain unless continuing would corrupt a declared shared invariant. Optional adapter failure degrades only the selected path. Never make one module's incidental success proof that another module's dependencies are healthy.
+- Do not use distributed rollback across independent authorities. For declared cross-authority projections, canonical source state commits/readbacks first; target projections/side effects reconcile independently and idempotently.
 - Mode precedence: unexpired explicit override, then active trip forces ROAD, then weekly default. Home early immediately closes supported work accrual and holds HOME through the next Friday 2:45 PM brief (exclusive 3:00 PM ET expiry).
 - Appointment reminder visibility is mode-independent and follows configured brief rules; never expose hidden anti-nag confirmation state.
 - Mileage accrual closes at confirmed HOME arrival, normally Wednesday PM or earlier; Thursday is reporting-only. Use company/user/run-sheet paid miles, never map distance.
@@ -52,6 +68,7 @@ Keep mutable operational state in canonical Sheets, durable policy/code/tests/on
 - Correlated order mail is grouped under durable Gmail order-history labels. After delivery, carrier-originated FedEx/UPS/DHL/USPS logistics mail may be automatically moved to Trash only under the explicit audited 90-day retention rule in `email-reconciliation.md`; merchant/order/payment/support evidence is retained.
 - One Receipt ID = one underlying merchant transaction/total. Line items may have different categories/assets/projects/beneficiaries; allocations balance to the supported total and spend is counted once.
 - Receipt email/photo/screenshot/account evidence for the same purchase enriches one Receipt ID; do not create chat-local receipt state or duplicates.
+- A canonical receipt/purchase commit is not invalidated by a downstream Ops `Shipments`, active-shopping, or Tool Inventory projection failure. Preserve core Receipt ID/order/detail/event/allocation/evidence state, report the failed projection explicitly, and reconcile that target later from canonical purchase state. Core receipt Audit and projection-health checks are separate.
 - `Shopping & Procurement` is an active shopping list, not purchase history. When durable purchase evidence or explicit owner confirmation satisfies an open intent, preserve the durable purchase/reconciliation evidence in canonical receipt/order authorities and remove the fulfilled shopping row after verification. Revisions/replacements satisfy the same intent; a cancellation without replacement leaves it open. If exact receipt/product identity is unresolved but the owner confirms purchase, remove the fulfilled intent and keep missing identity as a separate reconciliation task rather than a `Purchased` tombstone.
 - Investigate UPC/GTIN/SKU/part/model/serial and exact compatibility against the full owned/external asset registry, modifications and exclusion evidence. Auto-assign unique supported fitment; queue only after reachable evidence is exhausted.
 - Every person/physical asset and retained knowledge object uses an immutable collision-resistant RFC 4122 UUID as canonical cross-database identity. Friendly IDs/names are aliases and UUIDs survive rename, ownership change, family expansion, or database migration.

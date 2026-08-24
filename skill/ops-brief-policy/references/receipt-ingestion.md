@@ -11,7 +11,18 @@ Load this reference completely before ingesting purchase receipts, filing receip
 - `Shopping & Procurement` is an **active shopping list**, not purchase history or a second purchase ledger. It contains only open shopping intent. Durable fulfilled-purchase evidence belongs in the canonical Purchase & Receipt Archive/Drive history and any separate unresolved reconciliation queue/task.
 - `Legacy - Purchase Receipts Full Text Archive - Search Backup` is backup text only. Never use it as the user-facing receipt view.
 - User-facing Drive navigation must be a native Google Doc, native Sheet view, or supported Drive shortcut with a readable title. Never place raw HTML, JSON, Markdown, or source-code link cards in an active vehicle/tool hub; retain any such artifact only under backups.
-- Tool Inventory spreadsheet ID: `1fwbt7lDejGJmf_EeY9U1uuwQ8TxXulcnvaKnc_1mNTM`. A tool receipt may update this inventory only after the base receipt record is safely stored.
+- Tool Inventory spreadsheet ID: `1fwbt7lDejGJmf_EeY9U1uuwQ8TxXulcnvaKnc_1mNTM`. A tool receipt may update this inventory only after the base receipt record is safely stored. Tool Inventory is a downstream asset projection, not part of the purchase ledger's atomic commit.
+
+## Failure-domain boundary
+
+The canonical purchase transaction must not depend on unrelated projection targets being healthy.
+
+- **Core purchase domain:** Purchase & Receipt Archive plus required retained receipt evidence in Drive.
+- **Shipment projection:** active fulfillment projected into the Ops `Shipments` queue when that authority is healthy.
+- **Shopping reconciliation:** active intent reconciliation after durable purchase/owner-confirmation evidence exists.
+- **Asset/inventory projection:** Tool Inventory or another asset authority after the purchase is durable.
+
+Commit canonical purchase state first. Then reconcile each downstream projection independently using stable Receipt/Order/line-item identities and target readback. A failed projection leaves the purchase committed and that projection unresolved/degraded; it must not roll back or duplicate the Receipt ID. On later runs, derive the desired projection again from canonical purchase state plus current target state. Do not create a second outbox database or hidden retry automation.
 
 ## Evidence and classification
 
@@ -37,6 +48,7 @@ Load this reference completely before ingesting purchase receipts, filing receip
 - `Shopping & Procurement` is not a spending ledger. Never add financial totals there in a way that can be summed as duplicate spend; Receipt IDs and the Purchase Archive remain financial truth.
 - When an already-purchased item is discovered on a stale shopping row, reconcile it retroactively from canonical evidence or explicit owner confirmation, then remove the stale active row after verification.
 - Row removal is a state mutation: target by the verified shopping intent/row identity, account for row-index shifts in batch operations, and read back the list after deletion so unrelated rows were not removed. If deletion/readback is ambiguous, stop shopping writes and invoke the Pants Filling With Shit Report rather than issuing blind compensating deletes.
+- A shopping reconciliation failure after the core receipt commit is module-scoped. Preserve the receipt and leave only the shopping mutation unresolved; never delete/recreate the Receipt ID to retry shopping state.
 
 ## Cancellation, return, and refund transitions
 
@@ -45,6 +57,7 @@ Load this reference completely before ingesting purchase receipts, filing receip
 - For a confirmed partial cancellation, append `Partial Cancellation Confirmed`; retain the cancelled detail/allocation as history with `Include in Spend = FALSE`; update the surviving lines and order financial fields only from the merchant's confirmed revised totals; make included allocations sum to that revised total; and rewrite the active shipment to contain only the surviving fulfillment. If the revised total or surviving item is missing, keep `Exception` and surface one action instead of inventing a tax, fee, refund, or item split.
 - A physical return does not erase spend. Append `Returned` and keep the original financial effect until exact refund evidence arrives. On `Refunded`, record the confirmed amount as a linked negative expense adjustment or confirmed revised net total, preserve gross purchase/refund evidence in `Order Events`, and make dashboards report the net effect exactly once.
 - Never delete an order, detail line, allocation, or prior event because it was cancelled, returned, or refunded. Lifecycle state and spend inclusion change; identity and provenance remain.
+- If the Ops `Shipments` authority is unavailable after a cancellation/revision is durably committed, keep the canonical purchase event authoritative and report the shipment projection as pending/degraded. Reconcile the target from canonical state when Ops recovers; do not undo the purchase event.
 
 ## Replacement and supersession
 
@@ -52,13 +65,13 @@ Load this reference completely before ingesting purchase receipts, filing receip
 - For a true replacement, preserve both transactions. Append `Replaced By` to the original and `Replacement For` to the new Receipt ID. Each event must carry the reciprocal `Related Receipt ID`, one shared `Replacement Group ID`, the source, and the observed time. Never mutate the old Receipt ID into the new one.
 - A user statement that explicitly identifies the old and replacement orders is authoritative relationship evidence, but it does not prove a refund amount or revised charge. Preserve any earlier merchant evidence beside the user correction.
 - Apply cancellation and refund accounting to the original independently. If cancellation is only requested or the old charge/refund is unresolved, keep the original active fulfillment as `Exception` and keep its supported financial effect. Never net, copy, or transfer totals between orders without exact evidence.
-- Upsert the replacement as its own active fulfillment. When original cancellation is confirmed, append both reciprocal link events before deleting the old active fulfillment; when it is not confirmed, retain the old `Exception` row and the new active row. The replacement link must therefore survive even if both orders are temporarily active.
+- Upsert the replacement as its own active fulfillment when Ops `Shipments` is reachable. When original cancellation is confirmed, canonical replacement/cancellation events commit first; the active fulfillment projection is then reconciled independently. If the projection target is unavailable, preserve both Receipt IDs/events and report the shipment projection pending rather than blocking the purchase records.
 - Copy vehicle/category attribution only when the replacement item is proven equivalent or the user explicitly assigns it. Otherwise queue the new item for classification rather than inheriting a potentially wrong fitment.
-- The Audit gate must verify that both Receipt IDs exist, reciprocal links agree, the shared group ID agrees, the original financial state follows cancellation/refund evidence, the replacement has its own balanced allocation, and active Shipments reflect the confirmed lifecycle state.
+- The core purchase Audit gate must verify that both Receipt IDs exist, reciprocal links agree, the shared group ID agrees, the original financial state follows cancellation/refund evidence, and the replacement has its own balanced allocation. Shipment projection consistency is a separate projection-health check and may be Degraded without invalidating the canonical receipt records.
 
-## Commit order
+## Core commit and downstream projections
 
-Use this order so Gmail is never cleared and the active shopping row is never removed before downstream state exists:
+Use this order so canonical purchase state is durable before any unrelated authority is touched and Gmail is never cleared before durable evidence exists:
 
 1. Read and classify the complete receipt evidence.
 2. Check the canonical index and destination folder for duplicates.
@@ -66,15 +79,16 @@ Use this order so Gmail is never cleared and the active shopping row is never re
 4. Upsert one `Orders - Database` row and the searchable line items. Point the Receipt Browser's `Show details` link at that receipt's expandable range, never the legacy Doc.
 5. Append each new Ordered/Awaiting Shipment, Shipped, Delivered, Exception, Cancellation Requested, Partial Cancellation Confirmed, Cancelled, Returned, Refunded, Replaced By, or Replacement For transition to `Order Events`. Link true replacements with reciprocal Related Receipt IDs and one Replacement Group ID. Idempotency is event ID plus Receipt ID, event type, event time, tracking/package or related Receipt ID, and source.
 6. Upsert `Expense Ledger` allocations and verify that allocations for one Receipt ID sum to the one counted transaction total. Do not invent fuel or other unsupported spending.
-7. Synchronize the active Ops `Shipments` queue: Awaiting Shipment and Shipped remain active; Exception remains actionable; Delivered is removed after the event is durably recorded.
-8. Determine whether an open `Shopping & Procurement` intent is fulfilled. Preserve any separate reconciliation task needed for missing identity/evidence, then remove only the fulfilled active-list row after purchase/owner-confirmation evidence is durable. Read back the shopping list and prove unrelated rows remain intact. Unsupported, merely similar or cancelled-without-replacement intents remain open.
-9. Apply supported inventory side effects. For a tool, deduplicate and create or enrich the Tool Inventory row using only evidence-backed attributes. Never guess brand, model, power source, platform, ownership, condition, or classification.
-10. Rebuild or refresh the `Audit` integrity gate. Require PASS for one order row per Receipt ID, at least one detail row, compact detail link, canonical Drive archive link, verified-or-queued classification, exact expense-allocation sum, known vehicle mappings, vehicle-specific Drive placement/link, reciprocal replacement links when present, active Orders-to-Shipments synchronization, and applicable active-shopping-list reconciliation/removal readback.
-11. Verify Drive evidence, database rows, lifecycle event, expense allocations, shipment mutation, shopping reconciliation/removal when applicable, classification state, inventory side effects, and the Audit gate as one transaction.
-12. Only after every required check passes, apply Gmail labels and archive routine threads. Never delete Gmail unless the user explicitly names the bounded messages to delete or the message independently qualifies under a standing audited carrier-retention rule.
+7. Rebuild/refresh the **core receipt Audit** integrity gate. Require PASS for one order row per Receipt ID, at least one detail row, compact detail link, canonical Drive archive link when required, verified-or-queued classification, exact expense-allocation sum, known vehicle mappings, vehicle-specific Drive placement/link when required, and reciprocal replacement links when present. The core receipt PASS does not depend on Ops Shipments, Tool Inventory, Calendar, or another module's authority being reachable.
+8. After core PASS, reconcile the active Ops `Shipments` projection when reachable: Awaiting Shipment and Shipped remain active; Exception remains actionable; Delivered is removed after the canonical event is durably recorded. Read back the target. If Ops is unavailable or target readback disagrees, preserve the core receipt, mark only shipment projection Degraded/Pending, and stop writes to that target.
+9. Reconcile `Shopping & Procurement` when applicable. Preserve any separate reconciliation task needed for missing identity/evidence, then remove only the fulfilled active-list row after purchase/owner-confirmation evidence is durable. Read back the shopping list and prove unrelated rows remain intact. Failure here does not roll back the core receipt.
+10. Apply supported inventory/asset side effects only after core PASS. For a tool, deduplicate and create or enrich the Tool Inventory row using only evidence-backed attributes. Never guess brand, model, power source, platform, ownership, condition, or classification. If the asset authority is unavailable, preserve the receipt and report only the asset projection pending/degraded.
+11. Verify each downstream projection independently. Projection success requires target readback. A projection failure trips only that projection/module under the Pants Filling With Shit Report; later reconciliation re-derives desired target state from canonical purchase records instead of replaying a blind write.
+12. Gmail filing may occur after the core receipt/evidence transaction is verified. If a still-unresolved projection depends on the originating thread as the only convenient operational cue, retain that thread until the projection is reconciled; otherwise canonical Receipt ID/source IDs/Drive evidence are sufficient for replay. Never claim a pending projection succeeded merely because the receipt core passed.
 
-If a downstream write fails, leave the Gmail message unarchived and report the exact incomplete stage. Do not claim the receipt was processed merely because a Drive copy exists.
-If any Audit check fails, write the Receipt ID and remediation, leave affected Gmail threads unarchived, and surface one compact `Action Required` summary. A correct Sheet tag with a missing vehicle-folder record is still a failure.
+If a core purchase/Drive write fails, leave the Gmail message unarchived and report the exact incomplete stage. Do not claim the receipt was processed merely because one partial artifact exists.
+If the core Audit fails, write the Receipt ID and remediation, leave affected Gmail threads unarchived, and surface one compact `Action Required` summary. A correct Sheet tag with a missing required receipt evidence record is still a core failure.
+If only a downstream projection fails, report the receipt as durably ingested with that projection explicitly `Degraded/Pending`; do not roll back, clone, or renumber the Receipt ID.
 
 ## Monthly receipt rollups
 

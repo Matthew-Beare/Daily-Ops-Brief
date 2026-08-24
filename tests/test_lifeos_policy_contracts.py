@@ -11,51 +11,67 @@ class LifeOSPolicyContractTests(unittest.TestCase):
     def text(self, path: str) -> str:
         return (ROOT / path).read_text(encoding="utf-8")
 
-    def test_public_upstream_has_license_and_explicit_two_state_models(self) -> None:
+    def test_public_upstream_has_license_and_external_state_boundary(self) -> None:
         readme = self.text("README.md")
         license_text = self.text("LICENSE")
         self.assertIn("intentionally public", readme)
         self.assertIn("starter/START_HERE.md", readme)
         self.assertIn("Mutable operational state", readme)
-        self.assertIn("private Git", readme)
+        self.assertIn("Google Sheets", readme)
+        self.assertIn("Google Drive", readme)
         self.assertIn("reference deployment", readme)
         self.assertIn("public-source audit", readme)
         self.assertIn("MIT License", license_text)
         self.assertIn("Permission is hereby granted", license_text)
 
-    def test_starter_requires_private_git_for_personal_state(self) -> None:
+    def test_starter_separates_git_source_from_mutable_state(self) -> None:
         guide = self.text("starter/START_HERE.md")
         deps = self.text("starter/DEPENDENCIES.md")
         versioning = self.text("starter/VERSIONING.md")
         template = self.text("starter/INSTRUCTIONS.md.tmpl")
-        state = self.text("starter/GIT_STATE_MODEL.md")
+        state = self.text("starter/STATE_AUTHORITY_MODEL.md")
         config = json.loads(self.text("starter/config.example.json"))
         for surface in (guide, deps, versioning, template, state):
-            self.assertIn("private", surface.lower())
-            self.assertIn("git", surface.lower())
+            self.assertIn("Git", surface)
             self.assertIn("state", surface.lower())
+        self.assertIn("Google Sheets", state)
+        self.assertIn("Google Drive", state)
+        self.assertIn("Authority Registry", state)
+        self.assertIn("Interview Ledger", guide)
         self.assertIn("public-source audit", guide.lower())
-        self.assertIn("Public GitHub fork path", versioning)
-        self.assertIn("code only", versioning.lower())
         self.assertIn("{{REPOSITORY_VISIBILITY}}", template)
-        self.assertEqual(config["STATE_STORE"], "PRIVATE_GIT_REPOSITORY/state")
-        self.assertEqual(config["REPOSITORY_VISIBILITY"], "PRIVATE_REQUIRED_WHEN_PERSONAL_STATE_IS_ENABLED")
-        self.assertIn("IMMUTABLE_EVENTS_PLUS_DERIVED_SNAPSHOTS", config["GIT_STATE_MODEL"])
+        self.assertEqual(config["STATE_STORE"], "GOOGLE_SHEETS_DEFAULT_OR_SUPPORTED_DATABASE")
+        self.assertEqual(config["AUTHORITY_REGISTRY"], "REQUIRED_IN_STRUCTURED_STATE_STORE")
+        self.assertEqual(config["INTERVIEW_LEDGER"], "REQUIRED_IN_STRUCTURED_STATE_STORE")
+        self.assertNotIn("PRIVATE_GIT_REPOSITORY/state", json.dumps(config))
 
-    def test_git_state_model_is_transactional_and_share_safe(self) -> None:
-        state = self.text("starter/GIT_STATE_MODEL.md")
-        shared = self.text("starter/SHARED_FEATURE_WORKFLOW.md")
+    def test_interview_ledger_is_complete_fail_forward_and_upgradeable(self) -> None:
+        ledger = self.text("starter/INTERVIEW_LEDGER.md")
         for phrase in (
-            "canonical personal state authority",
-            "Event files are immutable",
-            "push by fast-forward only",
-            "read back",
-            "Never force-push",
-            "state/",
+            "Unresolved",
+            "Asked",
+            "Answered",
+            "Resolved from evidence",
+            "Not applicable",
+            "Deferred",
+            "answer the user's immediate request normally",
+            "Question-bank upgrades",
         ):
-            self.assertIn(phrase.lower(), state.lower())
-        self.assertIn("exclude the entire private `state/` surface", shared)
+            self.assertIn(phrase, ledger)
+        self.assertIn("every question", ledger.lower())
+        self.assertIn("not on every turn", ledger.lower())
+        self.assertIn("Preferences and consent are not silently inferred", ledger)
+
+    def test_shared_state_is_explicit_and_separate_from_feature_sharing(self) -> None:
+        state = self.text("starter/STATE_AUTHORITY_MODEL.md")
+        shared = self.text("starter/SHARED_FEATURE_WORKFLOW.md")
+        self.assertIn("Whole-authority sharing", state)
+        self.assertIn("Scoped shared authority", state)
+        self.assertIn("Never infer that a family member should receive access", state)
+        self.assertIn("Sharing state and sharing a feature are different operations", state)
         self.assertIn("synthetic fixtures", shared.lower())
+        self.assertIn("Sheet", shared)
+        self.assertIn("Drive", shared)
 
     def test_public_source_audit_and_ci_are_release_gates(self) -> None:
         audit = self.text("scripts/audit_public_source.py")
@@ -78,13 +94,14 @@ class LifeOSPolicyContractTests(unittest.TestCase):
         self.assertIn("project/POLICY_FINGERPRINT.txt", project)
         self.assertNotIn("POLICY_SOURCE_FINGERPRINT:", project)
 
-    def test_scheduler_uses_evidence_chain_and_entry_run_log(self) -> None:
+    def test_scheduler_uses_evidence_chain_canonical_clock_and_entry_run_log(self) -> None:
         skill = self.text("skill/ops-brief-policy/SKILL.md")
         maintenance = self.text("skill/ops-brief-policy/references/state-maintenance.md")
         brief = self.text("skill/ops-brief-policy/references/brief-run.md")
         docs = self.text("docs/automation-contracts.md")
         deps = self.text("starter/DEPENDENCIES.md")
         interview = self.text("starter/LIFE_INTERVIEW.md")
+        runtime = self.text("skill/ops-brief-policy/scripts/ops_policy_runtime.py")
         for surface in (skill, maintenance, docs, deps, interview):
             lower = surface.lower()
             self.assertIn("notification", lower)
@@ -97,12 +114,18 @@ class LifeOSPolicyContractTests(unittest.TestCase):
                 "provider contract" in lower or "provider/tool contract" in lower,
                 "scheduler surface does not condition provider metadata on documented semantics",
             )
+            self.assertIn("iana", lower)
+        self.assertIn("ZoneInfo", runtime)
+        self.assertIn("canonical_slot_evidence", runtime)
+        self.assertIn("America/New_York", runtime)
         self.assertIn("default_timezone", skill)
         self.assertIn("default_timezone", maintenance)
         self.assertIn("first external", skill.lower())
         self.assertIn("`Running`", skill)
         self.assertIn("Before Gmail", brief)
         self.assertIn("`Running`", brief)
+        self.assertIn("slot-check", brief)
+        self.assertIn("12:45-06:00", maintenance)
 
     def test_pants_circuit_breaker_is_fail_fast_and_module_scoped(self) -> None:
         policy = self.text("skill/ops-brief-policy/references/pants-filling-with-shit-report.md")
@@ -191,6 +214,21 @@ class LifeOSPolicyContractTests(unittest.TestCase):
         self.assertIn("Personal accountability and routines", catalog)
         self.assertIn("Education and study coach", catalog)
 
+    def test_meal_planning_and_appointment_features_use_external_authority(self) -> None:
+        meal = self.text("starter/features/meal-planning/FEATURE.md")
+        appointment = self.text("starter/features/appointment-reconciliation/FEATURE.md")
+        meal_manifest = json.loads(self.text("starter/features/meal-planning/feature.json"))
+        appointment_manifest = json.loads(self.text("starter/features/appointment-reconciliation/feature.json"))
+        self.assertIn("Google Sheets", meal)
+        self.assertIn("Drive", meal)
+        self.assertIn("official clinic/provider pages", appointment)
+        self.assertIn("Cardiology", appointment)
+        self.assertIn("morning-of", appointment)
+        self.assertIn("60 minutes before", appointment)
+        self.assertIn("IANA timezone", appointment)
+        self.assertEqual(meal_manifest["data_boundary"]["runtime_state"], "external-authority")
+        self.assertEqual(appointment_manifest["data_boundary"]["runtime_state"], "external-authority")
+
     def test_starter_is_bounded_nontechnical_deep_and_discovery_driven(self) -> None:
         guide = self.text("starter/START_HERE.md")
         questions = json.loads(self.text("starter/questions.json"))
@@ -202,9 +240,10 @@ class LifeOSPolicyContractTests(unittest.TestCase):
         self.assertIn("mark HOME/ROAD bypassed", guide)
         self.assertIn("driving/trucking", guide.lower())
         self.assertIn("Do you want help with meal planning?", guide)
+        self.assertIn("Interview Ledger", guide)
         self.assertLess(len(guide), 12000)
         self.assertGreaterEqual(len(rows), 100)
-        self.assertGreaterEqual(questions["version"], 5)
+        self.assertGreaterEqual(questions["version"], 6)
         for required in (
             "works_away_from_home",
             "accountability_domains",
@@ -225,6 +264,15 @@ class LifeOSPolicyContractTests(unittest.TestCase):
             "medical_event_tracking",
             "appointment_email_auto_update",
             "git_state_commit_policy",
+            "canonical_clock_guard",
+            "authority_registry",
+            "interview_ledger",
+            "interview_resume_policy",
+            "shared_authority",
+            "appointment_provider_type_research",
+            "appointment_reminder_day_before",
+            "appointment_reminder_morning_of",
+            "appointment_reminder_relative",
         ):
             self.assertIn(required, ids)
 

@@ -8,20 +8,31 @@ Help a user turn existing recipes/preferences and current constraints into pract
 
 First boot always makes meal planning discoverable and asks `Do you want help with meal planning?` If selected, inspect accessible existing recipe/meal-plan evidence before rebuilding it. Sources may include current conversation, uploaded/File Library material, connected Drive/docs/notes, and other explicitly connected sources. Never claim global access to inaccessible old chats.
 
-Capture only user-selected useful configuration: household/serving pattern, cooking frequency, likes/dislikes, explicit dietary preferences/constraints, time/effort, equipment, repeat-versus-novelty preference, batch/leftover/freezer strategy, grocery cadence, home/away/travel variants, and optional user-requested cost/nutrition goals.
+## State contract
 
-## Runtime contract
+The module uses the deployment's selected canonical structured state authority, defaulting to Google Sheets.
 
-Private deployment Git is canonical state.
-
-- Canonical recipe entries preserve provenance and dedupe equivalent recipes.
-- Accepted recipes, meal plans, pantry/freezer facts, meal history, and shopping intent are written as Git state events/snapshots under `GIT_STATE_MODEL.md`.
-- Meal plans reference canonical recipes or clearly marked new proposals.
-- Plans are proposals until accepted according to the user's policy.
-- Grocery output creates/updates active shopping intent when enabled.
-- Shopping intent is not purchase history. Purchase evidence later reconciles fulfillment through the purchase/shopping workflow.
+- `Recipes` stores canonical recipe identity, title/tags/provenance, and a Drive/document reference when the body is stored externally.
+- `Meal Plans` stores accepted/proposed plan state.
+- `Pantry & Freezer` stores user-supported inventory facts when enabled.
+- Long recipe bodies, scans, images, PDFs, or other bulky originals may live in Drive/evidence storage with stable references.
+- Shopping intent is not purchase history. When enabled, active grocery intent is a declared downstream projection into `Shopping & Procurement`, not part of the meal plan's atomic source commit.
 - Do not fabricate inventory, allergies, medical diets, nutrition targets, or completed meals.
-- Every coherent accepted state change validates, commits, pushes fast-forward only, and reads the remote Git state back before reporting success.
+- Every source-state mutation receives canonical authority readback before success is reported.
+
+## Failure-domain and projection contract
+
+Basic meal planning requires only its canonical structured state authority. Drive, shopping, finance, grocery, nutrition, and other integrations are adapters.
+
+For an accepted meal plan:
+
+1. commit/read back the canonical meal-plan state first;
+2. when shopping-intent projection is enabled, derive desired grocery intent from that committed plan using the meal-plan/correlation identity;
+3. write the declared `shopping-procurement:upsert-meal-plan-intent` projection;
+4. read the shopping target back before marking that projection successful;
+5. if the target is unavailable or disagrees, preserve the meal plan, report only shopping projection Degraded/Pending, and retry later by reconciling canonical meal-plan state against current shopping state.
+
+Do not roll back or duplicate a meal plan because shopping/Drive/finance is unavailable. Do not create a hidden retry job or a second shadow shopping database.
 
 ## Existing meal-planning import
 
@@ -29,15 +40,20 @@ When accessible prior chats/files/provider sources already contain recipes or me
 1. read the reachable material;
 2. dedupe/provenance-map it;
 3. show material ambiguities rather than silently choosing;
-4. normalize approved useful information into Git recipe/meal-plan state;
-5. commit/read back the import checkpoint.
+4. normalize approved structured information into the canonical state authority;
+5. retain long-form evidence in Drive when useful;
+6. read back the imported state.
 
-Old chats need not remain available after durable state has been imported.
+Old chats need not remain available after durable information is ingested.
+
+## Shared meal planning
+
+Meal planning can use personal state or an explicitly shared authority. A user may deliberately share the whole relevant workbook/folder or use a scoped shared meal-planning workbook/folder. Never infer household sharing.
 
 ## Minimal dependencies
 
-The module can run manually with private Git only. Drive/files, shopping, finance, grocery, nutrition, or other integrations are optional evidence/action adapters. Failure of one adapter must not disable basic meal planning.
+Basic meal planning needs the selected structured state authority. Drive/files, shopping, finance, grocery, nutrition, or other integrations are optional/conditional adapters. Failure of one adapter must not disable basic meal planning.
 
 ## Portability
 
-Portable source contains behavior/config schema/tests only. A user's recipes, food preferences, meal history, pantry contents, and shopping data live in the private deployment `state/` tree and are never upstream contribution material.
+Portable source contains behavior/config/schema/migrations/tests only. A user's recipes, food preferences, meal history, pantry contents, shopping rows, and Drive evidence are deployment state and never upstream contribution material.

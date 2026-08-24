@@ -1,52 +1,56 @@
 # LyfeOS Adaptive Whole-Life Interview
 
-Use this after the four kickoff questions in `START_HERE.md`. Its purpose is discovery and prioritization, not interrogation. A person usually does not know every useful workflow in advance, so combine life-friction questions with capability/evidence discovery and reveal useful options from the problems they describe.
+Use this after the four kickoff questions in `START_HERE.md`. Its purpose is comprehensive discovery without requiring one uninterrupted setup conversation.
 
-Read `GIT_STATE_MODEL.md` first. For generic new-user deployments, private Git is the canonical personal-state authority. Connected apps are optional evidence/projection/action adapters.
+Read `STATE_AUTHORITY_MODEL.md`, `INTERVIEW_LEDGER.md`, and `CAPABILITY_DISCOVERY.md` first. Mutable interview progress and life state belong in the selected canonical structured state authority, normally Google Sheets. Git versions behavior/config/schema, not the user's day-to-day records.
 
-Primary branches include working/retired/other life pattern, work/context, existing systems/apps/plugins, Exercise / fitness, School / study, food/meal planning, household/admin, projects/hobbies, travel/vacations, appointments, purchases/money, assets/knowledge, and communication. Ask no more than four related questions at a time and skip non-applicable branches.
+Primary branches include working/retired/other life pattern, work/context, existing systems/apps/plugins, Exercise / fitness, School / study, food/meal planning, household/admin, projects/hobbies, travel/vacations, appointments, purchases/money, assets/knowledge, and communication.
 
 ## Interview mechanics
 
-- Ask only questions whose answers can change a workflow, state model, dependency, schedule, or recommendation.
-- Before re-asking factual history, inspect accessible existing evidence per `CAPABILITY_DISCOVERY.md`.
-- Reflect a compact domain summary and correct misunderstandings before provisioning.
+- Ask no more than four related questions at a time.
+- Every `questions.json` ID has a durable Interview Ledger row.
+- Terminal states are `Answered`, `Resolved from evidence`, or `Not applicable`. `Deferred` and `Unresolved` remain open.
+- A conversation detour is allowed. Handle the immediate request, capture any incidental answers, then resume the next useful open interview item at the end when reasonable.
+- Never restart the interview because the conversation changed topics.
+- Never mark a question answered because the user ignored it.
+- If the user says `not now`, record `Deferred` and revisit later without pestering every turn.
+- Before re-asking factual history, inspect accessible evidence. Preference, consent, destructive-action, and sharing choices are never inferred.
+- Ask only questions whose answers can change a workflow, dependency, schema, schedule, permission, or recommendation.
+- Reflect compact summaries and correct misunderstandings before provisioning.
 - Separate facts, preferences, goals, constraints, and guesses. Never persist a guess as fact.
-- Prefer concrete examples: what was forgotten, what happens now, what should happen instead, and what evidence proves success.
-- Identify the smallest useful workflow first, then progression/automation.
-- Record sensitive details only when the selected workflow truly requires them. Never solicit credentials.
-- Accepted durable state should be normalized into private Git rather than left only in chat.
+
+Complete coverage means every installed question ID is resolved, not that every prompt must be spoken verbatim.
 
 ## 1. Life pattern, friction, and identity discovery
 
-Ask which pattern best describes the user now: working, retired, studying, caregiving, self-employed, mixed, between jobs, or something else. Then ask:
-- What repeatedly gets forgotten, delayed, misplaced, overcomplicated, or done at the last minute?
-- What decisions are made over and over that could use a stable rule or prioritized next action?
-- Which information is scattered across email, calendar, notes, photos, documents, apps, chats, or memory?
-- If LyfeOS worked extremely well six months from now, what would feel materially easier?
+Ask which pattern best describes the user now: working, retired, studying, caregiving, self-employed, mixed, between jobs, or something else. Learn:
+- what repeatedly gets forgotten, delayed, misplaced, or done at the last minute;
+- recurring decisions that could use a stable rule or next action;
+- information scattered across email, calendar, notes, photos, documents, apps, chats, or memory;
+- what would feel materially easier if LyfeOS worked well six months from now.
 
-If retired or not working, do not force job/context machinery. Explore useful appointments, household/admin, family responsibilities, volunteering, routines, documents, hobbies, travel, projects, and health-event organization only when selected.
+If retired or not working, do not force job/context machinery. Explore appointments, household/admin, family responsibilities, volunteering, routines, documents, hobbies, travel, projects, and selected health-event organization when useful.
 
-Do not limit discovery to what the user already names as an “AI feature.” Infer candidate domains and explain why they may help.
+Do not limit discovery to features the user already knows to request. Explain adjacent workflows that match observed friction, but never enable them silently.
 
 ## 2. Existing systems and capability discovery
 
 Before designing replacements, inspect what already exists:
-- private/user Git repositories;
 - calendars, email, Drive/files, Sheets/databases, task apps, finance connections;
 - fitness/wearable/activity apps;
 - recipe/meal-planning collections;
 - school/work systems and documents;
-- existing automation;
+- Git repositories and existing automation;
 - other connected plugins/apps relevant to the user's answers.
 
 Use `CAPABILITY_DISCOVERY.md`. Do not claim arbitrary old ChatGPT conversations are globally searchable. If prior-chat information is inaccessible, provide an ingestion path.
 
-When useful existing state is reachable, dedupe and normalize approved facts into the private Git state model with provenance instead of maintaining a second hidden LyfeOS database.
+When useful existing data is reachable, dedupe and reconcile approved facts into the selected canonical state authority with provenance. Do not create a second hidden LyfeOS database.
 
 ## 3. Work and context-mode gate
 
-Ask explicitly: **Do you regularly work away from home, sleep away from home for work, rotate worksites, or live/work from a vehicle or field location?** If the person currently works, also learn the **exact job title**, actual duties, schedule, work environment, and recurring work travel.
+Ask explicitly: **Do you regularly work away from home, sleep away from home for work, rotate worksites, or live/work from a vehicle or field location?** If currently working, learn the **exact job title**, actual duties, schedule, work environment, and recurring work travel.
 
 If no, mark HOME/ROAD bypassed unless another context split clearly helps.
 
@@ -62,34 +66,34 @@ Recommend natural contexts such as HOME/ROAD, HOME/TRUCK, HOME/FIELD, HOME/CAMPU
 
 ## 4. Hobbies, recreation, travel and vacations
 
-Ask what the user actually enjoys doing and what routinely surrounds those activities: hiking, camping, sports, gaming, photography, cooking, automotive work, crafting, volunteering, travel, or other interests.
+Ask what the user enjoys doing and what surrounds those activities: hiking, camping, sports, gaming, photography, cooking, automotive work, crafting, volunteering, travel, or other interests.
 
 For relevant hobbies discover:
-- recurring preparation/checklists/equipment;
+- preparation/checklists/equipment;
 - reservations, permits, weather, route, or destination research;
 - maintenance/consumables;
 - skill/progression goals;
 - photos/documents/reference material worth organizing;
 - trip/vacation ideas versus committed plans;
-- whether Calendar/maps/weather/travel tools would materially reduce planning work.
+- whether Calendar/maps/weather/travel tools materially reduce planning work.
 
-Accepted trip/project/routine state belongs in Git. Live maps/weather remain current provider inputs. Do not manufacture a project-management system around a hobby the user wants to keep spontaneous.
+Do not manufacture project management around a hobby the user wants spontaneous.
 
 ## 5. Personal accountability and recurring routines
 
 Offer this for exercise, household routines, creative practice, reading, paperwork, maintenance, or another recurring commitment. Accountability means evidence plus useful prompting, not scolding.
 
-For each routine capture purpose, frequency, preferred windows, time/component blocks, contexts, resources, normal and **minimum viable version**, completed/partial/skipped/rescheduled definitions, check-in/anti-nag rule, miss policy, progression/review rule, and desired evidence.
+For each routine capture purpose, frequency, preferred windows, component blocks, contexts, resources, normal and **minimum viable version**, completed/partial/skipped/rescheduled definitions, check-in/anti-nag rule, miss policy, progression/review rule, and desired evidence.
 
 For **Exercise / fitness**:
 - support cardio, strength, mobility/stretching, yoga, hiking, warm-up/cool-down, or user-defined blocks;
-- support progression from user-selected evidence such as consistency, duration, reps/sets, load, distance, elevation, exercise variation, or mobility skill;
-- distinguish home and away variants when equipment/space differs;
-- if a fitness/wearable integration is already available, offer it as optional evidence rather than requiring manual duplication;
+- support progression from user-selected evidence such as consistency, duration, reps/sets, load, distance, elevation, variation, or mobility skill;
+- distinguish home and away variants;
+- if a fitness/wearable integration is available, offer it as optional evidence;
 - never assume Garmin or another brand exists unless the platform exposes it;
 - never invent medical restrictions, diagnoses, calorie targets, or unsafe progression.
 
-Accepted completion/progression state becomes a Git transaction. Do not infer completion from silence.
+Do not infer completion from silence.
 
 ## 6. Education and study coach
 
@@ -100,12 +104,10 @@ Capture institution/program/course, source locations, verified assignments/exams
 Next-action rule:
 1. read verified deadlines and prerequisites;
 2. choose the smallest actionable next step;
-3. favor urgent/high-impact work without skipping prerequisite learning;
+3. favor urgent/high-impact work without skipping prerequisites;
 4. fit current context/time when known;
 5. keep context-incompatible work in backlog;
 6. update progress only from user confirmation or connected evidence.
-
-The system may explain, quiz, summarize user-provided material, plan study, and review work. It must not fabricate submissions, attendance, grades, citations, or proof of work and must not encourage academic dishonesty.
 
 ## 7. Food, recipes and meal planning
 
@@ -113,19 +115,13 @@ Always ask explicitly: **Do you want help with meal planning?**
 
 If yes, offer recipes, grocery planning, pantry/freezer use, leftovers, batch cooking, cooking logistics, home/away/camping/travel variants, and reducing food cost/waste.
 
-Capture only useful preferences:
-- household/serving pattern and cooking frequency;
-- foods/cuisines liked or disliked;
-- dietary constraints/preferences the user explicitly supplies;
-- typical time/effort budget and cooking equipment;
-- repeat-favorite versus novelty preference;
-- leftovers/batch/freezer strategy;
-- grocery cadence and stores when operationally useful;
-- cost/nutrition goals only when the user wants them and evidence supports them.
+Capture household/serving pattern, cooking frequency, likes/dislikes, explicit dietary preferences/constraints, time/effort, equipment, repeat-versus-novelty preference, leftovers/batch/freezer strategy, grocery cadence, and optional cost/nutrition goals.
 
-Before starting over, search accessible existing recipes, meal plans, notes, files, File Library, Drive material, and current conversation evidence. Reconcile approved information into canonical private Git recipe/meal-plan state with provenance. A meal plan may create shopping intent; purchase history remains separate.
+Before starting over, search accessible existing recipes, meal plans, notes, files, File Library, Drive material, and current conversation evidence. Store structured recipe metadata/plans/pantry/shopping state in the canonical structured authority. Use Drive for long recipe bodies/images/files where useful. Preserve provenance.
 
-## 8. Household, administration, and projects
+Meal planning may create shopping intent; shopping intent is not purchase history.
+
+## 8. Household, administration, projects, and shared state
 
 Explore useful areas only:
 - chores/seasonal maintenance and grouped errands;
@@ -135,56 +131,73 @@ Explore useful areas only:
 - renewals/registrations/documents;
 - volunteering/community responsibilities.
 
-Accepted task/project/admin state belongs in Git. External systems may remain evidence/projection surfaces.
+Ask whether any domain should be shared with another person. Support either deliberate sharing of an existing workbook/folder or a scoped shared authority. Explain what becomes visible and verify access after the owner changes sharing. Never infer family access.
 
-## 9. Appointments, reservations, and medical-event organization
+## 9. Appointments, reservations, provider type, and medical-event organization
 
-Ask whether the user wants appointments/reservations tracked and separately whether they want medical appointment/event dates/reminders organized. Do not infer that medical tracking is wanted merely because the user is retired or older.
+Ask separately whether the user wants appointments/reservations tracked and whether medical appointment dates/reminders should be organized.
 
-Manual appointment tracking needs only private Git.
-
-If email-derived appointment reconciliation is wanted, define:
-- eligible senders/domains/event classes;
-- confidence threshold and ambiguity behavior;
+For each appointment class capture:
+- eligible evidence sources/senders;
 - target calendar when projection is enabled;
-- reminder defaults;
+- reminder profile;
 - tentative/revision/cancellation behavior;
-- minimum-detail policy for sensitive appointments.
+- confidence threshold and ambiguity behavior;
+- minimum-detail policy for sensitive appointments;
+- preferred human-facing appointment type labels.
 
-## 10. Appointment email → Calendar → Git verification contract
+If appointment evidence does not identify the provider type clearly and research is available/allowed, research the provider using official clinic/provider pages or reliable public directories. Prefer evidence-supported specialties such as cardiology, endocrinology, audiology, primary care, dental, ophthalmology, etc. If still unresolved, ask instead of guessing.
+
+Specialty classification is for organization/reminders only. Never infer diagnosis, treatment, prognosis, or medical advice from the provider specialty.
+
+### Reminder profiles
+
+Support multiple reminders per appointment. Store defaults globally, per person, and/or per appointment class. Examples include:
+- one calendar day before;
+- morning-of at an explicitly configured local clock time;
+- a relative reminder such as 60 minutes before.
+
+For a fixed morning-of reminder, calculate the interval from the event time in the event's IANA timezone so DST is handled correctly. If the event occurs before the configured morning anchor, follow the user's exception rule rather than inventing one.
+
+## 10. Appointment email → Calendar → canonical-state verification
 
 When the user enables an appointment class:
 1. read the complete relevant message/evidence;
-2. read current remote Git state and dedupe against canonical appointment/source identity and existing Calendar Projection;
+2. read canonical appointment/source state and dedupe against existing Calendar Projection;
 3. extract only evidence-backed event fields;
-4. ask rather than write on low-confidence/conflicting evidence;
-5. create/update the single linked Calendar event when Calendar is enabled;
-6. read the Calendar event back and verify event ID, target calendar, title, time/timezone, reminders, and source linkage;
-7. append/update canonical appointment/reconciliation Git state with stable provider references;
-8. validate, commit, push fast-forward only, and read the Git state back;
-9. only then mark the source reconciled.
+4. resolve/provider-type label from evidence or approved research when possible;
+5. ask rather than write on low-confidence/conflicting evidence;
+6. create/update the single linked Calendar event when Calendar is enabled;
+7. apply the configured reminder profile;
+8. read the Calendar event back and verify event ID, target calendar, title/type, date/time/timezone, reminders, and source linkage;
+9. write/update canonical appointment + Calendar Projection state;
+10. read canonical state back and only then mark the source reconciled.
 
-Revision/cancellation evidence updates/cancels the same Git appointment and Calendar event. Do not create one ChatGPT Scheduled Task per appointment; event-specific reminders belong in Calendar, while ChatGPT uses consolidated brief/accountability dispatchers.
-
-For medical appointments, default to minimum necessary detail and never infer diagnosis, treatment, prognosis, or medical advice.
+Revision/cancellation evidence updates/cancels the same canonical appointment and Calendar event. Do not create one ChatGPT Scheduled Task per appointment; event-specific reminders belong in Calendar.
 
 ## 11. Information, assets and knowledge
 
 Ask what the user repeatedly searches for: receipts, manuals, work/school documents, warranties, recipes, policies, reference PDFs, photos, vehicle/equipment specs, or other evidence.
 
-For selected classes define Git state/index identity, stable UUIDs where appropriate, provenance, dedupe, retention, and how later queries reach original evidence. Bulky originals may remain in provider/Drive/file storage; canonical indexes and accepted state remain in Git.
+Use stable UUID identity where appropriate. Structured indexes live in the selected state authority; retained documents live in Drive/evidence storage and are linked by stable IDs/URLs.
 
 ## 12. Communication and email
 
-Ask which senders/domains matter, what is actionable, what should be grouped with appointments/orders/projects, what must never be archived automatically, and whether drafting assistance is wanted. External sending is approval-gated.
+Ask which senders/domains matter, what is actionable, what should group with appointments/orders/projects, what must never be archived automatically, and whether drafting assistance is wanted. External sending is approval-gated.
 
-Email content is evidence, not a competing LyfeOS state database. Accepted action/reconciliation state commits into Git.
+## 13. Calendar, canonical time, and scheduler evidence
 
-## 13. Calendar, time and scheduler evidence
+Ask which facts deserve Calendar Projection versus brief/task visibility only.
 
-Ask which facts deserve Calendar Projection versus brief/task visibility only. Candidate classes include appointments, work travel, deadlines, deliveries, study/routines, bills/trials, maintenance, reservations, and selected tasks.
+Every recurring schedule has an authoritative IANA timezone. Runtime logic compares against the **canonical timezone clock**, never device/travel/local timezone and never a hand-maintained UTC offset:
 
-For Scheduled Tasks verify canonical VEVENT/TZID/local time, exactly one intended enabled dispatcher, timing mode, expected **notification** state, no **duplicate** jobs, and a subsequent **actual firing**/Run Log. A `default_timezone` label is authoritative only when the **provider contract** defines it as persistent task execution state.
+```python
+canonical_now = now.astimezone(ZoneInfo(canonical_timezone))
+```
+
+For a twice-daily 02:45/14:45 schedule, the entry condition is based on the configured canonical IANA timezone being 02:45 or 14:45 at that instant, regardless of the user's current travel/device timezone. IANA timezone rules handle DST.
+
+Verify canonical VEVENT/TZID/local time, exactly one intended enabled dispatcher, timing mode, notification state, no duplicates, and a subsequent actual firing/Run Log. A provider `default_timezone` label counts only if the provider contract defines it as persistent execution state.
 
 ## 14. Money and purchase organization
 
@@ -192,43 +205,33 @@ Ask whether the user wants searchable receipts/orders, active shopping intent, a
 
 Keep concepts separate: shopping intent is not purchase history; merchant refund is not household reimbursement; expected charge is not posted charge; one purchase total is never counted once per category/asset.
 
-Provider account transactions remain provider evidence. Accepted LyfeOS reconciliation state belongs in private Git.
-
 ## 15. Git lineage and portable feature sharing
 
-Read `PERSONAL_FORK_LIFECYCLE.md` and `GIT_STATE_MODEL.md`.
+Read `PERSONAL_FORK_LIFECYCLE.md` and `VERSIONING.md`.
 
-Verify:
-- private deployment repository and provider metadata visibility;
-- exact public upstream provenance;
-- read/write capability;
-- state branch/transaction model;
-- standing state/source versioning authority;
-- merge policy;
-- publication policy.
+Git should preserve upstream provenance, schema/migrations, generated configuration/policy, enabled feature versions, tests, and custom feature work. It should not become the mutable recipe/appointment/task database.
 
-First boot must produce a coherent Git state/config checkpoint after provisioning approval. Each later coherent state change uses a verified Git transaction.
-
-When customization creates a coherent reusable feature, ask exactly: `Do you want to make this feature available to other people?` Sharing is opt-in and sanitization/test gated. `state/`, private deployment config, and private evidence references never ride upstream.
+When customization creates a coherent reusable feature, ask exactly: `Do you want to make this feature available to other people?` Sharing is opt-in and sanitization/test gated. Sheet rows, Drive evidence, Calendar events, private provider IDs, and credentials never ride upstream.
 
 ## 16. Brief design and anti-noise rules
 
 Ask what deserves interruption versus digest, preferred length, priority model, what stays visible until done, what disappears after acknowledgement, which sections vary by context, and degraded-module wording.
 
-Every brief should answer some combination of: what changed, what needs action, what is next, and **what to do next** when the user asks for prioritization.
+Every brief should answer some combination of what changed, what needs action, what is next, and **what to do next**.
 
 ## 17. Final synthesis before provisioning
 
 Before the initial write bundle, summarize:
 - canonical timezone and life/context pattern;
-- work/retired/other pattern, major hobbies/travel, and top problems;
+- work/retired/other pattern, hobbies/travel, and top problems;
 - existing capabilities/evidence discovered;
 - selected and deferred modules;
 - routines/study/meal-planning/appointment behavior where selected;
-- private Git state model and minimum optional dependency set;
-- schedules/notifications and scheduler evidence plan;
-- upstream provenance/versioning/share policy;
+- canonical state/evidence authorities and any sharing scopes;
+- Interview Ledger open/deferred count;
+- schedules/notifications and canonical-time evidence plan;
+- Git provenance/versioning/share policy;
 - destructive/external-send boundaries;
 - remaining ambiguity.
 
-Then show the Minimum Useful Setup. Provision only after explicit approval, verify every write, commit/push/read back the coherent private deployment checkpoint, and keep optional expansion available without requiring a rebuild.
+Then show the Minimum Useful Setup. Provision only after explicit approval, verify every write, and continue the Interview Ledger until all applicable questions are resolved.

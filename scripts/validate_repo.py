@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate coherent LyfeOS public-release, starter, and reference-deployment contracts."""
+"""Validate coherent LyfeOS public-release, starter, and reference contracts."""
 
 from __future__ import annotations
 
@@ -21,6 +21,7 @@ REQUIRED = (
     "starter/README.md", "starter/START_HERE.md", "starter/LIFE_INTERVIEW.md",
     "starter/MODULE_CATALOG.md", "starter/DEPENDENCIES.md", "starter/VERSIONING.md",
     "starter/PERSONAL_FORK_LIFECYCLE.md", "starter/CAPABILITY_DISCOVERY.md",
+    "starter/STATE_AUTHORITY_MODEL.md", "starter/INTERVIEW_LEDGER.md",
     "starter/GIT_STATE_MODEL.md", "starter/SHARED_FEATURE_WORKFLOW.md",
     "starter/config.example.json", "starter/questions.json", "starter/INSTRUCTIONS.md.tmpl",
     "starter/features/meal-planning/feature.json", "starter/features/meal-planning/FEATURE.md",
@@ -45,6 +46,7 @@ REQUIRED = (
     "scripts/import_run_sheet.py", "scripts/audit_public_source.py",
     "scripts/audit_starter_privacy.py", "privacy/starter-blocklist.txt",
 )
+
 MAX_PROJECT_INSTRUCTIONS_CHARS = 3_000
 MAX_START_HERE_CHARS = 12_000
 
@@ -121,7 +123,9 @@ def validate(root: Path) -> list[str]:
     versioning = text("starter/VERSIONING.md")
     lifecycle = text("starter/PERSONAL_FORK_LIFECYCLE.md")
     discovery = text("starter/CAPABILITY_DISCOVERY.md")
-    git_state = text("starter/GIT_STATE_MODEL.md")
+    state_model = text("starter/STATE_AUTHORITY_MODEL.md")
+    interview_ledger = text("starter/INTERVIEW_LEDGER.md")
+    git_state_redirect = text("starter/GIT_STATE_MODEL.md")
     shared = text("starter/SHARED_FEATURE_WORKFLOW.md")
     generic = text("starter/INSTRUCTIONS.md.tmpl")
     meal_feature = text("starter/features/meal-planning/FEATURE.md")
@@ -129,7 +133,7 @@ def validate(root: Path) -> list[str]:
     importer = text("scripts/import_run_sheet.py")
     public_audit = text("scripts/audit_public_source.py")
 
-    # Reference bootstrap/fingerprint remain untouched by starter architecture.
+    # Stable reference bootstrap and content-sensitive policy fingerprint.
     require(len(project) <= MAX_PROJECT_INSTRUCTIONS_CHARS, f"project contract exceeds {MAX_PROJECT_INSTRUCTIONS_CHARS} characters: {len(project)}", errors)
     for term in (
         "BOOTSTRAP_CONTRACT_VERSION: 2", "project/POLICY_FINGERPRINT.txt",
@@ -145,38 +149,79 @@ def validate(root: Path) -> list[str]:
         expected = compute(root / "skill/ops-brief-policy")
         require(fingerprint == expected, f"policy fingerprint mismatch: expected {expected}", errors)
 
-    # Public upstream vs private Git-native starter vs reference-deployment exception.
-    require(all_terms(readme, "intentionally public", "starter/start_here.md", "private git", "mutable operational state", "reference deployment", "public-source audit"), "README lacks explicit upstream/starter/reference state boundaries", errors)
-    require(all_terms(starter_readme, "private personal git", "public upstream", "git state", "reference implementation"), "starter README lacks private Git-state/public-upstream contract", errors)
-    require(all_terms(git_state, "canonical personal state authority", "private", "event files are immutable", "snapshot", "push by fast-forward only", "read back", "never force-push", "state/"), "Git state model is incomplete", errors)
-    require(all_terms(versioning, "private personal-lineage path", "public github fork path", "code only", "clean portable-snapshot path", "state transaction"), "starter versioning lacks safe lineage/state paths", errors)
-    require(all_terms(lifecycle, "canonical source of truth", "personal state", "private", "first-boot state/config checkpoint", "fast-forward only"), "personal fork lifecycle is not Git-state authoritative", errors)
-    require(all_terms(shared, "public upstream", "private user deployment", "state/", "synthetic fixtures", "publication authority"), "shared feature workflow does not isolate private state", errors)
-    require(all_terms(discovery, "private deployment git", "optional evidence adapter", "one canonical personal-state authority: private git"), "capability discovery does not treat providers as adapters around Git", errors)
-    require(all_terms(deps, "private git", "canonical personal-state authority", "provider metadata", "public-source", "fast-forward only"), "starter dependencies lack Git-state/privacy contract", errors)
-    require(all_terms(generic, "canonical personal state", "private deployment repository", "provider metadata", "state/", "fast-forward only"), "starter template cannot represent Git-native personal state", errors)
+    # Public upstream and starter source/state boundary.
+    require(all_terms(readme, "intentionally public", "starter/start_here.md", "google sheets", "google drive", "mutable operational state", "public-source audit"), "README lacks public-upstream/external-state boundary", errors)
+    require(all_terms(starter_readme, "google sheets", "google drive", "interview ledger", "git", "mutable personal records"), "starter README lacks source/state/interview boundary", errors)
+    require(all_terms(state_model, "google sheets", "google drive", "authority registry", "one canonical authority", "sharing state and sharing a feature are different operations"), "starter state authority model is incomplete", errors)
+    require(all_terms(git_state_redirect, "git is not the default mutable personal-state database", "state_authority_model.md", "google sheets", "google drive"), "legacy Git-state document does not redirect to current authority model", errors)
+    require(all_terms(versioning, "routine mutable state changes do not create git commits", "google sheets", "google drive", "feature/*"), "starter versioning conflates source and mutable state", errors)
+    require(all_terms(lifecycle, "routine state changes happen in the canonical mutable authority, not git", "authority registry", "interview ledger", "google sheets"), "personal lifecycle lacks external-state contract", errors)
+    require(all_terms(shared, "structured state authority", "drive/evidence authority", "synthetic fixtures", "publication authority"), "shared feature workflow blurs portable source and live state", errors)
+    require(all_terms(discovery, "google sheets", "drive", "connected apps/tools/connectors", "available plugins/apps", "one canonical structured authority per mutable data class"), "capability discovery lacks external-authority model", errors)
+    require(all_terms(deps, "google sheets", "google drive", "structured mutable state authority", "provider contract", "canonical-clock"), "starter dependencies lack authority/scheduler contract", errors)
+    require(all_terms(generic, "structured mutable state", "interview ledger", "google sheets", "google drive", "iana timezone"), "starter template lacks external-state/interview/canonical-time contract", errors)
     require("{{REPOSITORY_VISIBILITY}}" in generic, "starter template lacks REPOSITORY_VISIBILITY", errors)
 
     config = load_json("starter/config.example.json")
-    require(config.get("TIMEZONE") == "REQUIRED_IANA_TIMEZONE", "starter config ships a production timezone", errors)
-    require(config.get("STATE_STORE") == "PRIVATE_GIT_REPOSITORY/state", "starter config does not make Git state canonical", errors)
-    require(config.get("REPOSITORY_VISIBILITY") == "PRIVATE_REQUIRED_WHEN_PERSONAL_STATE_IS_ENABLED", "starter config does not protect personal Git state", errors)
-    require(config.get("GIT_STATE_MODEL") == "IMMUTABLE_EVENTS_PLUS_DERIVED_SNAPSHOTS", "starter config lacks event/snapshot state model", errors)
-    require("02:45" not in json.dumps(config) and "14:45" not in json.dumps(config), "starter config ships reference schedule times", errors)
     require(isinstance(config, dict) and all(isinstance(k, str) and k.isupper() for k in config), "starter config keys must be uppercase", errors)
+    require(config.get("TIMEZONE") == "REQUIRED_IANA_TIMEZONE", "starter config ships a production timezone", errors)
+    require(config.get("STATE_STORE") == "GOOGLE_SHEETS_DEFAULT_OR_SUPPORTED_DATABASE", "starter config does not default mutable state to Sheets/supported DB", errors)
+    require(config.get("AUTHORITY_REGISTRY") == "REQUIRED_IN_STRUCTURED_STATE_STORE", "starter config lacks Authority Registry", errors)
+    require(config.get("INTERVIEW_LEDGER") == "REQUIRED_IN_STRUCTURED_STATE_STORE", "starter config lacks Interview Ledger", errors)
+    require(config.get("CANONICAL_CLOCK_POLICY") == "IANA_TIMEZONE_CONVERSION_NEVER_DEVICE_TIME_OR_STATIC_OFFSET", "starter config lacks canonical-clock policy", errors)
+    require("PRIVATE_GIT_REPOSITORY/state" not in json.dumps(config), "starter config still uses Git as mutable state store", errors)
+    require("02:45" not in json.dumps(config) and "14:45" not in json.dumps(config), "starter config ships reference schedule times", errors)
     template_tokens = set(re.findall(r"\{\{([A-Z0-9_]+)\}\}", generic))
     require(template_tokens <= set(config), "starter config does not cover template tokens", errors)
 
+    # Durable fail-forward interview coverage.
+    require(all_terms(interview_ledger, "unresolved", "asked", "answered", "resolved from evidence", "not applicable", "deferred"), "Interview Ledger lacks status model", errors)
+    require(all_terms(interview_ledger, "answer the user's immediate request normally", "end with", "question-bank upgrades", "every question"), "Interview Ledger lacks fail-forward/upgrade behavior", errors)
+    require("Preferences and consent are not silently inferred" in interview_ledger, "Interview Ledger permits inferred consent", errors)
+
+    questions = load_json("starter/questions.json")
+    rows = [q for section in questions.get("sections", []) if isinstance(section, dict) for q in section.get("questions", []) if isinstance(q, dict)]
+    ids = [q.get("id") for q in rows]
+    require(isinstance(questions, dict) and int(questions.get("version", 0)) >= 6, "starter questionnaire version is stale", errors)
+    require(len(rows) >= 100 and len(ids) == len(set(ids)), "starter questionnaire lacks depth or has duplicate IDs", errors)
+    for qid in (
+        "works_away_from_home", "accountability_domains", "routine_progression",
+        "education_active", "study_home_away", "study_next_action_rule",
+        "scheduler_timezone_integrity", "repository_visibility", "public_source_policy",
+        "employment_status", "retired_support", "hiking_outdoors", "vacation_planning",
+        "meal_planning_help", "existing_meal_plans", "fitness_wearable",
+        "medical_event_tracking", "appointment_email_auto_update", "git_state_commit_policy",
+        "canonical_clock_guard", "authority_registry", "interview_ledger",
+        "interview_resume_policy", "shared_authority", "appointment_provider_type_research",
+        "appointment_reminder_day_before", "appointment_reminder_morning_of",
+        "appointment_reminder_relative",
+    ):
+        require(qid in ids, f"starter questionnaire lacks field: {qid}", errors)
+
+    require(len(start) < MAX_START_HERE_CHARS, f"START_HERE exceeds {MAX_START_HERE_CHARS} characters: {len(start)}", errors)
+    for term in (
+        "non-technical user", "Minimum Useful Setup", "Start now by asking only the four kickoff questions",
+        "mark HOME/ROAD bypassed", "Driving/trucking", "active shopping list",
+        "partial cancellation", "true replacement", "Calendar Projection", "immutable UUID",
+        "Awaiting Settlement", "Pants Filling With Shit Report", "Do you want me to send this email?",
+        "old chats are deleted", "automatically update validation, commit, and push",
+        "Interview Ledger", "Google Sheets", "Google Drive", "Do you want help with meal planning?",
+        "ZoneInfo", "provider type", "morning-of", "one hour before",
+    ):
+        require(term.lower() in start.lower(), f"START_HERE lacks behavior: {term}", errors)
+    require(all_terms(interview, "Do you regularly work away from home", "minimum viable version", "home versus away/on the road", "Exercise / fitness", "School / study", "what to do next", "conversation detour"), "whole-life interview incomplete", errors)
+
+    # Portable feature state boundaries.
     meal_manifest = load_json("starter/features/meal-planning/feature.json")
     appointment_manifest = load_json("starter/features/appointment-reconciliation/feature.json")
     for name, manifest in (("meal planning", meal_manifest), ("appointment reconciliation", appointment_manifest)):
         boundary = manifest.get("data_boundary", {}) if isinstance(manifest, dict) else {}
         require(boundary.get("source_contains_personal_data") is False, f"{name} portable source contains personal data", errors)
-        require(boundary.get("runtime_state") == "deployment-local", f"{name} does not declare deployment-local Git state", errors)
-    require(all_terms(meal_feature, "private git", "do you want help with meal planning?", "shopping intent is not purchase history", "commit"), "meal planning feature lacks Git-backed state/import contract", errors)
-    require(all_terms(appointment_feature, "private git", "read the calendar event back", "read the git state back", "event id", "reminder", "source linkage"), "appointment feature lacks provider+Git verification transaction", errors)
+        require(boundary.get("runtime_state") == "external-authority", f"{name} does not declare external authority runtime state", errors)
+    require(all_terms(meal_feature, "google sheets", "drive", "do you want help with meal planning?", "shopping intent is not purchase history", "readback"), "meal planning feature lacks external-state/import contract", errors)
+    require(all_terms(appointment_feature, "official clinic/provider pages", "cardiology", "morning-of", "60 minutes before", "iana timezone", "read the calendar event back", "canonical state back"), "appointment feature lacks provider/reminder/readback contract", errors)
 
-    # Public upstream release gates.
+    # Public release gates.
     require("MIT License" in license_text and "Permission is hereby granted" in license_text, "public source lacks MIT reuse permission", errors)
     for pattern in (".env", "config.local.json", "*.sqlite"):
         require(pattern in gitignore, f".gitignore lacks safety pattern: {pattern}", errors)
@@ -189,7 +234,7 @@ def validate(root: Path) -> list[str]:
     ):
         require(term in ci, f"CI release gate lacks: {term}", errors)
 
-    # Scheduler evidence: reference and starter both require definition/readback/notification/dedupe/observed execution.
+    # Scheduler evidence chain plus runtime IANA clock.
     scheduler_surfaces = {
         "skill": skill, "maintenance": maintenance, "automation docs": automation,
         "starter dependencies": deps, "starter first boot": start,
@@ -199,12 +244,16 @@ def validate(root: Path) -> list[str]:
         require(all_terms(surface, "notification", "duplicate", "canonical"), f"{label} lacks scheduler readback evidence", errors)
         require(any_term(surface, "actual firing", "actual scheduled firing", "observed firing", "observed execution"), f"{label} lacks observed scheduler execution evidence", errors)
         require(any_term(surface, "provider contract", "provider/tool contract"), f"{label} does not condition provider metadata on documented semantics", errors)
+        require("iana" in surface.lower(), f"{label} lacks IANA canonical-time semantics", errors)
+    require(all_terms(runtime, "ZoneInfo", "canonical_slot_evidence", "America/New_York", "slot-check"), "runtime lacks canonical IANA slot guard", errors)
+    require(all_terms(brief, "slot-check", "canonical runtime clock gate", "12:45:00-06:00", "Before Gmail"), "brief run does not enforce canonical slot before downstream work", errors)
+    require(all_terms(maintenance, "12:45-06:00", "14:45-04:00", "iana", "static utc offset"), "state maintenance lacks travel/DST canonical-clock proof", errors)
     require("default_timezone" in skill and "default_timezone" in automation and "default_timezone" in deps, "scheduler policy does not neutralize ambiguous default_timezone metadata", errors)
     require(all_terms(skill, "first external", "`Running`", "Run Log"), "skill does not require early Run Log entry", errors)
-    require(all_terms(brief, "Before Gmail", "`Running`", "Run Log"), "brief workflow does not enter Run Log before downstream work", errors)
+    require(all_terms(brief, "`Running`", "Run Log"), "brief workflow does not enter Run Log before downstream work", errors)
     require(all_terms(pants, "subsequent actual run/Run Log timestamp"), "failure policy cannot prove scheduler recovery", errors)
 
-    # Reference-deployment invariants remain unchanged.
+    # Reference deployment invariants.
     require(all_terms(skill, "Keep mutable operational state in canonical Sheets", "retained files/evidence in canonical Drive"), "reference skill lost Sheets/Drive state authority", errors)
     require(all_terms(skill, "paid terminal mileage", "symmetric", "explicit", "exception"), "skill lacks symmetric paid-mile policy", errors)
     require(all_terms(maintenance, "same paid-mile value", "both", "unless"), "state maintenance lacks symmetric paid-mile upsert", errors)
@@ -216,7 +265,7 @@ def validate(root: Path) -> list[str]:
     require(all_terms(skill, "Retry is not mandatory", "Pants Filling With Shit Report", "never create hidden retry jobs"), "skill lacks bounded failure policy", errors)
     require(all_terms(pants, "same external operation fails twice", "Stop writes for the affected module", "Continue unrelated modules", "never blind-rerun"), "Pants policy is not module-scoped/fail-fast", errors)
 
-    # Purchase/evidence/identity/finance/communication reference contracts.
+    # Purchase, evidence, identity, finance, and communication contracts.
     require(all_terms(receipt, "active shopping list", "remove the fulfilled shopping row", "explicit owner statement", "separate reconciliation task", "cancellation with no supported replacement"), "receipt/shopping contract incomplete", errors)
     require(all_terms(fitment, "Investigation before queue", "Unique resolution may be established by exclusion", "card last-four"), "fitment evidence contract incomplete", errors)
     require(all_terms(photo, "UPC/EAN/GTIN", "chat-local shadow receipt database"), "photo intake contract incomplete", errors)
@@ -238,36 +287,9 @@ def validate(root: Path) -> list[str]:
     require("TERMINAL_ALIASES" in importer and '"I4C": "IRC"' in importer, "run-sheet importer lacks proven alias normalization", errors)
     require("route_pair_count" in importer and '"occurrences"' not in importer, "run-sheet importer exports occurrence rows", errors)
 
-    # Starter must be bounded, adaptive, deep, and discovery-driven.
-    questions = load_json("starter/questions.json")
-    rows = [q for section in questions.get("sections", []) if isinstance(section, dict) for q in section.get("questions", []) if isinstance(q, dict)]
-    ids = [q.get("id") for q in rows]
-    require(isinstance(questions, dict) and int(questions.get("version", 0)) >= 5, "starter questionnaire version is stale", errors)
-    require(len(rows) >= 100 and len(ids) == len(set(ids)), "starter questionnaire lacks depth or has duplicate IDs", errors)
-    for qid in (
-        "works_away_from_home", "accountability_domains", "routine_progression",
-        "education_active", "study_home_away", "study_next_action_rule",
-        "scheduler_timezone_integrity", "repository_visibility", "public_source_policy",
-        "employment_status", "retired_support", "hiking_outdoors", "vacation_planning",
-        "meal_planning_help", "existing_meal_plans", "fitness_wearable",
-        "medical_event_tracking", "appointment_email_auto_update", "git_state_commit_policy",
-    ):
-        require(qid in ids, f"starter questionnaire lacks field: {qid}", errors)
-    require(len(start) < MAX_START_HERE_CHARS, f"START_HERE exceeds {MAX_START_HERE_CHARS} characters: {len(start)}", errors)
-    for term in (
-        "non-technical user", "Minimum Useful Setup", "Start now by asking only the four kickoff questions",
-        "mark HOME/ROAD bypassed", "Driving/trucking", "active shopping list",
-        "partial cancellation", "true replacement", "Calendar Projection", "immutable UUID",
-        "Awaiting Settlement", "Pants Filling With Shit Report", "Do you want me to send this email?",
-        "old chats are deleted", "Do you want help with meal planning?", "private Git",
-        "automatically validates, commits, pushes",
-    ):
-        require(term.lower() in start.lower(), f"START_HERE lacks behavior: {term}", errors)
-    require(all_terms(interview, "Do you regularly work away from home", "minimum viable version", "home versus away/on the road", "Exercise / fitness", "School / study", "what to do next", "retired", "Do you want help with meal planning?", "private Git"), "whole-life interview incomplete", errors)
-
-    # Portable starter must not leak current reference deployment markers.
+    # Starter privacy contamination blocklist.
     markers = [line.strip() for line in text("privacy/starter-blocklist.txt").splitlines() if line.strip() and not line.lstrip().startswith("#")]
-    starter_surface = "\n".join((start, interview, catalog, deps, starter_readme, versioning, lifecycle, discovery, git_state, shared, generic, json.dumps(questions)))
+    starter_surface = "\n".join((start, interview, catalog, deps, starter_readme, versioning, lifecycle, discovery, state_model, interview_ledger, shared, generic, json.dumps(questions)))
     for marker in markers:
         require(marker not in starter_surface, f"portable starter leaks reference marker: {marker}", errors)
 
