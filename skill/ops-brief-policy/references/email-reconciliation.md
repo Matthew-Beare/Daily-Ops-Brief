@@ -4,15 +4,27 @@ Load this reference completely for order mail, active shipments, Gmail filing, a
 
 ## Authoritative state
 
-- `Shipments!A1:N500` in the Ops Status Register is the active fulfillment queue, not purchase history.
-- `Order Events!A1:Q1000` in the Purchase & Receipt Archive is append-only lifecycle history. `Classification Queue!A1:L500` is unresolved purchase input.
-- Keep one active row per fulfillment/tracking number. Split packages may create multiple rows for one order.
-- Gmail is evidence and a searchable archive, but canonical order/tracking state lives in Sheets/Drive. Never make Gmail folder residence the only record of a lifecycle fact.
+- `Order Events!A1:Q1000` in the Purchase & Receipt Archive is the canonical append-only lifecycle history. `Classification Queue!A1:L500` is unresolved purchase input.
+- `Shipments!A1:N500` in the Ops Status Register is the active fulfillment **projection/working queue**, not purchase history. It is derived from current supported fulfillment state and may temporarily be `Degraded/Pending` if Ops is unavailable while canonical commerce history remains valid.
+- Keep one active shipment row per fulfillment/tracking number. Split packages may create multiple rows for one order.
+- Gmail is evidence and a searchable archive, but canonical order/tracking history lives in Sheets/Drive. Never make Gmail folder residence the only record of a lifecycle fact.
+- Stable Receipt ID/order/tracking/package identities are the reconciliation keys between commerce history, active shipment projection, and Gmail evidence.
+
+## Failure-domain boundary
+
+Commerce lifecycle history and the active Ops shipment queue are separate authority boundaries.
+
+- Commit/read back a supported lifecycle event in the Purchase & Receipt Archive **before** applying its corresponding `Shipments` projection.
+- If the commerce event cannot be committed, do not mutate the shipment projection from that event.
+- If the lifecycle event commits but the Ops shipment projection fails/unavailable, preserve the canonical event, mark only shipment projection `Degraded/Pending`, and reconcile the target later from current canonical events plus current target state.
+- Never delete/rewrite/replay a canonical Order Event merely to retry `Shipments`.
+- Gmail labels/archive are downstream filing projections. Apply them only after the canonical event/state needed to survive message archival is verified. A Gmail filing failure does not invalidate already-committed Sheets/Drive state.
+- Do not create a shadow shipment database or hidden retry automation.
 
 ## Read and match evidence
 
-1. Read the active queue before searching Gmail.
-2. Search new material since the previous successful lifecycle pass, plus exact order/tracking searches for every active fulfillment.
+1. Read the active queue when reachable before searching Gmail; if Ops is unavailable, continue commerce-history/Gmail evidence work that does not require a shipment projection and report the projection dependency degraded.
+2. Search new material since the previous successful lifecycle pass, plus exact order/tracking searches for every reachable active fulfillment.
 3. Inspect USPS, FedEx, UPS, DHL and vendor mail as applicable, but read every materially relevant message/thread in full before final state.
 4. Normalize evidence using vendor, order number, Receipt ID when known, item, carrier, tracking/package, event time, observed time, ETA, and source.
 5. For cancellation evidence include scope, removed/surviving items, original/revised total, and financial facts actually stated. For replacements include both merchant order numbers, both Receipt IDs when resolved, replacement group and cancellation state.
@@ -23,9 +35,11 @@ Load this reference completely for order mail, active shipments, Gmail filing, a
 
 - Reconcile same-merchant-order revisions before shipment or payment matching. The strongest current revision under the same merchant order remains one Receipt ID and becomes the expected settlement source.
 - `Cancellation Requested` and `Partial Cancellation Requested` are non-terminal until authoritative evidence establishes the fulfillment/financial result.
-- A confirmed full cancellation removes matching active fulfillment after the durable event is appended. A confirmed partial cancellation rewrites active fulfillment to only the surviving supported item(s).
+- A confirmed full cancellation appends/verifies the canonical event first, then removes matching active fulfillment from the Ops projection when reachable.
+- A confirmed partial cancellation commits the canonical surviving/cancelled state first, then rewrites active fulfillment to only the surviving supported item(s) when the target is reachable.
 - Cancellation, return and refund accounting is committed through receipt/payment policy; shipment logic never invents totals, tax, fees or refunds.
 - A true replacement with a different merchant order/transaction gets a different Receipt ID and reciprocal relationship events. Never mutate the original into the replacement.
+- Projection failure after a canonical cancellation/replacement event leaves only the active shipment projection stale/degraded; it does not undo the commerce event.
 
 ## Evidence precedence
 
@@ -52,22 +66,23 @@ Use/create these labels as applicable:
 - `Shopping/Needs Classification`
 - `Ops/Archive Approval`
 
-For every verified order with a merchant order number, create/use an order-history label `Orders/History/<vendor-slug>/<order-number>`. If the merchant order number is unavailable or unsafe as a Gmail label component, use `Orders/History/<Receipt-ID>`. Apply the same order-history label to the merchant confirmation/invoice, shipment notices, delivery messages and correlated carrier messages. This is the Gmail folder-like grouping layer; the Sheet remains authoritative.
+For every verified order with a merchant order number, create/use an order-history label `Orders/History/<vendor-slug>/<order-number>`. If the merchant order number is unavailable or unsafe as a Gmail label component, use `Orders/History/<Receipt-ID>`. Apply the same order-history label to the merchant confirmation/invoice, shipment notices, delivery messages and correlated carrier messages. This is the Gmail folder-like grouping layer; canonical Sheets/Drive state remains authoritative.
 
 For an active order:
 
 - use `Orders/Awaiting Shipment` until credible shipment evidence and `Orders/Shipped` afterward;
 - remove the opposite active label;
 - apply `Orders/History` plus the specific order-history label;
-- archive routine confirmation/progress mail only after canonical state is committed.
+- archive routine confirmation/progress mail only after the canonical commerce state needed to reconstruct the active shipment projection is committed/read back.
 
 For a delivered order:
 
-- append/verify Delivered in `Order Events`, remove active `Shipments`, and report delivery once;
+- append/verify Delivered in `Order Events` first;
+- reconcile removal from active `Shipments` when Ops is reachable and report delivery once from durable event history;
 - apply `Receipts` and the narrow receipt category where appropriate;
 - apply `Orders/History` plus the specific order-history label to all correlated merchant/carrier evidence;
 - remove active order labels;
-- archive routine correlated mail after the Audit gate passes;
+- archive routine correlated mail after the canonical receipt/order Audit gate passes. If shipment projection is still degraded and the message contains the only evidence needed to resolve that projection, retain it until reconciliation; otherwise the canonical event/source IDs are sufficient for later projection repair;
 - additionally label carrier-originated FedEx/UPS/DHL/USPS tracking/progress/delivery messages `Orders/Carrier Retention/90d` so they can be purged later without touching merchant evidence.
 
 Never place a merchant order confirmation, invoice/receipt, cancellation/refund notice, warranty/support message, payment evidence, user correspondence, or mixed merchant/carrier thread in the carrier-purge class merely because it mentions tracking.
@@ -100,18 +115,19 @@ Any carrier not named above remains retention-only unless the user later extends
 
 Before any proposed vendor reply/contact, load `vendor-contact.md`: inspect From/Reply-To/body/footer for no-reply or unmonitored instructions, research a current official contact path when needed, and show recipient/channel + subject + complete draft followed by `Do you want me to send this email?`. Never send automatically.
 
-## Transaction order
+## Source-first transaction order
 
-1. build normalized evidence from complete messages and live canonical state;
-2. reconcile revisions/cancellations/replacements;
-3. mutate `Shipments` and append durable `Order Events`;
-4. reconcile receipt/payment/allocation/asset side effects as required;
-5. rebuild/verify the Audit gate;
-6. apply Gmail labels/order-history filing and archive routine evidence;
-7. run the bounded 90-day carrier-purge check;
-8. re-read active state and report only meaningful changes/actions.
+1. build normalized evidence from complete messages and live reachable canonical state;
+2. reconcile revisions/cancellations/replacements and determine the desired canonical lifecycle event(s);
+3. append/update/read back canonical Purchase & Receipt Archive state first, including receipt/payment/allocation facts required by the event;
+4. reconcile the Ops `Shipments` projection from canonical commerce state when reachable, then read the target back. If it fails, preserve commerce state and mark only shipment projection `Degraded/Pending`;
+5. reconcile other declared receipt/asset/shopping projections independently under their own policies;
+6. rebuild/verify the canonical receipt/order Audit gate and record projection-health exceptions separately from core purchase integrity;
+7. apply Gmail labels/order-history filing and archive routine evidence only after enough canonical state exists to survive archival;
+8. run the bounded 90-day carrier-purge check;
+9. re-read reachable active state and report only meaningful changes/actions.
 
-A required Sheet/Gmail mutation failure makes the affected lifecycle transaction incomplete. Do not claim success from a partially updated layer.
+A required mutation failure is scoped to the authority/module it belongs to. Canonical commerce failure blocks the commerce lifecycle mutation. A shipment projection failure does not roll back commerce. Gmail filing failure leaves already-verified canonical state intact and leaves filing pending. Never claim a failed projection succeeded, and never use cross-authority rollback as compensation.
 
 ## Excluded scope
 
