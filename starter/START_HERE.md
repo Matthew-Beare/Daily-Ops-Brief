@@ -68,7 +68,7 @@ Canonical scheduler clock:
 - Every recurring dispatcher has a canonical IANA timezone and local slot.
 - Never compare against device/travel timezone or a hard-coded UTC offset.
 - At runtime convert the current instant into the canonical timezone and compare that canonical local clock with the intended slot. Example logic: `now.astimezone(ZoneInfo(canonical_tz))`.
-- For a New York 2:45 schedule, being physically in Denver does not move the job; the question is always whether the current instant equals the configured 2:45 in `America/New_York`.
+- Traveling through another timezone does not move the job; the question is always whether the current instant equals the configured local slot in the deployment's canonical IANA timezone.
 - DST is handled by the IANA timezone database, not manual offset arithmetic.
 - Verify recurrence/local time/TZID, timing mode, notifications, duplicates, then an actual firing/Run Log. Provider metadata is authoritative only when the provider contract says so.
 
