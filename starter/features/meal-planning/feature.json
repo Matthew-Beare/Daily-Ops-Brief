@@ -1,7 +1,7 @@
 {
-  "manifest_version": 1,
+  "manifest_version": 2,
   "id": "meal-planning",
-  "version": "0.3.0-beta.1",
+  "version": "0.4.0-beta.1",
   "summary": "Adaptive meal, recipe, leftover and grocery-intent planning using a structured state authority plus optional Drive evidence.",
   "portable": true,
   "compatibility": {"core": ">=0.1.0-beta.1"},
@@ -23,6 +23,21 @@
     "shared_logs_contain_personal_data": false,
     "runtime_state": "external-authority",
     "forbidden_source_data": ["credentials", "private meal history", "mutable shopping exports", "private chat transcripts", "private Drive evidence"]
+  },
+  "runtime_contract": {
+    "failure_domain": "meal-planning",
+    "required_capabilities": ["structured-state-authority"],
+    "optional_capabilities": ["drive-evidence", "shopping-intent", "finance-evidence"],
+    "conditional_capabilities": {
+      "drive-evidence": "required only when the selected recipe/evidence policy stores long bodies or files externally",
+      "shopping-intent": "required only when an accepted meal plan is configured to emit shopping intent",
+      "finance-evidence": "optional cost evidence and never required for basic planning"
+    },
+    "canonical_state_classes": ["recipes", "meal-plans", "pantry-freezer", "shopping-intent"],
+    "idempotency_scope": "canonical recipe ids plus meal-plan horizon and shopping-intent correlation ids",
+    "on_required_failure": "block-module-only",
+    "on_optional_failure": "degrade-capability-and-continue",
+    "cross_module_writes": []
   },
   "config_schema": {
     "type": "object",
