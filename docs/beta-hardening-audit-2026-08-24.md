@@ -118,6 +118,7 @@ The large policy functions remain only where they execute one cohesive reducer o
 - 80/80 repository/bootstrap/import/privacy/fingerprint/metadata tests pass.
 - Python compilation, JSON/YAML parsing, manifest file/dependency validation, whitespace checks, current-tree public-source audit, and starter privacy audit pass.
 - Clean reachable-history privacy audit passes. The legacy repository's 16 historical findings were not imported; weakening the gate remains prohibited.
+- The first clean-`main` CI run correctly failed because checkout exposed twelve legacy remote branches to the deliberate `--all` history scan. Those twelve named refs were then force-repointed to the sanitized release, read back at the expected commit, and the same all-ref history audit passed locally before the follow-up push.
 
 ## Known blockers and non-claims
 
