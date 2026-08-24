@@ -195,7 +195,7 @@ Every recurring schedule has an authoritative IANA timezone. Runtime logic compa
 canonical_now = now.astimezone(ZoneInfo(canonical_timezone))
 ```
 
-For a 2:45 AM/PM New York schedule, the entry condition is based on `America/New_York` being 02:45 or 14:45, regardless of whether the user is currently in Denver, California, Europe, or elsewhere. IANA timezone rules handle DST.
+For a twice-daily 02:45/14:45 schedule, the entry condition is based on the configured canonical IANA timezone being 02:45 or 14:45 at that instant, regardless of the user's current travel/device timezone. IANA timezone rules handle DST.
 
 Verify canonical VEVENT/TZID/local time, exactly one intended enabled dispatcher, timing mode, notification state, no duplicates, and a subsequent actual firing/Run Log. A provider `default_timezone` label counts only if the provider contract defines it as persistent execution state.
 
