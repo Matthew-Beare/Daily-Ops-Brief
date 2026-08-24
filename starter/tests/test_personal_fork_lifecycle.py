@@ -136,6 +136,41 @@ class PersonalForkLifecycleTests(unittest.TestCase):
             self.assertIn(required, ids)
         self.assertGreaterEqual(questions["version"], 5)
 
+    def test_profile_context_and_stock_service_extension_is_installed(self) -> None:
+        guide = self.text("START_HERE.md")
+        profile = self.text("PROFILE_AND_CONTEXT_MODES.md")
+        config = json.loads(self.text("config.example.json"))
+        extension = json.loads(self.text("questions.profile-and-stock-services.json"))
+        extension_ids = {
+            row["id"]
+            for section in extension["sections"]
+            for row in section["questions"]
+        }
+        for required in (
+            "profile_alias",
+            "ai_usage_pattern",
+            "briefs_enabled",
+            "brief_notification_mode",
+            "order_lifecycle_enabled",
+            "order_update_slots",
+            "order_notification_mode",
+            "recipe_library_enabled",
+            "recipe_sources",
+        ):
+            self.assertIn(required, extension_ids)
+        self.assertIn("private mutable profile", profile)
+        self.assertIn("Retired/nonworking profile", profile)
+        self.assertIn("Driver/trucker/courier/delivery", profile)
+        self.assertIn("Stock-provisioned does not mean silently enabled", profile)
+        self.assertIn("how I currently use AI", guide)
+        self.assertIn("stock-provisioned brief/action digest", guide)
+        self.assertEqual(
+            "PER_PERSON_LIFE_PROFILE_WITH_PRIVATE_USER_DEFINED_ALIAS",
+            config["PROFILE_MODEL"],
+        )
+        for key in ("BRIEF_SERVICE", "ORDER_LIFECYCLE_SERVICE", "RECIPE_LIBRARY_SERVICE"):
+            self.assertEqual("STOCK_PROVISIONED_USER_CONFIGURED_OR_DISABLED", config[key])
+
 
 if __name__ == "__main__":
     unittest.main()
