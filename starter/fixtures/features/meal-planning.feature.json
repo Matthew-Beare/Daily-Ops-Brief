@@ -1,5 +1,5 @@
 {
-  "manifest_version": 1,
+  "manifest_version": 2,
   "id": "meal-planning",
   "version": "0.1.0",
   "summary": "Build an adherence-focused meal plan and consolidated grocery list from deployment-local preferences.",
@@ -23,6 +23,17 @@
     "shared_logs_contain_personal_data": false,
     "runtime_state": "deployment-local",
     "forbidden_source_data": ["credentials", "medical records", "employer-protected data", "real personal configuration"]
+  },
+  "runtime_contract": {
+    "failure_domain": "meal-planning",
+    "required_capabilities": ["deployment-local-state"],
+    "optional_capabilities": [],
+    "conditional_capabilities": {},
+    "canonical_state_classes": ["meal-profile", "meal-plan-output"],
+    "idempotency_scope": "fixture meal profile plus planning window",
+    "on_required_failure": "block-module-only",
+    "on_optional_failure": "degrade-capability-and-continue",
+    "cross_module_writes": []
   },
   "config_schema": {
     "type": "object",
