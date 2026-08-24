@@ -15,12 +15,13 @@
     "entrypoints",
     "permissions",
     "data_boundary",
+    "runtime_contract",
     "config_schema",
     "tests"
   ],
   "properties": {
-    "manifest_version": {"const": 1},
-    "id": {"type": "string", "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"},
+    "manifest_version": {"const": 2},
+    "id": {"$ref": "#/$defs/id"},
     "version": {"type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$"},
     "summary": {"type": "string", "minLength": 1, "maxLength": 200},
     "portable": {"const": true},
@@ -32,12 +33,13 @@
     },
     "dependencies": {
       "type": "array",
+      "uniqueItems": true,
       "items": {
         "type": "object",
         "additionalProperties": false,
         "required": ["id", "version_range"],
         "properties": {
-          "id": {"type": "string", "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"},
+          "id": {"$ref": "#/$defs/id"},
           "version_range": {"type": "string", "minLength": 1}
         }
       }
@@ -75,6 +77,40 @@
         "forbidden_source_data": {"allOf": [{"$ref": "#/$defs/stringList"}, {"minItems": 1}]}
       }
     },
+    "runtime_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "failure_domain",
+        "required_capabilities",
+        "optional_capabilities",
+        "conditional_capabilities",
+        "canonical_state_classes",
+        "idempotency_scope",
+        "on_required_failure",
+        "on_optional_failure",
+        "cross_module_writes"
+      ],
+      "properties": {
+        "failure_domain": {"$ref": "#/$defs/id"},
+        "required_capabilities": {"allOf": [{"$ref": "#/$defs/idList"}, {"minItems": 1}]},
+        "optional_capabilities": {"$ref": "#/$defs/idList"},
+        "conditional_capabilities": {
+          "type": "object",
+          "propertyNames": {"$ref": "#/$defs/id"},
+          "additionalProperties": {"type": "string", "minLength": 1}
+        },
+        "canonical_state_classes": {"$ref": "#/$defs/idList"},
+        "idempotency_scope": {"type": "string", "minLength": 1, "maxLength": 160},
+        "on_required_failure": {"const": "block-module-only"},
+        "on_optional_failure": {"const": "degrade-capability-and-continue"},
+        "cross_module_writes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^[a-z][a-z0-9-]*:[a-z][a-z0-9-]*$"}
+        }
+      }
+    },
     "config_schema": {
       "type": "object",
       "required": ["type", "additionalProperties"],
@@ -83,7 +119,9 @@
     "tests": {"allOf": [{"$ref": "#/$defs/pathList"}, {"minItems": 1}]}
   },
   "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"},
     "stringList": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "idList": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
     "pathList": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+$"}}
   }
 }
