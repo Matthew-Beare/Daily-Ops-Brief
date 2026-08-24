@@ -1,4 +1,4 @@
-version: 4.1.0
+version: 4.2.0
 canonical_timezone: America/New_York
 canonical_skill: skill/ops-brief-policy/SKILL.md
 runtime_engine: skill/ops-brief-policy/scripts/ops_policy.py
@@ -10,7 +10,10 @@ compatibility:
 
 control_cycle:
   title: "LyfeOS Control Cycle"
+  delivery_context: "standalone; each run starts from the saved prompt"
   times_et: ["02:45", "14:45"]
+  production_clock_source: "runtime_system_clock; invoke slot-check without --now"
+  output_identity: "first line is deterministic OPS-YYYY-MM-DD-AM|PM Run ID"
   pm_is_morning_brief: true
   phases: ["receipt_order_lifecycle", "pm_qualified_job_watch", "ops_brief"]
   separate_active_dispatchers: false

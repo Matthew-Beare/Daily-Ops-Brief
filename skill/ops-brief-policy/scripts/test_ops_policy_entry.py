@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 
+import contextlib
+import io
 import json
 import subprocess
 import sys
 import unittest
 from pathlib import Path
+from unittest import mock
 
 import ops_policy as runtime
 
@@ -175,6 +178,94 @@ class PolicyEntryRegressionTests(unittest.TestCase):
             runtime.canonical_slot_evidence(denver)["canonical_now"],
             runtime.canonical_slot_evidence(utc)["canonical_now"],
         )
+
+    def test_summer_us_offsets_all_resolve_to_same_eastern_pm_slot(self):
+        equivalent_instants = (
+            "2026-08-24T14:45:00-04:00",
+            "2026-08-24T13:45:00-05:00",
+            "2026-08-24T12:45:00-06:00",
+            "2026-08-24T11:45:00-07:00",
+            "2026-08-24T18:45:00+00:00",
+        )
+        evidence = [
+            runtime.canonical_slot_evidence(runtime.parse_aware_instant(value))
+            for value in equivalent_instants
+        ]
+        self.assertTrue(all(item["entry_allowed"] for item in evidence))
+        self.assertEqual({"14:45"}, {item["canonical_clock"] for item in evidence})
+        self.assertEqual(1, len({item["canonical_now"] for item in evidence}))
+
+    def test_winter_us_offsets_all_resolve_to_same_eastern_pm_slot(self):
+        equivalent_instants = (
+            "2026-12-15T14:45:00-05:00",
+            "2026-12-15T13:45:00-06:00",
+            "2026-12-15T12:45:00-07:00",
+            "2026-12-15T11:45:00-08:00",
+            "2026-12-15T19:45:00+00:00",
+        )
+        evidence = [
+            runtime.canonical_slot_evidence(runtime.parse_aware_instant(value))
+            for value in equivalent_instants
+        ]
+        self.assertTrue(all(item["entry_allowed"] for item in evidence))
+        self.assertEqual({"14:45"}, {item["canonical_clock"] for item in evidence})
+        self.assertEqual(1, len({item["canonical_now"] for item in evidence}))
+
+    def test_live_slot_check_owns_clock_and_waits_out_bounded_early_dispatch(self):
+        moments = iter(
+            (
+                runtime.parse_aware_instant("2026-08-24T18:44:30+00:00"),
+                runtime.parse_aware_instant("2026-08-24T18:45:00+00:00"),
+            )
+        )
+        sleeps = []
+
+        evidence = runtime.live_slot_evidence(
+            clock=lambda: next(moments),
+            sleeper=sleeps.append,
+        )
+
+        self.assertEqual("runtime_system_clock", evidence["clock_source"])
+        self.assertEqual([30], sleeps)
+        self.assertEqual(30, evidence["waited_seconds"])
+        self.assertTrue(evidence["entry_allowed"])
+        self.assertEqual("14:45", evidence["canonical_clock"])
+        self.assertEqual("exact", evidence["state"])
+
+    def test_live_slot_check_does_not_wait_out_unbounded_early_dispatch(self):
+        moment = runtime.parse_aware_instant("2026-08-24T18:43:59+00:00")
+        sleeps = []
+
+        evidence = runtime.live_slot_evidence(
+            clock=lambda: moment,
+            sleeper=sleeps.append,
+        )
+
+        self.assertEqual([], sleeps)
+        self.assertEqual(0, evidence["waited_seconds"])
+        self.assertFalse(evidence["entry_allowed"])
+        self.assertEqual("before_next_slot", evidence["state"])
+
+    def test_slot_check_cli_omits_now_and_uses_live_runtime_clock_path(self):
+        live_result = {
+            "entry_allowed": True,
+            "slot_match": True,
+            "clock_source": "runtime_system_clock",
+            "waited_seconds": 0,
+            "state": "exact",
+        }
+        stdout = io.StringIO()
+        with mock.patch.object(
+            runtime, "live_slot_evidence", return_value=live_result
+        ) as live, contextlib.redirect_stdout(stdout):
+            return_code = runtime.main(["slot-check"])
+
+        self.assertEqual(0, return_code)
+        self.assertEqual(
+            "runtime_system_clock",
+            json.loads(stdout.getvalue())["clock_source"],
+        )
+        live.assert_called_once()
 
     def test_resolve_exposes_canonical_clock_evidence(self):
         payload = base_payload("2026-08-23T12:45:00-06:00")

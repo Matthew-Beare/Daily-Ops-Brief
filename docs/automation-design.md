@@ -1,6 +1,6 @@
 # Automation Design
 
-One recurring control-cycle task dispatches both daily briefs and owns the lifecycle/job phases:
+One standalone recurring control-cycle task dispatches both daily briefs and owns the lifecycle/job phases. Every run starts from the saved prompt rather than returning to a long-lived chat:
 
 ```text
 BEGIN:VEVENT
@@ -9,7 +9,7 @@ RRULE:FREQ=DAILY;BYHOUR=2,14;BYMINUTE=45;BYSECOND=0
 END:VEVENT
 ```
 
-The dispatcher determines AM before local noon and PM at or after local noon. Each run first performs module-isolated receipt/order lifecycle work, the PM run performs the qualified-job scan, and then it renders one brief. This retains two brief deliveries while consuming one active task slot.
+The dispatcher immediately runs the installed `ops_policy.py slot-check` without `--now`; the executable owns the production clock and derives AM/PM from New York time. Each run first performs module-isolated receipt/order lifecycle work, the PM run performs the qualified-job scan, and then it renders one freshly generated brief beginning with the deterministic Run ID. This retains two brief deliveries while consuming one active task slot.
 
 Scheduler verification is an evidence chain. After create/update, verify title, enabled state, recurrence/local time/TZID, timing mode, required notification state, and duplicate count. A field merely named `default_timezone` is not authoritative unless the provider contract explicitly defines it as persistent task execution state. Do not clear a scheduler incident until a subsequent actual firing or canonical Run Log entry lands in the intended New York slot.
 
@@ -17,9 +17,9 @@ Scheduler verification is an evidence chain. After create/update, verify title, 
 
 1. Snapshot the active Ops, lifecycle, and qualified-job jobs, including notification state and last-run metadata.
 2. Verify the Ops Sheets, Gmail, Calendar and scheduler dependencies with harmless reads.
-3. Update one healthy notification-capable legacy job in place to the combined title, prompt and schedule.
+3. Update one healthy notification-capable legacy job in place to the combined title, prompt and schedule unless its long-lived chat anchor is the diagnosed stale-delivery fault; in that case create a standalone replacement.
 4. Re-inspect and verify that job's schedule, timing mode and notification state.
-5. Pause the separate lifecycle and qualified-job jobs only after the surviving dispatcher is verified.
+5. Pause the separate lifecycle and qualified-job jobs—or the contaminated chat-bound dispatcher—only after the standalone surviving dispatcher is verified.
 6. Re-inspect and verify exactly one active canonical `LyfeOS Control Cycle` job.
 7. Require the next actual canonical firing before declaring a prior scheduler incident cleared.
 8. Restore the snapshot if a deterministic mutation/readback fails and rollback can be proven.

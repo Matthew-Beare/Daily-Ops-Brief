@@ -147,6 +147,7 @@ def validate(root: Path) -> list[str]:
         "BOOTSTRAP_CONTRACT_VERSION: 4", "project/POLICY_FINGERPRINT.txt",
         "sole durable source", "LyfeOS Control Cycle",
         "BYHOUR=2,14;BYMINUTE=45;BYSECOND=0", "PM qualified-job watch",
+        "standalone", "without `--now`", "deterministic Run ID",
         "Paid terminal miles are symmetric A↔B", "immutable UUID",
         "Do you want me to send this email?",
     ):
@@ -267,11 +268,12 @@ def validate(root: Path) -> list[str]:
         require(any_term(surface, "actual firing", "actual scheduled firing", "observed firing", "observed execution"), f"{label} lacks observed scheduler execution evidence", errors)
         require(any_term(surface, "provider contract", "provider/tool contract"), f"{label} does not condition provider metadata on documented semantics", errors)
         require("iana" in surface.lower(), f"{label} lacks IANA canonical-time semantics", errors)
-    require(all_terms(runtime, "ZoneInfo", "canonical_slot_evidence", "America/New_York", "slot-check"), "runtime lacks canonical IANA slot guard", errors)
-    require(all_terms(brief, "slot-check", "canonical runtime clock gate", "12:45:00-06:00", "Before Gmail"), "brief run does not enforce canonical slot before downstream work", errors)
+    require(all_terms(runtime, "ZoneInfo", "canonical_slot_evidence", "live_slot_evidence", "runtime_system_clock", "America/New_York", "slot-check"), "runtime lacks owned-clock canonical IANA slot guard", errors)
+    require(all_terms(brief, "slot-check", "without `--now`", "runtime_system_clock", "canonical runtime clock gate", "12:45:00-06:00", "Before Gmail", "deterministic Run ID"), "brief run does not enforce owned-clock slot entry and fresh output identity", errors)
     require(all_terms(maintenance, "12:45-06:00", "14:45-04:00", "iana", "static utc offset"), "state maintenance lacks travel/DST canonical-clock proof", errors)
     require("default_timezone" in skill and "default_timezone" in automation and "default_timezone" in deps, "scheduler policy does not neutralize ambiguous default_timezone metadata", errors)
     require(all_terms(skill, "first external", "`Running`", "Run Log"), "skill does not require early Run Log entry", errors)
+    require(all_terms(skill, "standalone", "runtime_system_clock", "without `--now`", "Never quote", "OPS-YYYY-MM-DD"), "skill lacks stale-delivery and model-clock containment", errors)
     require(all_terms(brief, "`Running`", "Run Log"), "brief workflow does not enter Run Log before downstream work", errors)
     require(all_terms(breaker, "subsequent actual run/Run Log timestamp"), "failure policy cannot prove scheduler recovery", errors)
 
@@ -286,8 +288,8 @@ def validate(root: Path) -> list[str]:
 
     require(all_terms(skill, "Retry is not mandatory", "Module Circuit Breaker Report", "never create hidden retry jobs"), "skill lacks bounded failure policy", errors)
     require(all_terms(breaker, "same external operation fails twice", "Stop writes for the affected module", "Continue unrelated modules", "never blind-rerun"), "module circuit-breaker policy is incomplete", errors)
-    require(all_terms(skill, "Exactly one active `LyfeOS Control Cycle`", "No separate active Ops/lifecycle/job-watch"), "skill lacks single-dispatcher invariant", errors)
-    require(all_terms(cycle, "one user-facing Ops Brief", "PM qualified-job watch", "module isolation", "Job Watch"), "consolidated control-cycle contract is incomplete", errors)
+    require(all_terms(skill, "Exactly one active **standalone** `LyfeOS Control Cycle`", "No separate active Ops/lifecycle/job-watch"), "skill lacks single-dispatcher invariant", errors)
+    require(all_terms(cycle, "one newly generated user-facing Ops Brief", "PM qualified-job watch", "module isolation", "Job Watch"), "consolidated control-cycle contract is incomplete", errors)
     require(all_terms(jobs, "Job Watch Settings", "private deployment state", "max_required_relevant_years", "preferred qualification", "Never apply, reply, contact anyone, send email"), "qualified-job contract is incomplete", errors)
 
     # Purchase, evidence, identity, finance, and communication contracts.

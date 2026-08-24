@@ -4,15 +4,15 @@ Load this reference completely for the single scheduled `LyfeOS Control Cycle`. 
 
 ## Entry and output contract
 
-- The only scheduled entries are 02:45 and 14:45 `America/New_York`, guarded by the normal IANA canonical-clock and bounded-window rules.
+- The only scheduled entries are 02:45 and 14:45 `America/New_York`. The standalone dispatcher immediately runs `scripts/ops_policy.py slot-check` without `--now`; the executable owns the production clock, converts it through the IANA canonical timezone, and absorbs at most the bounded early-dispatch jitter before entry.
 - The first external mutation is the deterministic Ops Run Log upsert to `Running` with Started (ET). Completion updates the same row.
-- Return exactly one user-facing Ops Brief. Lifecycle, job-watch, and module-failure findings are folded into that brief; do not emit separate scheduled notifications.
+- Return exactly one newly generated user-facing Ops Brief beginning with its deterministic `OPS-YYYY-MM-DD-AM|PM` Run ID. Lifecycle, job-watch, and module-failure findings are folded into that brief; do not emit separate scheduled notifications, quote old responses, or reuse chat output.
 - A manual control-cycle run may occur outside the scheduled slot when the owner explicitly requests it.
 - Scheduled runs never inspect or mutate automation definitions.
 
 ## Fixed phase order
 
-1. **Entry:** run the canonical slot guard and upsert the Run Log.
+1. **Entry:** run the live system-clock slot guard with no caller-supplied timestamp and upsert the Run Log.
 2. **Receipt/order lifecycle:** run the applicable email, receipt, classification/fitment, shopping, payment, reimbursement, shipment, evidence, and contact-proposal workflows. Commit/read back canonical commerce state before downstream projections.
 3. **PM qualified-job watch:** only in the PM logical slot, run `qualified-job-watch.md`. The AM slot skips this phase unless canonical state proves the previous PM scan never completed and a bounded catch-up is safe.
 4. **Ops Brief:** run `brief-run.md` from current canonical state and include only meaningful lifecycle/job/failure actions.

@@ -16,6 +16,8 @@ The failure was a stack, not one magic typo:
 | Layer | Evidence-backed cause | Repair |
 | --- | --- | --- |
 | Scheduler | The recurrence/TZID said New York while stored execution metadata named a different timezone. Observed runs shifted by two hours. | Corrected the notification-capable dispatcher in place to `America/New_York`, consolidated the lifecycle and job-watch phases into it, paused active duplicates, and added IANA runtime entry evidence. |
+| Runtime clock handoff | The 2026-08-24 PM task was recorded by the provider at 14:45:29 Eastern, but the agent supplied an earlier timestamp to the policy guard and was rejected before Run Log entry. | Production `slot-check` no longer accepts a model-created timestamp: omitting `--now` makes the executable capture its own UTC clock, wait once for at most 60 seconds of early handoff, and recapture before entry. Explicit `--now` remains diagnostic-only. |
+| Delivery context | The task was bound to a long-lived chat and the client resurfaced an exact 2026-08-22 response instead of today's circuit-breaker result. | Production target is a standalone task whose runs start from the saved prompt. Every fresh brief begins with its deterministic `OPS-YYYY-MM-DD-AM|PM` Run ID and may not quote or reuse old chat output. |
 | Failure isolation | A malformed or unavailable mileage range could abort the whole brief even when mileage was not due. | Mileage is now Thursday-only, section-scoped, and explicitly degraded when due but unavailable. |
 | Deployment drift | The installed skill was older than the repository and routed through a duplicate wrapper that globally coupled optional inputs. | Deleted the wrapper/concurrency patch, made `ops_policy.py` the sole engine, synced the installed private skill, preserved its private locator separately, matched the public fingerprint, reran all 149 skill tests in place, and pushed the private skill commit. |
 | Observability | “No Run Log row” was previously treated as proof that the scheduler never entered, even before the wrongly shifted execution instant. | Scheduled entry now upserts `Running` before downstream mutations and records logical slot, effective instant, delay, DST adjustment, phase, and state. |
@@ -27,8 +29,8 @@ The failure was a stack, not one magic typo:
 | Boundary or failure | Required result | Verification |
 | --- | --- | --- |
 | Exact 02:45/14:45 Eastern entry | Enter once | Slot-engine unit and CLI tests. |
-| Equivalent instant supplied with another offset | Convert through IANA timezone and enter | Cross-offset summer/winter tests. |
-| Up to 60 seconds early | Enter and record negative delay | Early-jitter tests. |
+| Equivalent instant displayed in Eastern/Central/Mountain/Pacific/UTC | Convert through IANA timezone and enter one Eastern slot | Five-offset summer/winter matrix tests. |
+| Up to 60 seconds early | Runtime waits once until the slot, recaptures its own clock, then enters | Owned-clock early-handoff test. |
 | More than 60 seconds early, including one microsecond | Reject as not due | Fractional boundary test. |
 | Up to 15 minutes late | Enter and record delay | Delayed-entry tests. |
 | More than 15 minutes late, including one microsecond | Reject as not due | Fractional boundary and CLI exit-3 tests. |
@@ -107,11 +109,11 @@ The large policy functions remain only where they execute one cohesive reducer o
 - Run Log expanded additively from 13 to 21 columns and read back without losing existing rows;
 - weekly HOME and ROAD transition settings added to private Travel Settings and read back;
 - active-trip authority preserved; no mutable personal row was copied into this public repository.
-- installed private skill matches policy fingerprint `1e5e211ed60b5e99c76b7343c3db0ee1763c23d7c70d6740430f1812bd730fa6`; its deployment-only locator remains outside the public fingerprint.
+- installed private skill matches policy fingerprint `3e25de602af03bdddfab996e62768f66af23ca5aaacd038e9b57fc6ae52ba5e4`; its deployment-only locator remains outside the public fingerprint.
 
 ## Verification snapshot
 
-- 149/149 policy/runtime/reconciliation tests pass in the source tree and again in the installed private skill.
+- 154/154 policy/runtime/reconciliation tests pass in the source tree and again in the installed private skill.
 - 53/53 starter/profile/manifest tests pass.
 - 80/80 repository/bootstrap/import/privacy/fingerprint/metadata tests pass.
 - Python compilation, JSON/YAML parsing, manifest file/dependency validation, whitespace checks, current-tree public-source audit, and starter privacy audit pass.

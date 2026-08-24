@@ -60,11 +60,11 @@ Read `references/email-reconciliation.md` before order-mail processing, shipment
 ## Automation maintenance
 
 - Keep the scheduled prompt a thin dispatcher, not a policy copy.
-- Keep exactly one active `LyfeOS Control Cycle` schedule at 2:45 AM/PM Eastern. It runs receipt/order lifecycle work, the PM qualified-job watch, and the brief as module-isolated phases and returns one user-facing brief.
+- Keep exactly one active **standalone** `LyfeOS Control Cycle` schedule at 2:45 AM/PM Eastern. Each run starts from the saved prompt, not a long-lived operational chat. It runs receipt/order lifecycle work, the PM qualified-job watch, and the brief as module-isolated phases and returns one fresh user-facing brief identified by its deterministic Run ID.
 - Keep no separate active Ops Brief, Receipt & Order Lifecycle, or Qualified IT Job Watch task after consolidation readback succeeds.
 - Scheduled runs never inspect/mutate automation definitions.
 - The canonical timezone is scheduling authority. Current device/location/travel timezone and HOME/ROAD mode are context only.
-- Runtime execution must independently convert the current offset-aware instant into the canonical IANA timezone and compare that canonical local clock with the intended slot. Never use the device/travel clock, a static UTC offset, or a hand-maintained UTC offset as the execution gate.
+- Runtime execution must invoke `scripts/ops_policy.py slot-check` without `--now`. The executable captures its own current offset-aware UTC instant, converts it into the canonical IANA timezone, and compares that canonical local clock with the intended slot. Never let the model/prompt construct a timestamp or use the device/travel clock, a static UTC offset, or a hand-maintained UTC offset as the execution gate.
 - Do not delete a chat that currently anchors an active Scheduled Task. Durable operational content still lives outside chat, but the active task anchor is a platform dependency until retired or deliberately migrated.
 
 ### Canonical runtime clock
@@ -79,7 +79,7 @@ canonical_now = now.astimezone(ZoneInfo("America/New_York"))
 
 The consolidated control-cycle scheduled entry is valid only when the canonical local clock is `02:45` or `14:45`.
 
-The input instant can originate with any real offset. For example, an August instant expressed as `12:45-06:00` in Denver converts to `14:45-04:00` in New York and matches the PM Ops slot. `12:40-06:00` converts to `14:40-04:00` and does not. Winter offsets change automatically through IANA DST rules.
+The same instant may be displayed as 2:45 Eastern, 1:45 Central, 12:45 Mountain, 11:45 Pacific, or the equivalent UTC time. For example, an August instant expressed as `12:45-06:00` in Denver converts to `14:45-04:00` in New York and matches the PM Ops slot. `12:40-06:00` converts to `14:40-04:00` and does not. Winter offsets change automatically through IANA DST rules.
 
 Do not encode “Denver is two hours behind” or similar seasonal assumptions. Do not mutate the canonical schedule because the user travels.
 
@@ -92,14 +92,14 @@ A visible `TZID=America/New_York` or correct RRULE is necessary but not sufficie
 Before any automation create/update/consolidation:
 1. read the canonical IANA timezone from policy/state;
 2. snapshot each affected job's title, prompt, schedule, enabled state, timing mode, notification state, last-run metadata, and any provider field whose contract explicitly defines persistent task execution state;
-3. inspect current provider/task capability and prefer editing the existing notification-capable canonical dispatcher rather than replacing it;
+3. inspect current provider/task capability and prefer editing the existing notification-capable canonical dispatcher unless its chat-bound delivery context is the diagnosed fault; production target state is a standalone task whose runs start from the saved prompt;
 4. perform only the smallest required mutation.
 
 After every automation create/update:
 1. read the task back from the provider;
 2. verify exact title, enabled state, cadence/local clock time/RRULE, intended TZID, timing mode, required notification state, and duplicate count;
 3. treat `default_timezone` or similar metadata as execution authority only when the provider/tool contract explicitly says it is persistent task execution state. Travel/device/session location is diagnostic context, not proof;
-4. require exactly one active canonical control-cycle job and no active Ops/lifecycle/job-watch/child/retry/legacy duplicates;
+4. require exactly one active standalone canonical control-cycle job and no active Ops/lifecycle/job-watch/child/retry/legacy duplicates;
 5. require the entered runtime to pass the IANA canonical-clock gate;
 6. require the next actual firing or canonical Run Log evidence to land in the intended canonical local slot before declaring a scheduler incident cleared.
 
@@ -118,12 +118,12 @@ If the provider contract explicitly exposes a persistent execution-timezone fiel
 
 ### Healthy consolidation transaction
 
-For ordinary changes, update the existing notification-capable Ops job in place when possible.
+For ordinary changes, update the existing notification-capable Ops job in place when possible. Replace it only when a diagnosed chat-bound delivery context can resurface stale responses; the replacement must be a standalone task and must be verified before the old anchor is paused.
 
 To consolidate existing Ops, lifecycle, and qualified-job jobs without burning another active task slot:
 1. snapshot exact job IDs/prompts/schedules/titles/timing/notification states and last-run metadata;
 2. harmlessly verify required authorities and scheduler capability;
-3. convert the notification-capable Ops job into the canonical `LyfeOS Control Cycle` at 02:45/14:45 Eastern;
+3. convert the notification-capable Ops job into the canonical standalone `LyfeOS Control Cycle` at 02:45/14:45 Eastern, or create a verified standalone replacement when the old chat anchor is the fault;
 4. read it back and verify title, schedule, timing, timezone, enabled state, and notification state;
 5. only then pause the separate lifecycle and qualified-job jobs;
 6. re-inspect and require exactly one active canonical job;

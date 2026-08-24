@@ -12,11 +12,12 @@ from collections import OrderedDict
 from datetime import date, datetime, time, timedelta, timezone
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from pathlib import Path
-from typing import Any, Iterable
+from time import sleep as _sleep
+from typing import Any, Callable, Iterable
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 
-POLICY_VERSION = "4.0.0"
+POLICY_VERSION = "4.2.0"
 TZ_NAME = "America/New_York"
 TZ = ZoneInfo(TZ_NAME)
 CANONICAL_BRIEF_SLOTS: tuple[tuple[int, int], ...] = ((2, 45), (14, 45))
@@ -471,6 +472,54 @@ def canonical_slot_evidence(
         "slot_match": entry_allowed,
         "entry_allowed": entry_allowed,
         "state": state,
+    }
+
+
+def _runtime_utc_now() -> datetime:
+    """Capture the execution host's current instant without model-supplied time."""
+    return datetime.now(timezone.utc)
+
+
+def live_slot_evidence(
+    *,
+    timezone_name: str = TZ_NAME,
+    slots: Iterable[tuple[int, int]] = CANONICAL_BRIEF_SLOTS,
+    grace_minutes: int = DEFAULT_SLOT_GRACE_MINUTES,
+    early_grace_seconds: int = DEFAULT_SLOT_EARLY_GRACE_SECONDS,
+    clock: Callable[[], datetime] | None = None,
+    sleeper: Callable[[float], None] | None = None,
+) -> dict[str, Any]:
+    """Own the production clock and absorb only bounded early dispatch jitter.
+
+    Scheduled callers must use this path instead of constructing a timestamp in
+    a prompt. If the scheduler hands control to the runtime up to the configured
+    early-grace boundary before the slot, wait once until the slot and recapture
+    the system clock. Anything earlier remains a scheduler-integrity failure.
+    """
+    clock_fn = clock or _runtime_utc_now
+    sleep_fn = sleeper or _sleep
+    evidence = canonical_slot_evidence(
+        clock_fn(),
+        timezone_name=timezone_name,
+        slots=slots,
+        grace_minutes=grace_minutes,
+        early_grace_seconds=early_grace_seconds,
+    )
+    waited_seconds: int | float = 0
+    if evidence["state"] == "early_within_grace":
+        waited_seconds = -evidence["delay_seconds"]
+        sleep_fn(float(waited_seconds))
+        evidence = canonical_slot_evidence(
+            clock_fn(),
+            timezone_name=timezone_name,
+            slots=slots,
+            grace_minutes=grace_minutes,
+            early_grace_seconds=early_grace_seconds,
+        )
+    return {
+        **evidence,
+        "clock_source": "runtime_system_clock",
+        "waited_seconds": waited_seconds,
     }
 
 
@@ -2375,7 +2424,14 @@ def main(argv: list[str] | None = None) -> int:
     slot_parser = subparsers.add_parser(
         "slot-check", help="Check canonical scheduled-entry eligibility"
     )
-    slot_parser.add_argument("--now", required=True)
+    slot_parser.add_argument(
+        "--now",
+        default=None,
+        help=(
+            "Offset-aware diagnostic timestamp. Production scheduled runs must "
+            "omit this so the runtime captures its own system clock."
+        ),
+    )
     slot_parser.add_argument("--timezone", default=TZ_NAME)
     slot_parser.add_argument("--slot", action="append", default=None)
     slot_parser.add_argument(
@@ -2396,19 +2452,31 @@ def main(argv: list[str] | None = None) -> int:
             now = parse_aware_instant(args.now, "current instant")
             output = home_early(now)
         else:
-            now = parse_aware_instant(args.now, "current instant")
             slots = (
                 tuple(_parse_slot(value) for value in args.slot)
                 if args.slot
                 else CANONICAL_BRIEF_SLOTS
             )
-            evidence = canonical_slot_evidence(
-                now,
-                timezone_name=args.timezone,
-                slots=slots,
-                grace_minutes=args.grace_minutes,
-                early_grace_seconds=args.early_grace_seconds,
-            )
+            if args.now is None:
+                evidence = live_slot_evidence(
+                    timezone_name=args.timezone,
+                    slots=slots,
+                    grace_minutes=args.grace_minutes,
+                    early_grace_seconds=args.early_grace_seconds,
+                )
+            else:
+                now = parse_aware_instant(args.now, "current instant")
+                evidence = {
+                    **canonical_slot_evidence(
+                        now,
+                        timezone_name=args.timezone,
+                        slots=slots,
+                        grace_minutes=args.grace_minutes,
+                        early_grace_seconds=args.early_grace_seconds,
+                    ),
+                    "clock_source": "explicit_diagnostic_input",
+                    "waited_seconds": 0,
+                }
             output = {
                 "policy_version": POLICY_VERSION,
                 "status": "ok" if evidence["entry_allowed"] else "not_due",

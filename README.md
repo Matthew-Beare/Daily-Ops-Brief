@@ -105,9 +105,9 @@ Reminder profiles may include multiple reminders such as day-before, a configure
 
 ## Canonical scheduler clock
 
-Recurring dispatchers use a canonical IANA timezone. Runtime comparisons convert the current instant into that timezone and compare the canonical local clock with the intended slot. They never depend on travel/device timezone or a hand-maintained UTC offset.
+Recurring dispatchers use a canonical IANA timezone. The production executable captures its own system UTC instant, converts it into that timezone, and compares the canonical local clock with the intended slot. It never accepts a model-guessed production timestamp or depends on travel/device timezone or a hand-maintained UTC offset.
 
-For example, a 2:45 New York dispatcher asks whether `America/New_York` is 02:45 or 14:45 at that instant, regardless of where the user currently is. IANA timezone rules handle DST.
+For example, the same summer PM instant displays as 2:45 Eastern, 1:45 Central, 12:45 Mountain, and 11:45 Pacific. The dispatcher still asks whether `America/New_York` is 14:45 at that instant. IANA timezone rules handle DST.
 
 ## Dependency design
 

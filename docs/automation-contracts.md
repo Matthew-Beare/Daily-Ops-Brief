@@ -11,14 +11,14 @@ Required evidence:
 1. the normalized VEVENT/RRULE contains the intended local clock time and explicit canonical `TZID` when the scheduler supports it;
 2. exactly one intended dispatcher is enabled with the expected `timing_mode`;
 3. notification channels required by the user are enabled;
-4. at execution, the current instant is converted through the IANA timezone database into the canonical timezone and that canonical local clock matches the intended slot;
+4. at execution, the policy executable captures its own system UTC instant, converts it through the IANA timezone database into the canonical timezone, and that canonical local clock matches the intended slot;
 5. after creation or repair, an actual firing and canonical Run Log entry land in the intended local slot.
 
 Do not infer scheduler health from a field merely named `default_timezone`. Connector/tool readbacks may expose current session, device, or travel timezone rather than persistent scheduler execution state. Treat such a field as authoritative only when the provider/tool contract explicitly defines it as the task's stored execution timezone.
 
 ### Canonical runtime clock
 
-Execution-time comparisons never use the user's current travel/device timezone and never use a hand-maintained UTC offset. Convert the current offset-aware instant with the configured IANA timezone, conceptually:
+Execution-time comparisons never use a model-constructed timestamp, the user's current travel/device timezone, or a hand-maintained UTC offset. The scheduled entry invokes `slot-check` without `--now`; the executable captures its own offset-aware UTC instant and converts it with the configured IANA timezone, conceptually:
 
 ```python
 canonical_now = now.astimezone(ZoneInfo(canonical_timezone))
@@ -26,7 +26,7 @@ canonical_now = now.astimezone(ZoneInfo(canonical_timezone))
 
 Then compare `canonical_now.hour` / `canonical_now.minute` to the configured local slot. This makes DST an IANA database concern rather than a pile of seasonal arithmetic.
 
-For the reference Ops Brief, `2026-08-23T12:45:00-06:00` is the same instant as 14:45 in `America/New_York` and is a valid PM slot. `12:40-06:00` converts to 14:40 New York and is not a valid slot. In winter, `12:45-07:00` converts to 14:45 New York because both regions' IANA DST rules are applied.
+For the reference Ops Brief in summer, `14:45-04:00` Eastern, `13:45-05:00` Central, `12:45-06:00` Mountain, `11:45-07:00` Pacific, and `18:45Z` are the same instant and all resolve to the valid 14:45 New York PM slot. `12:40-06:00` resolves to 14:40 New York and is not valid. Winter offsets change automatically through the IANA database.
 
 For every create/update/consolidation:
 - snapshot existing jobs before mutation;
@@ -38,7 +38,7 @@ For every create/update/consolidation:
 - verify the next actual firing or canonical Run Log entry before declaring a scheduler incident cleared.
 
 For every entered scheduled run:
-- run the deployment's canonical-clock guard before downstream state-changing modules;
+- run the deployment's canonical-clock guard without `--now` before downstream state-changing modules and require `clock_source: runtime_system_clock`;
 - if the canonical slot evidence does not permit entry, do not reinterpret travel/device time, do not proceed as if the intended slot fired, and apply the scheduler Module Circuit Breaker Report boundary;
 - preserve the known-good scheduler definition and canonical state rather than manufacturing compensating UTC/Pacific/local jobs.
 
@@ -64,13 +64,15 @@ Never roll back, clone, renumber, or delete canonical source identity merely bec
 
 Title: `LyfeOS Control Cycle`
 
+Delivery context: standalone scheduled task; every run starts from the saved prompt instead of returning to a long-lived chat.
+
 Schedule: `RRULE:FREQ=DAILY;BYHOUR=2,14;BYMINUTE=45;BYSECOND=0` with `TZID=America/New_York`.
 
-The dispatcher invokes `$ops-brief-policy` for the current **canonical Eastern** slot. Runtime uses `scripts/ops_policy.py slot-check` and canonical clock evidence to verify that the current instant falls within the bounded dispatch window around 02:45 or 14:45 in New York before downstream module mutations. The reference window permits at most 60 seconds early and 15 minutes late; the deterministic Run ID prevents an early entry and later retry from becoming two runs.
+The dispatcher invokes `$ops-brief-policy` for the current **canonical Eastern** slot. Runtime uses `scripts/ops_policy.py slot-check` with no `--now`; the executable captures its own clock and verifies that the instant falls within the bounded dispatch window around 02:45 or 14:45 in New York before downstream module mutations. If execution is handed off up to 60 seconds early, it waits once until the slot and recaptures the system clock; anything earlier is rejected. The post-slot grace remains 15 minutes, and the deterministic Run ID prevents a later retry from becoming a second run.
 
 On the spring-forward date, a configured local time inside the nonexistent clock gap resolves to the first valid local instant after the gap. On fall-back, an ambiguous local slot uses only its first occurrence. The Run Log records the logical slot, effective instant, delay and DST adjustment so one logical slot cannot enter twice.
 
-The dispatcher must not contain mutable task/route/order/routine/job data or inspect/mutate automations during a scheduled run. It runs receipt/order lifecycle reconciliation, the PM qualified-job watch, and the Ops Brief as module-isolated phases, then emits one brief. Context such as HOME/ROAD may change brief contents; it does not change dispatcher timezone.
+The dispatcher must not contain mutable task/route/order/routine/job data or inspect/mutate automations during a scheduled run. It runs receipt/order lifecycle reconciliation, the PM qualified-job watch, and the Ops Brief as module-isolated phases, then emits one fresh brief whose first line is the deterministic Run ID. It never quotes or reuses an earlier chat response. Context such as HOME/ROAD may change brief contents; it does not change dispatcher timezone.
 
 The first external mutation after deterministic entry should upsert the canonical Run Log row as `Running`; completion updates that same row. Missing Run Log evidence after an intended slot is a scheduler/runtime incident, not silent success.
 

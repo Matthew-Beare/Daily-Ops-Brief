@@ -41,11 +41,12 @@ The scheduled dispatcher is defined in `America/New_York`. Travel, device, sessi
 
 For every entered scheduled brief:
 
-1. capture the current instant as an offset-aware ISO-8601 timestamp; it may arrive in any real timezone/offset;
-2. run `python3 scripts/ops_policy.py slot-check --now <timestamp> --timezone America/New_York --pretty`;
-3. the runtime converts that instant with the IANA timezone database (`ZoneInfo("America/New_York")`) and returns `canonical_clock` plus `slot_match` for `02:45` / `14:45`;
-4. derive AM/PM from the **canonical New York clock**, not from travel/device time or a hard-coded UTC offset;
-5. a scheduled run proceeds only when canonical slot evidence permits entry. A run within the bounded grace window records its delay; a run outside it is a scheduler-integrity failure: do not perform Gmail/Calendar/Drive/mileage or other downstream mutations, preserve/read back known-good state, and apply the Module Circuit Breaker Report scheduler boundary rather than trying to reinterpret local time.
+1. immediately run `python3 scripts/ops_policy.py slot-check --timezone America/New_York --pretty` **without `--now`**;
+2. require `clock_source: runtime_system_clock`; never let the model, prompt, device, session, or travel location construct or guess the production timestamp;
+3. the executable captures its own offset-aware UTC instant, converts it with `ZoneInfo("America/New_York")`, and returns `canonical_now`, `canonical_clock`, and slot evidence for `02:45` / `14:45`;
+4. if the provider hands control to the runtime up to 60 seconds early, the executable waits once until the slot and recaptures its own clock; it never waits out an earlier dispatch or creates a retry task;
+5. derive AM/PM from the **canonical New York clock**, not from travel/device time or a hard-coded UTC offset;
+6. proceed only when `entry_allowed` is true. Outside the bounded window, do not perform Gmail/Calendar/Drive/mileage or other downstream mutations; preserve/read back known-good state and apply the Module Circuit Breaker Report scheduler boundary.
 
 A manual brief is not rejected merely because it is invoked outside a scheduled slot. Manual invocations still use `America/New_York` for all canonical date/slot semantics.
 
@@ -53,7 +54,7 @@ This guard intentionally makes an instant such as `2026-08-23T12:45:00-06:00` ev
 
 ## Deterministic pass and entry log
 
-1. Capture the actual start instant with an explicit UTC offset and use the canonical-clock gate above to resolve its Eastern representation and AM/PM slot.
+1. Use the `canonical_now` returned by the live system-clock gate as the exact `now` input and derive AM/PM from its logical slot. Never recapture, round, or invent a second start timestamp.
 2. Build UTF-8 JSON with the raw range arrays and Calendar evidence:
 
 ```json
@@ -123,6 +124,8 @@ After evidence and required mutations finish, update the **same** deterministic 
 - If final logging fails after downstream work, preserve the known-good mutations, do not create a second Run ID, and surface the incomplete final-log state under the Module Circuit Breaker recovery boundary.
 
 ## Output contract
+
+The first line is exactly the deterministic Run ID returned by the engine, such as `OPS-2026-08-24-PM`. This makes every delivered notification self-identifying and prevents an old chat response from passing as a current brief. Generate the response only from the current run; never quote, summarize, or reuse prior chat output.
 
 Render only nonempty sections in this order:
 

@@ -133,6 +133,8 @@ class LifeOSPolicyContractTests(unittest.TestCase):
             self.assertIn("iana", lower)
         self.assertIn("ZoneInfo", runtime)
         self.assertIn("canonical_slot_evidence", runtime)
+        self.assertIn("live_slot_evidence", runtime)
+        self.assertIn("runtime_system_clock", runtime)
         self.assertIn("America/New_York", runtime)
         self.assertIn("default_timezone", skill)
         self.assertIn("default_timezone", maintenance)
@@ -141,6 +143,9 @@ class LifeOSPolicyContractTests(unittest.TestCase):
         self.assertIn("Before Gmail", brief)
         self.assertIn("`Running`", brief)
         self.assertIn("slot-check", brief)
+        self.assertIn("without `--now`", brief)
+        self.assertIn("runtime_system_clock", brief)
+        self.assertIn("deterministic Run ID", brief)
         self.assertIn("12:45-06:00", maintenance)
 
     def test_single_control_cycle_consolidates_lifecycle_jobs_and_brief(self) -> None:
@@ -152,8 +157,10 @@ class LifeOSPolicyContractTests(unittest.TestCase):
         project = self.text("project/INSTRUCTIONS.md.tmpl")
         for surface in (skill, maintenance, docs, project):
             self.assertIn("LyfeOS Control Cycle", surface)
-        self.assertIn("Exactly one active `LyfeOS Control Cycle`", skill)
-        self.assertIn("one user-facing Ops Brief", cycle)
+        self.assertIn("Exactly one active **standalone** `LyfeOS Control Cycle`", skill)
+        self.assertIn("one newly generated user-facing Ops Brief", cycle)
+        self.assertIn("without `--now`", cycle)
+        self.assertIn("quote old responses", cycle.lower())
         self.assertIn("PM qualified-job watch", cycle)
         self.assertIn("Job Watch", jobs)
         self.assertIn("Job Watch Settings", jobs)
