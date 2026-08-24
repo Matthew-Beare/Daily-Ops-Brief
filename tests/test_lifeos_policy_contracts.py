@@ -90,9 +90,9 @@ class LifeOSPolicyContractTests(unittest.TestCase):
 
     def test_beta_audit_distinguishes_clean_and_legacy_history(self) -> None:
         audit = self.text("docs/beta-hardening-audit-2026-08-24.md")
-        self.assertIn("Clean-history candidate: pass", audit)
+        self.assertIn("Clean-history release: pass", audit)
         self.assertIn("Clean reachable-history privacy audit passes", audit)
-        self.assertIn("legacy public repository", audit.lower())
+        self.assertIn("no longer reachable from a named branch", audit.lower())
         self.assertIn("next real 2:45", audit.lower())
 
     def test_project_bootstrap_is_stable_and_git_indirected(self) -> None:

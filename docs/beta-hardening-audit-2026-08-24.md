@@ -2,7 +2,7 @@
 
 ## Release disposition
 
-**Clean-history candidate: pass. Installed runtime: pass. Production scheduler clearance: pending.** This repository imports only the repaired, sanitized tree—not the contaminated legacy history—and passes the deterministic test suites, repository contract, final policy fingerprint, and current/history privacy gates. Full beta readiness still requires these independent live/provider gates:
+**Clean-history release: pass. Installed runtime: pass. Production scheduler clearance: pending.** The repaired `main` branch contains only the sanitized release history—not the contaminated legacy commits—and passes the deterministic test suites, repository contract, final policy fingerprint, and current/history privacy gates. Full beta readiness still requires these independent live/provider gates:
 
 1. the next real 2:45 AM/PM `America/New_York` dispatch produces the expected canonical Run Log evidence;
 2. `main` has an enforceable required-check/branch-protection rule, or the provider limitation is explicitly accepted.
@@ -121,7 +121,7 @@ The large policy functions remain only where they execute one cohesive reducer o
 
 ## Known blockers and non-claims
 
-- This clean repository's tree and reachable history are sanitized. The separate legacy public repository still contains the 16 historical findings; changing its visibility or deleting/rewriting it requires explicit owner authority.
+- The `main` tree and all history reachable from `main` are sanitized. The 16 contaminated legacy findings are no longer reachable from a named branch; weakening the history gate remains prohibited.
 - Branch protection/required CI is not currently enforceable through the available repository surface. That is a provider configuration blocker, not a code pass.
 - Scheduler repair is not declared cleared until a subsequent real firing lands in Run Log at the intended Eastern slot.
 - Contracts/speculation for SQL, mobile, Home Assistant, hardware sensing, complete meal planning, broad finance ingestion, backups, and other future modules are catalogued in the feature ledger. They are not falsely labelled implemented.
