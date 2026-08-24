@@ -13,7 +13,7 @@ from zoneinfo import ZoneInfo
 
 
 TZ = ZoneInfo("America/New_York")
-POLICY_VERSION = "1.0.0"
+POLICY_VERSION = "1.0.1"
 RESOLVED = {"verified", "no_refund_required", "revised_before_settlement"}
 PENDING = {"pending", "refund_expected", "reversal_expected", "unknown"}
 
@@ -46,9 +46,12 @@ def money(value: Any) -> str | None:
         return None
     try:
         amount = Decimal(str(value).replace("$", "").replace(",", ""))
+        if not amount.is_finite():
+            return None
+        amount = amount.quantize(Decimal("0.01"))
     except InvalidOperation:
         return None
-    return f"${amount.quantize(Decimal('0.01')):,.2f}"
+    return f"${amount:,.2f}"
 
 
 def resolve_case(case: dict[str, Any], now: datetime) -> dict[str, Any]:
@@ -99,7 +102,11 @@ def resolve(payload: dict[str, Any]) -> dict[str, Any]:
     raw_cases = payload.get("cases", [])
     if not isinstance(raw_cases, list):
         raise ValueError("cases must be a list")
-    results = [resolve_case(case, now) for case in raw_cases if isinstance(case, dict)]
+    results = []
+    for index, case in enumerate(raw_cases, start=1):
+        if not isinstance(case, dict):
+            raise ValueError(f"cases[{index}] must be an object")
+        results.append(resolve_case(case, now))
     return {
         "policy_version": POLICY_VERSION,
         "status": "ok",

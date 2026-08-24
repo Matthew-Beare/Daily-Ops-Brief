@@ -65,6 +65,17 @@ class FinancialResolutionTests(unittest.TestCase):
         result = policy.resolve_case(case, datetime(2026, 8, 31, 12, tzinfo=TZ))
         self.assertFalse(result["action_required"])
 
+    def test_non_object_case_fails_closed(self):
+        with self.assertRaisesRegex(ValueError, r"cases\[1\]"):
+            policy.resolve({
+                "now": "2026-08-31T12:00:00-04:00",
+                "cases": ["not-a-case"],
+            })
+
+    def test_non_finite_expected_amount_is_not_rendered_as_money(self):
+        self.assertIsNone(policy.money("NaN"))
+        self.assertIsNone(policy.money("Infinity"))
+
 
 if __name__ == "__main__":
     unittest.main()

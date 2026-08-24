@@ -21,16 +21,18 @@ import argparse
 import json
 import sys
 from datetime import datetime, time, timedelta
+from threading import RLock
 from typing import Any, Iterable
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import ops_policy as base
 
 
-POLICY_VERSION = "3.1.3"
+POLICY_VERSION = "3.1.4"
 MILEAGE_KEYS = {"mileage_values", "mileage_settings_values"}
 CANONICAL_BRIEF_TIMEZONE = "America/New_York"
 CANONICAL_BRIEF_SLOTS: tuple[tuple[int, int], ...] = ((2, 45), (14, 45))
+_RESOLVE_LOCK = RLock()
 
 if base.TZ_NAME != CANONICAL_BRIEF_TIMEZONE:
     raise RuntimeError(
@@ -154,7 +156,7 @@ def _isolated_mileage_output(
     }, []
 
 
-def resolve(payload: dict[str, Any]) -> dict[str, Any]:
+def _resolve_unlocked(payload: dict[str, Any]) -> dict[str, Any]:
     """Resolve policy while enforcing section-scoped mileage and active-trip mode."""
     try:
         moment = base.parse_datetime(payload.get("now"), "now")
@@ -251,6 +253,12 @@ def resolve(payload: dict[str, Any]) -> dict[str, Any]:
                 result["run_log_fields"] = run_log
 
     return result
+
+
+def resolve(payload: dict[str, Any]) -> dict[str, Any]:
+    """Serialize temporary base-module overrides so concurrent callers cannot cross-talk."""
+    with _RESOLVE_LOCK:
+        return _resolve_unlocked(payload)
 
 
 def _next_friday_1500(moment: datetime) -> datetime:

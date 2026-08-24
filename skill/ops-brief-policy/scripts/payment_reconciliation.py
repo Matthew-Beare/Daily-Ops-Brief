@@ -9,19 +9,35 @@ import sys
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
-POLICY_VERSION = "1.0.0"
+POLICY_VERSION = "1.0.1"
 CENT = Decimal("0.01")
 
 
 def dec(value: Any) -> Decimal:
     try:
-        return Decimal(str(value).replace("$", "").replace(",", "")).quantize(CENT)
+        amount = Decimal(str(value).replace("$", "").replace(",", "")).quantize(CENT)
     except (InvalidOperation, AttributeError) as exc:
         raise ValueError(f"invalid money value: {value!r}") from exc
+    if not amount.is_finite():
+        raise ValueError(f"invalid money value: {value!r}")
+    return amount
 
 
 def money(value: Decimal) -> str:
     return f"${value.quantize(CENT):,.2f}"
+
+
+def boolish(value: Any, field: str) -> bool:
+    if isinstance(value, bool):
+        return value
+    if value in (None, ""):
+        return False
+    text = str(value).strip().lower()
+    if text in {"1", "true", "yes", "on"}:
+        return True
+    if text in {"0", "false", "no", "off"}:
+        return False
+    raise ValueError(f"invalid boolean for {field}: {value!r}")
 
 
 def reconcile_case(case: dict[str, Any]) -> dict[str, Any]:
@@ -49,12 +65,14 @@ def reconcile_case(case: dict[str, Any]) -> dict[str, Any]:
     pending_debits: list[Decimal] = []
     posted_credits: list[Decimal] = []
 
-    for row in observations:
+    for index, row in enumerate(observations, start=1):
         if not isinstance(row, dict):
-            continue
+            raise ValueError(f"observations[{index}] must be an object for {case_id or receipt_id}")
         amount = dec(row.get("amount"))
-        pending = bool(row.get("pending", False))
-        direction = str(row.get("direction") or ("credit" if amount < 0 else "debit")).lower()
+        pending = boolish(row.get("pending", False), "pending")
+        direction = str(row.get("direction") or ("credit" if amount < 0 else "debit")).strip().lower()
+        if direction not in {"credit", "debit"}:
+            raise ValueError(f"invalid direction for {case_id or receipt_id}: {direction!r}")
         absolute = abs(amount)
         if direction == "credit":
             if not pending:
@@ -83,7 +101,7 @@ def reconcile_case(case: dict[str, Any]) -> dict[str, Any]:
     elif net_posted > expected:
         status = "Overcharged"
         action = True
-    elif case.get("settlement_window_complete"):
+    elif boolish(case.get("settlement_window_complete", False), "settlement_window_complete"):
         status = "Undercharged"
         action = True
     else:
@@ -119,7 +137,11 @@ def reconcile(payload: dict[str, Any]) -> dict[str, Any]:
     raw_cases = payload.get("cases") or []
     if not isinstance(raw_cases, list):
         raise ValueError("cases must be a list")
-    results = [reconcile_case(row) for row in raw_cases if isinstance(row, dict)]
+    results = []
+    for index, row in enumerate(raw_cases, start=1):
+        if not isinstance(row, dict):
+            raise ValueError(f"cases[{index}] must be an object")
+        results.append(reconcile_case(row))
     return {
         "policy_version": POLICY_VERSION,
         "status": "ok",

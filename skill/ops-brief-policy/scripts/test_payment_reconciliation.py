@@ -32,6 +32,16 @@ class PaymentReconciliationTests(unittest.TestCase):
         self.assertEqual("Matched", row["status"])
         self.assertEqual("$0.00", row["difference"])
 
+    def test_string_false_pending_is_posted_not_pending(self) -> None:
+        row = MODULE.reconcile_case({
+            "payment_case_id": "PAY-2S",
+            "receipt_id": "R-2S",
+            "expected_amount": "660.86",
+            "observations": [{"amount": "660.86", "pending": "false"}],
+        })
+        self.assertEqual("Matched", row["status"])
+        self.assertEqual("$0.00", row["observed_pending_amount"])
+
     def test_split_charge_matches(self) -> None:
         row = MODULE.reconcile_case({
             "payment_case_id": "PAY-3",
@@ -64,6 +74,57 @@ class PaymentReconciliationTests(unittest.TestCase):
         self.assertEqual("Overcharged", row["status"])
         self.assertTrue(row["action_required"])
         self.assertEqual("$25.00", row["difference"])
+
+    def test_string_false_settlement_window_does_not_force_undercharge(self) -> None:
+        row = MODULE.reconcile_case({
+            "payment_case_id": "PAY-5S",
+            "receipt_id": "R-5S",
+            "expected_amount": "100.00",
+            "settlement_window_complete": "false",
+            "observations": [{"amount": "75.00", "pending": False}],
+        })
+        self.assertEqual("Awaiting Settlement", row["status"])
+        self.assertFalse(row["action_required"])
+
+    def test_invalid_boolean_text_fails_closed(self) -> None:
+        with self.assertRaisesRegex(ValueError, "invalid boolean"):
+            MODULE.reconcile_case({
+                "payment_case_id": "PAY-BAD",
+                "receipt_id": "R-BAD",
+                "expected_amount": "100.00",
+                "observations": [{"amount": "100.00", "pending": "perhaps"}],
+            })
+
+    def test_non_object_observation_fails_closed(self) -> None:
+        with self.assertRaisesRegex(ValueError, r"observations\[1\]"):
+            MODULE.reconcile_case({
+                "payment_case_id": "PAY-BAD-OBS",
+                "receipt_id": "R-BAD-OBS",
+                "expected_amount": "100.00",
+                "observations": ["not-a-row"],
+            })
+
+    def test_non_object_case_fails_closed(self) -> None:
+        with self.assertRaisesRegex(ValueError, r"cases\[1\]"):
+            MODULE.reconcile({"cases": ["not-a-case"]})
+
+    def test_non_finite_money_fails_closed(self) -> None:
+        with self.assertRaisesRegex(ValueError, "invalid money value"):
+            MODULE.reconcile_case({
+                "payment_case_id": "PAY-NAN",
+                "receipt_id": "R-NAN",
+                "expected_amount": "NaN",
+                "observations": [],
+            })
+
+    def test_invalid_direction_fails_closed(self) -> None:
+        with self.assertRaisesRegex(ValueError, "invalid direction"):
+            MODULE.reconcile_case({
+                "payment_case_id": "PAY-DIR",
+                "receipt_id": "R-DIR",
+                "expected_amount": "100.00",
+                "observations": [{"amount": "100.00", "pending": False, "direction": "sideways"}],
+            })
 
     def test_same_order_removed_before_settlement_resolves_without_refund(self) -> None:
         row = MODULE.reconcile_case({

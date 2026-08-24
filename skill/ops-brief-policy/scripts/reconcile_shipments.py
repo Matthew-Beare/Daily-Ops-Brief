@@ -10,10 +10,12 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo
 
 
-POLICY_VERSION = "1.2.0"
+POLICY_VERSION = "1.2.1"
 ACTIVE_STATUSES = {"Awaiting Shipment", "Shipped", "Exception"}
+EASTERN = ZoneInfo("America/New_York")
 HEADERS = [
     "Shipment ID",
     "Vendor",
@@ -94,7 +96,7 @@ def _parse_time(value: Any) -> float:
         else:
             return 0.0
     if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=timezone.utc)
+        parsed = parsed.replace(tzinfo=EASTERN)
     return parsed.timestamp()
 
 
@@ -484,7 +486,13 @@ def reconcile(payload: dict[str, Any]) -> dict[str, Any]:
     replacement_links: list[dict[str, str]] = []
     closed_fingerprints: set[str] = set()
 
-    events.sort(key=lambda event: (_priority(event), _event_time(event), event["_evidence_index"]))
+    events.sort(
+        key=lambda event: (
+            _priority(event),
+            _event_time(event),
+            tuple(int(part) for part in event["_evidence_index"].split(".")),
+        )
+    )
     for event in events:
         event_index = event["_evidence_index"]
         event_name = _event_name(event)
