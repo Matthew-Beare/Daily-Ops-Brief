@@ -19,7 +19,7 @@ Load this reference completely before changing task, control, mode, mileage, aut
 
 Use Control type `Mode Override`; Vacation and Home early are `Item` values.
 
-- For an unambiguous “got home early” statement, run `python3 scripts/ops_policy_runtime.py home-early --now <current-Eastern-ISO> --pretty`, then upsert the returned Home early control row.
+- For an unambiguous “got home early” statement, run `python3 scripts/ops_policy_runtime.py home-early --now <current-offset-aware-ISO> --pretty`, then upsert the returned Home early control row.
 - Home early starts immediately, closes the current work-cycle mileage accrual at supported HOME arrival, and remains HOME through the next Friday 2:45 PM brief; runtime uses exclusive Friday 3:00 PM Eastern expiry.
 - Mark a final active leg Arrived only when the user's statement/evidence supports it. Never fabricate arrival time or miles.
 - Expired overrides are ignored by the engine rather than manually erased.
@@ -63,7 +63,26 @@ Read `references/email-reconciliation.md` before order-mail processing, shipment
 - Keep exactly one active combined `2:45 AM/PM Eastern Ops Brief` and exactly one active consolidated Receipt & Order Lifecycle schedule.
 - Scheduled runs never inspect/mutate automation definitions.
 - The canonical timezone is scheduling authority. Current device/location/travel timezone and HOME/ROAD mode are context only.
+- Runtime execution must independently convert the current offset-aware instant into the canonical IANA timezone and compare that canonical local clock with the intended slot. Never use the device/travel clock or a hand-maintained UTC offset as the execution gate.
 - Do not delete a chat that currently anchors an active Scheduled Task. Durable operational content still lives outside chat, but the active task anchor is a platform dependency until retired or deliberately migrated.
+
+### Canonical runtime clock
+
+For the reference deployment, the authoritative clock is `America/New_York`.
+
+Use the standard-library IANA timezone database, conceptually:
+
+```python
+canonical_now = now.astimezone(ZoneInfo("America/New_York"))
+```
+
+The Ops Brief scheduled entry is valid only when the canonical local clock is `02:45` or `14:45`. The Receipt & Order Lifecycle scheduled entry is valid only when canonical New York time is `01:45` or `13:45`.
+
+The input instant can originate with any real offset. For example, an August instant expressed as `12:45-06:00` in Denver converts to `14:45-04:00` in New York and matches the PM Ops slot. `12:40-06:00` converts to `14:40-04:00` and does not. Winter offsets change automatically through IANA DST rules.
+
+Do not encode “Denver is two hours behind” or similar seasonal assumptions. Do not mutate the canonical schedule because the user travels.
+
+A scheduled canonical-slot mismatch is a scheduler integrity failure. Stop downstream state-changing modules, read back/preserve known-good state, and apply the Pants Filling With Shit Report scheduler boundary. A manual brief is not rejected merely because it is invoked outside a scheduled slot.
 
 ### Scheduler integrity gate
 
@@ -80,17 +99,18 @@ After every automation create/update:
 2. verify exact title, enabled state, cadence/local clock time/RRULE, intended TZID, timing mode, required notification state, and duplicate count;
 3. treat `default_timezone` or similar metadata as execution authority only when the provider/tool contract explicitly says it is persistent task execution state. Travel/device/session location is diagnostic context, not proof;
 4. require exactly one active canonical job of each required type and no active child/retry/legacy duplicates;
-5. require the next actual firing or canonical Run Log evidence to land in the intended canonical local slot before declaring a scheduler incident cleared.
+5. require the entered runtime to pass the IANA canonical-clock gate;
+6. require the next actual firing or canonical Run Log evidence to land in the intended canonical local slot before declaring a scheduler incident cleared.
 
-For the Ops Brief dispatcher, the first external mutation of every scheduled run should upsert its canonical Run Log row as `Running` with Started (ET) before other module work. At completion, update that same row. This separates “scheduler never entered” from “scheduler entered and downstream work failed.”
+For the Ops Brief dispatcher, the first external mutation after deterministic scheduled entry should upsert its canonical Run Log row as `Running` with Started (ET) before other state-changing module work. At completion, update that same row. This separates “scheduler never entered” from “scheduler entered and downstream work failed.”
 
-Do not report a timezone/scheduler repair successful from VEVENT text, a `default_timezone` label, or notification configuration alone.
+Do not report a timezone/scheduler repair successful from VEVENT text, a `default_timezone` label, notification configuration, or a local/device clock alone.
 
 If the intended slot is missed despite correct task readback:
 - stop further scheduler mutation after the bounded diagnostic attempt;
 - preserve the safest known canonical dispatcher and manual workflows;
 - generate `Pants Filling With Shit Report — automation scheduler`;
-- diagnose platform pause/deletion/inactivity, notification delivery, usage limits, task-anchor chat deletion, and scheduler/runtime failure as separate possibilities;
+- diagnose platform pause/deletion/inactivity, notification delivery, usage limits, task-anchor chat deletion, canonical-clock mismatch, and scheduler/runtime failure as separate possibilities;
 - do not compensate with UTC/Pacific aliases, hidden hourly checks, AM/PM child tasks, or travel-location-specific schedules.
 
 If the provider contract explicitly exposes a persistent execution-timezone field and that authoritative field disagrees with canonical time, treat it as a real integrity failure. If the field's semantics are undocumented/ambiguous, do not repeatedly recreate tasks merely to chase it; require observed execution evidence instead.
