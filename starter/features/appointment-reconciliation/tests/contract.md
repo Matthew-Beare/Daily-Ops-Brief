@@ -3,14 +3,15 @@
 A compliant deployment must prove:
 
 1. appointment automation is opt-in by event/evidence class;
-2. manual appointment tracking works with private Git even when email/Calendar adapters are absent;
+2. manual appointment tracking works with the canonical structured state authority even when email/Calendar adapters are absent;
 3. complete relevant evidence is read before mutation;
-4. one canonical private Git appointment/source identity maps to at most one active linked Calendar event;
-5. create/update is followed by Calendar readback verifying event ID, title, time/timezone, reminders, target calendar and source linkage;
-6. the verified appointment/reconciliation event + snapshot and provider references are then validated, committed, pushed fast-forward only and read back from private Git;
-7. the source is marked reconciled only after required Calendar projection and canonical Git state agree;
-8. revisions/cancellations update the same Git appointment and linked Calendar event;
-9. ambiguity asks instead of guessing;
-10. Calendar handles appointment-specific reminders instead of per-appointment Scheduled Tasks;
-11. sensitive appointments use minimum necessary detail and do not create medical inferences;
-12. email and Calendar adapter failures remain module-scoped, while Git-state failure stops completion rather than falling back to chat/shadow state.
+4. one canonical appointment/source identity maps to at most one active linked Calendar event;
+5. provider type/specialty comes from appointment evidence or approved reliable public research and unresolved conflicts ask rather than guess;
+6. provider specialty is never treated as diagnosis/treatment evidence;
+7. reminder profiles support multiple rules and fixed local-clock reminders use the event IANA timezone rather than a static UTC offset;
+8. create/update is followed by Calendar readback verifying event ID, title/type, time/timezone, reminders, target calendar and source linkage;
+9. canonical appointment + Calendar Projection state is written and read back before the source is marked reconciled;
+10. revisions/cancellations update the same canonical appointment and linked Calendar event;
+11. Calendar handles appointment-specific reminders instead of per-appointment Scheduled Tasks;
+12. sensitive appointments use minimum necessary detail and do not create medical inferences;
+13. email, Calendar, provider-research and canonical-state failures remain module-scoped and do not fall back to chat/shadow state.
