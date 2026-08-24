@@ -44,6 +44,22 @@ For every entered scheduled run:
 
 Leaving ChatGPT Work, closing the app, changing HOME/ROAD mode, or being physically away from home does not redefine the canonical schedule. Platform-level task pause/deletion/inactivity behavior is a separate condition.
 
+## Cross-authority transaction isolation
+
+Independent authorities are not treated as one distributed database transaction.
+
+For every declared cross-authority projection or side effect:
+
+1. identify the canonical source authority and stable source identity;
+2. commit the canonical source mutation first and read it back;
+3. derive desired target state from the verified source plus current target state;
+4. write the target projection using stable correlation identity;
+5. read the target back before marking that projection healthy;
+6. if the target fails, preserve the canonical source record and mark only the target projection/module `Degraded` or `Pending`;
+7. on a later run, reconcile source-to-target from current canonical state instead of replaying a blind mutation or creating a hidden retry job.
+
+Never roll back, clone, renumber, or delete canonical source identity merely because an unrelated target is unavailable. Do not create active-active shadow state as an outage workaround. A provider-wide outage may affect several resources hosted by that provider, but unrelated providers/modules continue when their own invariants remain healthy.
+
 ## Ops Brief
 
 Title: `2:45 AM/PM Eastern Ops Brief`
@@ -56,6 +72,8 @@ The dispatcher must not contain mutable task/route/order/routine data or inspect
 
 The first external mutation after deterministic entry should upsert the canonical Run Log row as `Running`; completion updates that same row. Missing Run Log evidence after an intended slot is a scheduler/runtime incident, not silent success.
 
+Within the Ops Brief service, a writable core Ops Run Log is an intentional entry barrier for downstream state-changing brief modules. This is a service-local safety dependency, not a global LyfeOS dependency: a failed Ops Brief does not block the separately scheduled receipt/order lifecycle or other independent module families.
+
 ## Receipt & Order Lifecycle
 
 Title: `Receipt & Order Lifecycle`
@@ -67,6 +85,9 @@ The same canonical runtime clock rule applies: convert the current instant to `A
 Dispatcher responsibilities:
 - invoke `$ops-brief-policy` against live canonical authorities;
 - apply receipt ingestion/photo intake, classification/fitment, email reconciliation, payment reconciliation, beneficiary/reimbursement, active Shopping & Procurement reconciliation, and vendor-contact approval policy as applicable;
+- commit/read back the canonical Purchase & Receipt Archive transaction before reconciling downstream Ops `Shipments`, shopping, or asset/inventory projections;
+- if a downstream projection is unavailable, preserve the canonical Receipt ID/order/event/allocation/evidence and report only that projection `Degraded/Pending`;
+- later retries re-derive desired target state from canonical purchase state and current target state rather than cloning/replaying the purchase;
 - reconcile same-order revisions before matching account charges;
 - keep expected charges open until settlement/no-settlement resolution;
 - investigate unmatched/over/undercharges rather than guess;
