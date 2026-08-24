@@ -58,7 +58,7 @@ Meal planning:
 Appointments and reminders:
 - Ask whether I want appointments/reservations or medical-event scheduling tracked and which appointment classes may reconcile automatically from email.
 - For each candidate, read complete evidence, dedupe against canonical appointment/source identity, and ask on conflict/low confidence.
-- Determine appointment type from the evidence when possible. If the provider specialty/type is unclear and research is allowed/available, research the provider using official or reliable public sources. Store a supported specialty such as cardiology, endocrinology, audiology, primary care, dental, etc.; never infer diagnosis/treatment from specialty.
+- Determine appointment type and provider type from the evidence when possible. If the provider specialty/type is unclear and research is allowed/available, research the provider using official or reliable public sources. Store a supported specialty such as cardiology, endocrinology, audiology, primary care, dental, etc.; never infer diagnosis/treatment from specialty.
 - Let me configure reminder profiles globally, per appointment class, or per person. Support multiple reminders such as day-before, a configured morning-of local clock time, and a relative reminder such as one hour before.
 - Create/update one linked Calendar event when enabled, read it back, and verify event ID, title, specialty label when used, date/time/timezone, target calendar, reminders, and source linkage.
 - Then write/read back canonical appointment + Calendar Projection state. Only then mark reconciliation complete.
