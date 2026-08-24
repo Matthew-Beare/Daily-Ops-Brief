@@ -18,8 +18,13 @@ People, physical assets and retained knowledge objects use immutable collision-r
 | Payment case | `Payment Reconciliation` | `Payment Case ID` | Expected charge vs pending/posted settlement |
 | Person/asset registry | `People & Assets` | `Entity UUID` | People, beneficiaries, aliases, owned/external physical assets |
 | Asset relationship | `Asset Relationships` | `Relationship UUID` | Explicit UUID-to-UUID ownership, assignment, installation, storage and replacement edges |
+| Asset identifier | `Asset Identifiers` | `Identifier UUID` | Namespaced UPC/GTIN, SKU, manufacturer part/model, serial, IMEI, MAC and other exact identifiers |
+| Evidence object | `Evidence Index` + Drive/Gmail/source | `Evidence UUID` | Photo, receipt, label, message, manufacturer page, manual and owner-confirmation provenance |
 | Specialized inventory | Tool Inventory or configured domain source | `Entity UUID` | Detailed tool/collection fields without replacing global identity |
 | Knowledge/reference | `Knowledge Index` + Drive | `Entity UUID` | Manuals/datasheets/reference metadata and canonical file link |
+| Knowledge relationship | `Knowledge Relationships` | `Relationship UUID` | Explicit Knowledge UUID ↔ asset/vehicle/tool applicability |
+| Technical specification | `Technical Specifications` | `Specification UUID` | Value/unit, exact subject/applicability, source tier, revision and page/section provenance |
+| Asset query projection | `Asset Browser` | Entity/Receipt query | Human-facing bidirectional receipt ↔ asset/manual/specification view; not an authority |
 | Reimbursement | `Reimbursements` | `Reimbursement ID` | Expected/received payback separate from merchant refund |
 | Active fulfillment | Ops `Shipments` | `Shipment ID` | Undelivered/exception work queue only |
 | Calendar projection | Ops `Calendar Projection` | `Projection ID` | Source entity ↔ Google Calendar event dedupe/link |
@@ -39,10 +44,13 @@ People, physical assets and retained knowledge objects use immutable collision-r
 7. A receipt-created asset stores the exact Receipt ID and receipt-line coordinate/source identity. Each cross-asset edge stores its own immutable Relationship UUID and both endpoint Entity UUIDs. A descriptive fitment note is not a relationship record.
 8. A multi-quantity set/lot uses one Entity UUID plus quantity unless individual serial-level tracking is useful. `assigned_to` does not claim physical installation; only evidence may create `installed_on`. Cancelled/excluded receipt lines create no owned asset.
 9. Retained product/service manuals and technical references use one immutable Knowledge UUID, live as files in canonical Drive, and are indexed by manufacturer/model/part/revision/asset relationships. Multiple upload/email/URL paths to the same document enrich one record rather than duplicating it.
-10. Unknown classification/fitment is queued only after reachable evidence and asset-registry exclusion checks are exhausted.
-11. Reimbursement is not merchant refund. Gross merchant purchase remains auditable while verified reimbursements reduce net household cost separately.
-12. Payment cases remain open until expected settlement is matched, split-matched, resolved as no-settlement or otherwise financially resolved. Actual posted amounts are compared with the latest supported same-order revision.
-13. Gmail/archive success requires the applicable Audit gate to pass.
+10. Exact identifier values preserve leading zeroes. Global check-digit identifiers are validated; merchant/manufacturer-local SKU/part/model/serial values carry a namespace; unique serial/IMEI/MAC values cannot silently bind to two assets.
+11. Verified safety-critical torque, tire-pressure, fluid, alignment, and load specifications require an authoritative source tier, exact subject UUID/applicability, revision, and page/section locator. Owner memory may be retained as candidate evidence but never promoted to verified.
+12. Receipt, Entity UUID, and namespaced-identifier queries traverse the same explicit asset graph and return the same connected receipts, evidence, manuals and specifications. General `owned_by` traversal is excluded so one vehicle query does not return every household asset.
+13. Unknown classification/fitment is queued only after reachable evidence and asset-registry exclusion checks are exhausted.
+14. Reimbursement is not merchant refund. Gross merchant purchase remains auditable while verified reimbursements reduce net household cost separately.
+15. Payment cases remain open until expected settlement is matched, split-matched, resolved as no-settlement or otherwise financially resolved. Actual posted amounts are compared with the latest supported same-order revision.
+16. Gmail/archive success requires the applicable Audit gate to pass.
 
 ## Fulfillment and Gmail retention
 
@@ -58,7 +66,7 @@ Normalize only proven aliases/typos before pair dedupe. For the current deployme
 
 ## Manual/reference library
 
-Drive `Manuals & Reference` is the current durable file store. `Knowledge Index` stores Knowledge ID, immutable Entity UUID, title/type, manufacturer, model/part, related asset UUID/ID, source URL, Drive URL/ID, revision/date, tags, summary and status. Queries should resolve by UUID/asset/model/part/title/tags, read the retained source when needed, and return the canonical Drive link plus page/section provenance when supported.
+Drive `Manuals & Reference` is the current durable file store. `Knowledge Index` stores Knowledge ID, immutable Entity UUID, title/type, manufacturer, model/part, source URL, Drive URL/ID, revision/date, tags, summary, source identity/hash and status. `Knowledge Relationships` carries explicit links to any number of asset/vehicle/tool UUIDs. Queries resolve by Knowledge UUID, asset UUID, model/part/title/tags, read the retained source when needed, and return the canonical Drive link plus page/section provenance when supported.
 
 ## Calendar projection
 

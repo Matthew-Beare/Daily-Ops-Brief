@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "extends": "questions.json",
   "instructions": "Merge these IDs into the same durable Interview Ledger as questions.json. Preference and activation questions require explicit user answers; do not infer consent from evidence.",
   "sections": [
@@ -26,7 +26,7 @@
         {
           "id": "retiree_support",
           "required": false,
-          "prompt": "For a retired role, which appointments, household/admin, family, hobbies, travel, routines, projects, volunteering, or documents should the system support?",
+          "prompt": "For a retired role, would the Personal Schedule & Wellbeing template help with appointments, household/admin, family, hobbies, travel, routines, projects, volunteering, documents, or separately opt-in reminders?",
           "applies_when": "profile_roles contains retired"
         },
         {
@@ -88,6 +88,22 @@
           "required": false,
           "prompt": "If the recipe library is enabled, which accessible chats, files, File Library, Drive folders, notes, or other sources should be reconciled instead of starting over?",
           "applies_when": "recipe_library_enabled is true"
+        },
+        {
+          "id": "appointment_reminders_enabled",
+          "required": false,
+          "prompt": "Enable appointment reminders? If yes, confirm or change the day-before, morning-of local time, and 60-minute-before defaults. This does not create one automation per appointment."
+        },
+        {
+          "id": "medication_reminders_enabled",
+          "required": false,
+          "prompt": "Enable medication reminders? If yes, each schedule must come from explicit owner, prescription-label, pharmacy, or clinician evidence and be confirmed; the system never infers dose or timing."
+        },
+        {
+          "id": "caregiver_reminder_sharing",
+          "required": false,
+          "prompt": "Should any reminders be shared with a caregiver? Default is no; if yes, identify the exact person and allowed reminder classes without granting broader health access.",
+          "applies_when": "appointment_reminders_enabled is true or medication_reminders_enabled is true"
         },
         {
           "id": "service_activation_states",

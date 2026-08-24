@@ -41,8 +41,9 @@ If existing evidence identifies the same manual, enrich/update that record and p
 2. Prefer the manufacturer's/OEM's official download/source when available. Preserve the original supplied source URL as provenance even when a stronger canonical source is found.
 3. Save or copy the retained file into the canonical Drive `Manuals & Reference` hierarchy using a readable filename. Never place credentials or secrets in filenames/metadata.
 4. Upsert one `Knowledge Index` row containing Knowledge ID, Entity UUID, title/type, manufacturer/model/part, source URL, Drive file URL/ID, version/date, tags, concise summary, status, and update timestamp.
-5. Verify the Drive file and Sheet row by readback. These two steps establish the canonical knowledge object.
-6. After core knowledge readback succeeds, reconcile related asset UUID(s), receipt IDs, part numbers, or projects when evidence supports the relationship. Do not create a duplicate asset merely because a manual exists. Read back each target relationship; a target failure leaves only that relationship pending.
+5. Validate the proposed knowledge row and explicit `Knowledge Relationships` through `scripts/asset_evidence.py`. `retained` requires the canonical Drive file ID/URL and an explicit revision/edition; an attempted lookup that could not be downloaded remains `download_blocked`, `unavailable`, or `lookup_queued` rather than pretending the manual is retained.
+6. Verify the Drive file and Sheet row by readback. These two steps establish the canonical knowledge object.
+7. After core knowledge readback succeeds, reconcile related asset UUID(s), receipt IDs, part numbers, or projects when evidence supports the relationship. Do not create a duplicate asset merely because a manual exists. Read back each target relationship; a target failure leaves only that relationship pending.
 
 ## Search and answer behavior
 
@@ -55,6 +56,8 @@ When the user later asks for a manual, procedure, specification, torque value, s
 - distinguish source facts from inference.
 
 Preserve relevant extracted facts/provenance in the knowledge system when useful, but do not duplicate an entire copyrighted manual into Git or Sheet cells. The retained Drive file remains the canonical document.
+
+Safety-critical extracted specifications—torque, tire pressure, fluid capacity/specification, alignment, or load limits—enter `Technical Specifications` only as `verified` when the source tier is OEM/manufacturer/authoritative regulatory, the exact subject UUID and applicability are recorded, and the page/section plus revision are retained. A value from chat or owner memory may be a candidate but is never promoted to verified. Never silently apply an STI, trim, engine, transmission, wheel/tire, model-year, or market specification to a different configuration.
 
 ## Asset acquisition interaction
 

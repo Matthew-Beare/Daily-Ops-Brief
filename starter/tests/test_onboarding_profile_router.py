@@ -24,10 +24,19 @@ class OnboardingProfileRouterTests(unittest.TestCase):
         self.assertEqual("mixed", result["life_profile"])
         self.assertEqual(["retired", "parent_guardian"], result["roles"])
         self.assertEqual("retired", result["primary_role"])
+        self.assertEqual("Retired", result["primary_role_label"])
+        self.assertEqual("Personal Schedule & Wellbeing", result["support_template"])
         self.assertEqual("Dad", result["profile_alias"])
         self.assertEqual("private-mutable-state", result["profile_alias_storage"])
         self.assertEqual("bypassed", result["context"]["status"])
         self.assertIn("appointments", result["brief_focus"])
+        self.assertIn("appointment_reminders", result["recommended_services"])
+        self.assertIn("medication_reminders", result["recommended_services"])
+        self.assertEqual(
+            "requires_explicit_user_confirmation",
+            result["reminder_templates"]["medications"]["activation"],
+        )
+        self.assertEqual("prohibited", result["age_or_ability_inference"])
 
     def test_long_haul_trucker_recommends_home_road_but_does_not_silently_select(self) -> None:
         result = router.resolve({
@@ -97,6 +106,18 @@ class OnboardingProfileRouterTests(unittest.TestCase):
         self.assertEqual(["nonworking"], nonworking["roles"])
         self.assertEqual("nonworking", nonworking["life_profile"])
         self.assertEqual(["nonworking"], not_employed["roles"])
+
+    def test_retired_profile_recommends_but_never_activates_health_reminders(self) -> None:
+        result = router.resolve({"roles": ["retired"]})
+        self.assertEqual(3, result["schema_version"])
+        for service in ("appointment_reminders", "medication_reminders"):
+            self.assertIn(service, result["recommended_services"])
+            self.assertEqual("unresolved", result["service_catalog"][service]["activation"])
+        self.assertEqual(60, result["reminder_templates"]["appointments"]["relative_minutes_before"])
+        self.assertEqual(
+            "disabled_until_explicit_opt_in",
+            result["reminder_templates"]["medications"]["caregiver_sharing"],
+        )
 
     def test_parent_is_first_class_and_composes_with_work(self) -> None:
         result = router.resolve({

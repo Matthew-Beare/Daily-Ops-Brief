@@ -39,6 +39,10 @@ If order deliveries are enabled, use carrier/vendor evidence only after shipment
 
 Appointments parsed from verified email/Docs/user input may be projected only when date/time/location identity is sufficiently supported. Preserve source provenance and never silently invent confirmation state.
 
+For explicitly enabled appointment reminders, run `scripts/reminder_policy.py` with the canonical IANA timezone. The stock profile plans a day-before local reminder, a configured morning-of local reminder, and a relative reminder (60 minutes by default). Merge equal fire times, suppress any reminder that would occur at/after the appointment, and reconcile the result into the existing linked Calendar event. Provider readback must confirm reminder configuration. This planner does not create per-event ChatGPT automations.
+
+Medication reminders are a separate opt-in service. A schedule is valid only when explicitly confirmed from owner, prescription-label, pharmacy, or clinician evidence. Never infer dose/timing, advise doubling or other missed-dose action, expose more sensitive text than configured, or share with a caregiver unless the user explicitly enables sharing to an exact recipient identity. Project approved reminders through the configured provider and read them back; Calendar/projection failure leaves canonical regimen evidence unchanged and marks only the reminder projection degraded.
+
 ## Safety
 
 Creating/updating normal user-selected calendar projections is authorized by the configured projection policy after first-boot approval. Inviting other people, adding external attendees, or sending invitation updates is a separate consequential action and requires explicit authority unless the user deliberately configured that behavior.

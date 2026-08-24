@@ -16,18 +16,21 @@ Inspect the supplied image directly before resorting to OCR. Extract every legib
 
 Preserve the image as source evidence when the user has authorized normal receipt ingestion. Use image hash/source metadata when available to prevent the same photographed receipt from becoming a second transaction after its email copy is later discovered.
 
+Before provider writes, normalize the image/evidence and extracted identifiers through `scripts/asset_evidence.py`. OCR text alone never silently overwrites a verified identifier or serial.
+
 ## Reconciliation-first lookup
 
 For every identifiable line item, investigate before returning `unknown`:
 
-1. Normalize UPC/SKU/part/model identifiers and search exact identities first.
+1. Preserve the printed identifier exactly, including leading zeroes. Validate UPC/EAN/GTIN check digits, distinguish merchant SKU from manufacturer part/model/serial namespaces, then search exact identities first.
 2. Prefer manufacturer/OEM evidence, then exact vendor SKU/product evidence, then reputable specialist catalogs.
 3. Expand the product identity into relevant compatibility attributes. For automotive parts, this includes application, dimensions, bolt pattern/PCD, center bore, offset, thread/seat, trim, engine/drivetrain and position as applicable.
 4. Compare those attributes against the complete live owned-asset registry and known modifications, not merely the asset named on the receipt.
 5. Use exclusion evidence aggressively. If a wheel is 5x120 and only one owned vehicle accepts 5x120 with the remaining material dimensions consistent, that is positive unique-assignment evidence, not an excuse to ask the user which car it belongs to.
 6. Cross-reference surrounding evidence: other items on the same receipt, replacement links, prior wheel/tire setup associations, order email, shipment evidence, merchant application selections, existing inventory and earlier verified part associations.
 7. If one asset uniquely survives all material checks, auto-assign it and record the evidence/provenance. If the intended use is explicit but fitment is custom/non-catalog, preserve `owner-assigned / custom fitment` rather than fabricating OEM fitment.
-8. Only after reachable evidence has been exhausted may the item enter `Classification Queue`. The queue note must say what was checked and the exact ambiguity that remains, so the user is never asked a question the system could have answered itself.
+8. Use manufacturer/OEM sources first for product identity and manuals, then exact merchant/specialist sources. Queue `blocked`, `no_match`, or unresolved identity honestly; a web result is not evidence until its URL, identity match, and source tier are retained.
+9. Only after reachable evidence has been exhausted may the item enter `Classification Queue`. The queue note must say what was checked and the exact ambiguity that remains, so the user is never asked a question the system could have answered itself.
 
 Do not use generic web similarity, one matching dimension, or model-name resemblance when a material compatibility conflict exists.
 

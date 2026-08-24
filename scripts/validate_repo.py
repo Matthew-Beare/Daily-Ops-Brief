@@ -17,8 +17,11 @@ REQUIRED = (
     "policy/ops-brief-policy.yaml",
     "docs/automation-contracts.md", "docs/automation-design.md",
     "docs/data-platform-grafana.md", "docs/feature-audit-2026-08-22.md",
-    "docs/feature-ledger-2026-08-24.md", "docs/beta-hardening-audit-2026-08-24.md",
+    "docs/feature-ledger-2026-08-24.md", "docs/feature-catalog.json",
+    "docs/feature-catalog.md", "docs/beta-hardening-audit-2026-08-24.md",
     "docs/household-financial-reconciliation.md", "docs/lyfeos-data-model.md",
+    "docs/asset-evidence-schema.md",
+    "docs/code-inventory.json",
     "starter/README.md", "starter/START_HERE.md", "starter/LIFE_INTERVIEW.md",
     "starter/MODULE_CATALOG.md", "starter/DEPENDENCIES.md", "starter/VERSIONING.md",
     "starter/PERSONAL_FORK_LIFECYCLE.md", "starter/CAPABILITY_DISCOVERY.md",
@@ -47,8 +50,11 @@ REQUIRED = (
     "skill/ops-brief-policy/references/chat-portability.md",
     "skill/ops-brief-policy/scripts/ops_policy.py",
     "skill/ops-brief-policy/scripts/inventory_reconciliation.py",
+    "skill/ops-brief-policy/scripts/asset_evidence.py",
+    "skill/ops-brief-policy/scripts/reminder_policy.py",
     "scripts/import_run_sheet.py", "scripts/audit_public_source.py",
-    "scripts/audit_starter_privacy.py", "privacy/starter-blocklist.txt",
+    "scripts/audit_starter_privacy.py", "scripts/feature_catalog.py",
+    "privacy/starter-blocklist.txt",
 )
 
 MAX_PROJECT_INSTRUCTIONS_CHARS = 3_000
@@ -101,6 +107,8 @@ def validate(root: Path) -> list[str]:
     breaker = text("skill/ops-brief-policy/references/module-circuit-breaker-report.md")
     runtime = text("skill/ops-brief-policy/scripts/ops_policy.py")
     inventory_runtime = text("skill/ops-brief-policy/scripts/inventory_reconciliation.py")
+    evidence_runtime = text("skill/ops-brief-policy/scripts/asset_evidence.py")
+    reminder_runtime = text("skill/ops-brief-policy/scripts/reminder_policy.py")
     receipt = text("skill/ops-brief-policy/references/receipt-ingestion.md")
     fitment = text("skill/ops-brief-policy/references/receipt-classification-fitment.md")
     photo = text("skill/ops-brief-policy/references/receipt-photo-intake.md")
@@ -121,8 +129,10 @@ def validate(root: Path) -> list[str]:
     data_platform = text("docs/data-platform-grafana.md")
     historical = text("docs/feature-audit-2026-08-22.md")
     feature_ledger = text("docs/feature-ledger-2026-08-24.md")
+    feature_catalog = load_json("docs/feature-catalog.json")
     beta_audit = text("docs/beta-hardening-audit-2026-08-24.md")
     household = text("docs/household-financial-reconciliation.md")
+    asset_schema = text("docs/asset-evidence-schema.md")
     compatibility = text("policy/ops-brief-policy.yaml")
 
     start = text("starter/START_HERE.md")
@@ -175,6 +185,12 @@ def validate(root: Path) -> list[str]:
     require("products:" not in agent_metadata, "skill agent metadata contains unsupported products policy", errors)
     require(all_terms(inventory_runtime, "receipt_line_intents", "entity_uuid", "relationship_uuid", "assigned_to", "include_in_inventory"), "inventory reconciler lacks identity/relationship contract", errors)
     require(all_terms(asset, "Asset Relationships", "exact receipt line", "assigned_to", "installed_on", "inventory_reconciliation.py"), "asset policy lacks executable receipt-line relationship contract", errors)
+    require(all_terms(evidence_runtime, "identifier_intents", "evidence_intents", "knowledge_intents", "specification_intents", "query_graph", "upc_a", "serial_number", "source_locator", "authoritative"), "asset evidence reconciler lacks identifier/knowledge/specification/query contract", errors)
+    require(all_terms(reminder_runtime, "day_before", "morning_of", "relative_minutes_before", "medication", "schedule_confirmed", "caregiver_sharing", "no_per_event_automations"), "reminder planner lacks appointment/medication safety contract", errors)
+    feature_rows = [row for category in feature_catalog.get("categories", []) if isinstance(category, dict) for row in category.get("features", []) if isinstance(row, dict)] if isinstance(feature_catalog, dict) else []
+    require(len(feature_rows) >= 70, "machine-readable feature catalog is incomplete", errors)
+    require(all_terms(feature_ledger, "bidirectional receipt/order", "namespaced upc/gtin", "medication reminders", "personal schedule & wellbeing", "hierarchical machine-readable feature catalog"), "forensic feature ledger lacks current integrated requirements", errors)
+    require(all_terms(asset_schema, "Evidence Index", "Asset Identifiers", "Knowledge Relationships", "Technical Specifications", "Asset Lookup Queue", "Asset Browser", "leading zeroes", "owned_by", "page/section"), "asset/evidence provider schema is incomplete", errors)
 
     # Public upstream and starter source/state boundary.
     require(all_terms(readme, "intentionally public", "starter/start_here.md", "google sheets", "google drive", "mutable operational state", "public-source audit"), "README lacks public-upstream/external-state boundary", errors)
@@ -221,7 +237,9 @@ def validate(root: Path) -> list[str]:
         "canonical_clock_guard", "authority_registry", "interview_ledger",
         "interview_resume_policy", "shared_authority", "appointment_provider_type_research",
         "appointment_reminder_day_before", "appointment_reminder_morning_of",
-        "appointment_reminder_relative",
+        "appointment_reminder_relative", "medication_reminders",
+        "medication_schedule_evidence", "caregiver_reminder_sharing",
+        "asset_identifier_capture", "manual_discovery", "technical_specifications",
     ):
         require(qid in ids, f"starter questionnaire lacks field: {qid}", errors)
 

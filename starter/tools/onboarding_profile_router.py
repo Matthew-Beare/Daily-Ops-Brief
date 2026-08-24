@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 ROLE_ORDER = (
     "dependent_minor",
     "working",
@@ -44,7 +44,9 @@ SERVICE_CATALOG = (
     "receipt_archive",
     "finance",
     "appointments_calendar",
+    "appointment_reminders",
     "health_organization",
+    "medication_reminders",
     "shopping",
     "recipes_meals",
     "household_admin",
@@ -69,6 +71,18 @@ ACTIVATION_STATES = {
     "unresolved",
     "not_applicable",
     "deferred",
+}
+ROLE_PRESENTATION = {
+    "dependent_minor": ("Dependent", "Family, School & Routines"),
+    "working": ("Working", "Work & Personal Operations"),
+    "self_employed": ("Self-employed", "Business & Personal Operations"),
+    "retired": ("Retired", "Personal Schedule & Wellbeing"),
+    "nonworking": ("Not currently working", "Personal Priorities & Next Actions"),
+    "parent_guardian": ("Parent or guardian", "Family & Household Coordination"),
+    "caregiver": ("Caregiver", "Care & Household Coordination"),
+    "household_manager": ("Household manager", "Household Operations"),
+    "student": ("Student", "Study & Personal Operations"),
+    "custom": ("Custom", "Personal Operations"),
 }
 
 
@@ -350,10 +364,19 @@ def recommended_services(roles: list[str], services: dict[str, dict[str, Any]]) 
     by_role = {
         "working": ["work_trips", "email_triage", "finance"],
         "self_employed": ["finance", "email_triage", "work_trips"],
-        "retired": ["appointments_calendar", "household_admin", "travel", "knowledge"],
+        "retired": [
+            "appointments_calendar", "appointment_reminders", "medication_reminders",
+            "household_admin", "travel", "knowledge",
+        ],
         "nonworking": ["next_actions", "household_admin", "skill_builder"],
-        "parent_guardian": ["family_school", "household_admin", "appointments_calendar", "shopping"],
-        "caregiver": ["appointments_calendar", "household_admin", "health_organization"],
+        "parent_guardian": [
+            "family_school", "household_admin", "appointments_calendar",
+            "appointment_reminders", "shopping",
+        ],
+        "caregiver": [
+            "appointments_calendar", "appointment_reminders", "medication_reminders",
+            "household_admin", "health_organization",
+        ],
         "household_manager": ["household_admin", "shopping", "assets", "recipes_meals"],
         "student": ["education", "skill_builder", "appointments_calendar"],
         "dependent_minor": ["education", "family_school", "routines_fitness"],
@@ -403,18 +426,39 @@ def resolve(payload: dict[str, Any]) -> dict[str, Any]:
     if appointment_tracking is True and "appointments" not in brief_focus:
         brief_focus.insert(0, "appointments")
 
+    primary_label, support_template = ROLE_PRESENTATION[primary]
+
     return {
         "schema_version": SCHEMA_VERSION,
         "profile_model": "composable_roles",
         "life_profile": profile,
         "roles": roles,
         "primary_role": primary,
+        "primary_role_label": primary_label,
+        "support_template": support_template,
         "profile_alias": alias,
         "profile_alias_storage": "private-mutable-state",
         "context": context,
         "service_catalog": services,
         "recommended_services": recommended_services(roles, services),
         "brief_focus": brief_focus,
+        "reminder_templates": {
+            "appointments": {
+                "activation": "requires_explicit_user_confirmation",
+                "day_before_local_time": "18:00",
+                "morning_of_local_time": "08:00",
+                "relative_minutes_before": 60,
+                "delivery": "single_control_cycle_projection_no_per_event_automations",
+            },
+            "medications": {
+                "activation": "requires_explicit_user_confirmation",
+                "schedule_source": "explicit_owner_prescription_pharmacy_or_clinician_evidence_only",
+                "dose_or_schedule_inference": "prohibited",
+                "missed_dose_advice": "prohibited",
+                "caregiver_sharing": "disabled_until_explicit_opt_in",
+            },
+        },
+        "age_or_ability_inference": "prohibited",
         "canonical_timezone_rule": "context-never-overrides-canonical-iana-timezone",
     }
 

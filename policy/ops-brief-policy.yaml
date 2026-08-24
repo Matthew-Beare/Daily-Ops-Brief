@@ -1,4 +1,4 @@
-version: 4.2.0
+version: 4.3.0
 canonical_timezone: America/New_York
 canonical_skill: skill/ops-brief-policy/SKILL.md
 runtime_engine: skill/ops-brief-policy/scripts/ops_policy.py
@@ -15,7 +15,7 @@ control_cycle:
   production_clock_source: "runtime_system_clock; invoke slot-check without --now"
   output_identity: "first line is deterministic OPS-YYYY-MM-DD-AM|PM Run ID"
   pm_is_morning_brief: true
-  phases: ["receipt_order_lifecycle", "pm_qualified_job_watch", "ops_brief"]
+  phases: ["receipt_order_lifecycle", "reminder_reconciliation", "pm_qualified_job_watch", "ops_brief"]
   separate_active_dispatchers: false
   verification: "Read back title/enabled/cadence/TZID/timing/notifications/duplicates and require a subsequent actual firing or canonical Run Log entry before clearing a scheduler incident."
 
@@ -31,6 +31,16 @@ mode_resolution:
 appointments:
   saturday_am_weekly_horizon_days: 7
   never_show_confirmation_status: true
+  reminder_planner: "skill/ops-brief-policy/scripts/reminder_policy.py"
+  stock_reminders: ["day_before", "configured_morning_of", "60_minutes_before"]
+  delivery: "Calendar projection; never one ChatGPT automation per appointment"
+
+medication_reminders:
+  default_enabled: false
+  schedule_sources: ["explicit_owner", "prescription_label", "pharmacy", "clinician"]
+  dose_or_timing_inference: false
+  missed_dose_advice: false
+  caregiver_sharing_default: false
 
 mileage_pay:
   authority_ref: "resolve Mileage & Pay Tracker through the private Authority Registry"
@@ -54,6 +64,14 @@ receipts:
   cancellation_is_not_refund: true
   unresolved_financial_correction_business_days: 5
   shopping_procurement: "active list; remove fulfilled intent after durable evidence/readback"
+
+asset_evidence:
+  reconciler: "skill/ops-brief-policy/scripts/asset_evidence.py"
+  query_selectors: ["receipt_id", "entity_uuid", "namespaced_identifier"]
+  normalized_tables: ["Evidence Index", "Asset Identifiers", "Knowledge Index", "Knowledge Relationships", "Technical Specifications"]
+  user_projection: "Asset Browser"
+  preserve_identifier_leading_zeroes: true
+  safety_critical_specification_source: "authoritative tier plus exact subject/applicability/revision/page-or-section"
 
 order_reconciliation:
   active_status_authority: "Ops Status Register Shipments"

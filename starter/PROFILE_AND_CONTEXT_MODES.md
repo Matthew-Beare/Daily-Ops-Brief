@@ -43,6 +43,14 @@ parent/guardian can emphasize family/school, appointments, household actions and
 shopping without forcing work machinery. These are recommendations only; they do
 not silently activate services.
 
+The public role label is `Retired`; its optional support template is `Personal Schedule & Wellbeing`.
+Never label a user as elderly, infer age/ability/competence,
+or infer medication/financial needs from retirement. Appointment reminders and
+medication reminders are separate opt-in services. The appointment template may
+offer day-before, configured morning-of, and 60-minute relative reminders.
+Medication schedules require explicit owner/prescription/pharmacy/clinician
+evidence; caregiver sharing is disabled until separately approved.
+
 ## 2. Dynamic context mode
 
 Context mode answers a different question: **what environment is the person operating in now?** It is enabled only when that distinction materially changes available tasks, equipment, evidence, notifications, routes, weather, or routines.
@@ -82,7 +90,9 @@ The starter catalogues these service domains so a new user can discover them:
 - receipt archive;
 - finance;
 - appointments and Calendar;
+- appointment reminders;
 - health organization;
+- medication reminders;
 - shopping;
 - recipes and meals;
 - household admin;

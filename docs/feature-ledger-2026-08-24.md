@@ -57,7 +57,10 @@ Implementation states are independent: **executable**, **skill workflow**, **con
 | Feature | Decision | Current status | Required disposition |
 | --- | --- | --- | --- |
 | Saturday 2:45 AM ROAD appointment lookahead for the next week | REQUIRED | Policy/skill behavior | Keep and test calendar boundary. |
-| Appointment reminder day before and morning of | REQUIRED | Contract/skill behavior | Implement deterministic calendar projection and dedupe. |
+| Appointment reminder day before and morning of | REQUIRED | Executable deterministic planner + skill behavior | Project through the single control cycle, dedupe deterministic reminder identities, and require provider readback. |
+| Appointment reminder one hour before | REQUIRED | Executable deterministic planner + skill behavior | Keep the relative interval configurable; suppress rather than emit a reminder at/after event start. |
+| Medication reminders from explicit owner, prescription-label, pharmacy, or clinician evidence | CURRENT REQUIRED | Executable deterministic planner | Never infer dose/schedule or give missed-dose advice; activation remains explicit and mutable. |
+| Caregiver reminder sharing | REQUIRED safety boundary | Executable opt-in gate | Default to the user only; require explicit sharing consent and an exact private recipient identity. |
 | Context-aware appointment windows without exposing misleading confirmation state | REQUIRED | Partial code/contract | Keep; isolate malformed/unavailable appointment data. |
 | Important email triage across school, employer, jobs, financial, medical, vendors, fraud/security | REQUIRED | Skill workflow | Keep, evidence-grounded, compact. |
 | No automatic outbound email or vendor contact | REQUIRED safety invariant | Skill contract | Hard gate: draft/prompt only until explicit per-action approval. |
@@ -73,8 +76,8 @@ Implementation states are independent: **executable**, **skill workflow**, **con
 | Cancelled, replaced, returned, refunded, and no-settlement states | REQUIRED | Partial/broken | Fix replacement linking and payment/refund contradictions. |
 | Replacement updates superseded purchase state without duplicate spend | REQUIRED | Partial workflow | Stable purchase/case IDs; append-only events; canonical current record. |
 | Active undelivered-only brief output; five-business-day no-progress action | REQUIRED | Skill workflow | Keep and regression-test. |
-| Receipt intake from email, files, photos/screenshots, and manual entry | REQUIRED/ACCEPTED | Skill workflow; no complete stock executable | Keep channels explicit; never claim provisioned when only documented. |
-| Searchable expandable receipt/purchase history | REQUIRED | Skill workflow/external state | Preserve provenance and queryability. |
+| Receipt intake from email, files, photos/screenshots, and manual entry | REQUIRED/ACCEPTED | Executable normalized evidence core + skill/provider workflow | OCR/connector adapters collect evidence; validate source identity, provenance, entity/receipt/line links, and provider readback. |
+| Searchable expandable receipt/purchase history | REQUIRED | Live external state + executable receipt/asset graph query | Preserve provenance and return the same connected purchase/asset records from either direction. |
 | Monthly email-detected spending sheet with dedupe/category totals | REQUIRED | Skill workflow | Keep clearly labelled incomplete/email-grounded spending. |
 | General receipt taxonomy: automotive, tools, house, bills, education, personal/medical records, warranties, etc. | ACCEPTED backlog | Spec-only | Implement generic taxonomy without current-user defaults. |
 | Expected-charge, refund, reimbursement, and household-beneficiary reconciliation | ACCEPTED | Executable + skill workflow, defects found | Harden IDs, money validation, settlement semantics, and audit evidence. |
@@ -86,7 +89,12 @@ Implementation states are independent: **executable**, **skill workflow**, **con
 | Feature | Decision | Current status | Required disposition |
 | --- | --- | --- | --- |
 | Stable asset identity and item-to-vehicle/equipment fitment | REQUIRED | Executable + skill workflow/data model | Receipt-line reconciler enforces immutable asset/relationship UUIDs, exact source identity, explicit endpoints, set/lot quantity and idempotent replay; provider adapters still require target readback. |
-| Asset purchase evidence, manuals, warranties, maintenance, and verified specifications | ACCEPTED | Skill workflows/contracts | Keep provenance and exact model/part-number evidence. |
+| Asset purchase evidence, manuals, warranties, maintenance, and verified specifications | ACCEPTED | Executable normalized evidence/knowledge/specification core + skill/provider workflows | Keep provenance and exact model/part/revision/applicability evidence; live adapter writes require readback. |
+| Bidirectional receipt/order ↔ asset/vehicle/tool queries | CURRENT REQUIRED | Executable graph query core | Traverse explicit assignment/installation/use relationships but exclude household ownership edges that would contaminate results with unrelated assets. |
+| Namespaced UPC/GTIN, merchant SKU, manufacturer part/model, serial, IMEI, and MAC identities | CURRENT REQUIRED | Executable normalized identifier core | Preserve exact values and leading zeroes, validate global check digits, namespace local identifiers, and reject serial-level collisions. |
+| Product/serial/barcode photo and Gmail evidence enrichment | CURRENT REQUIRED | Executable evidence core + skill/provider workflow | Treat OCR as candidate extraction, retain the source, corroborate identity, and enrich the same UUID rather than duplicating the asset. |
+| Manual discovery, canonical Drive retention, and asset linkage | CURRENT REQUIRED | Executable knowledge/index core + skill/provider workflow | Search authoritative manufacturer/OEM sources first, record blocked/no-match states honestly, retain the file in Drive, and link it with a Knowledge UUID. |
+| Vehicle/equipment technical specifications with exact applicability and provenance | CURRENT REQUIRED | Executable specification core | Verified torque, pressure, capacity, alignment, and load values require authoritative source tier plus page/section and exact subject UUID; never promote owner memory to verified. |
 | Shopping intent separate from purchase history | ACCEPTED | Branch/catalog proposal | Implement only as distinct state to prevent duplicate spend/history. |
 | Immutable inventory/item IDs | ACCEPTED backlog | Executable beta core | UUID-backed asset and relationship reconciliation is implemented/tested; live specialized inventory migration is deployment state, while QR/mobile events remain later work. |
 | Hierarchical locations and intended-location versus last-moved-location | REQUIRED/under exploration | Spec-only | Implement minimally; avoid burdensome per-cut lumber tracking. |
@@ -107,14 +115,14 @@ Implementation states are independent: **executable**, **skill workflow**, **con
 | Ask preferred brief cadence/timezone for new users | REQUIRED | Starter present | Store named IANA TZ; user’s personal deployment remains fixed Eastern/twice daily. |
 | Explicit service activation states: unresolved/enabled/disabled/not-applicable/deferred | REQUIRED for honest onboarding | Implemented and tested in candidate; unsafe branch implementation rejected | Keep finite-state activation and exclude disabled/not-applicable services from recommendations. |
 | Working and self-employed profiles | ACCEPTED | Implemented as composable candidate roles | Keep as composable roles. |
-| Retired/retiree profile distinct from nonworking/between-jobs | CURRENT REQUIRED | Implemented as first-class composable role with tested recommendations | Keep retirement distinct from employment status and never infer age/ability. |
+| Retired/retiree profile distinct from nonworking/between-jobs | CURRENT REQUIRED | Executable first-class composable role with appointment/medication reminder recommendations | Public label is `Retired`; use the respectful `Personal Schedule & Wellbeing` support template, keep retirement distinct from employment status, and never infer age/ability. |
 | Nonworking/between-jobs profile | ACCEPTED | Implemented as a composable candidate role | Keep distinct from retirement. |
 | Parent/guardian profile | CURRENT REQUIRED | Implemented as first-class composable role; recommendations never auto-enable services | Keep family/calendar/household modules explicit and permission-scoped. |
 | Child/dependent profiles and family-school coordination | ACCEPTED direction | Dependent-minor role/router implemented; dedicated family-school service remains spec/skill-level | Minimum necessary private data; explicit calendar/school/activity/sharing scopes. |
 | Caregiver and household-manager profiles | PROPOSED/ACCEPTED direction | Composable router roles implemented; dedicated services remain spec/skill-level | No capability or permission assumptions. |
 | Student profile and HOME/CAMPUS option | ACCEPTED | Student role and safe custom context are implemented in the candidate | Keep context separate from role. |
 | Mixed/custom roles | REQUIRED for generality | Composable/custom roles implemented; underlying roles preserved | Preserve underlying roles; `mixed` only a summary. |
-| Older-adult usability/profile recommendations | PROPOSED | Branch spec | Age group optional; never infer disability, medication, finance, or competence. |
+| Older-adult usability/profile recommendations | ACCEPTED direction | Executable role/template core; broader accessibility preferences remain discovery-driven | Never use an insulting public label or infer disability, medication, finance, age, or competence; services remain opt-in. |
 | “Boomer mode” | PROPOSED nickname; exact older wording only partly recoverable | Deliberately not a public mode | Map supported needs to retired/older-adult/accessibility configuration; allow only an optional private alias. |
 | Per-person identity, household/beneficiary relationships, and permission scopes | ACCEPTED | Data model/skill workflow | Private immutable IDs; relationship labels do not grant custody/health/finance access. |
 | Personal fork plus reviewed upstream feature sharing | REQUIRED | Starter workflow present | Keep isolation tests and controlled propagation. |
@@ -132,8 +140,8 @@ Implementation states are independent: **executable**, **skill workflow**, **con
 | Orders/shipments | REQUIRED | Executable + skill workflow. |
 | Receipt archive | REQUIRED | Skill workflow + partial executables. |
 | Personal finance organization | ACCEPTED direction | Partial reconciliation executables; broader service spec-only. |
-| Appointments/calendar/reminders | REQUIRED | Contract/skill workflow; not fully executable. |
-| Administrative health organization | PROPOSED | Branch catalog only; must exclude diagnosis/dosing. |
+| Appointments/calendar/reminders | REQUIRED | Executable reminder planner + calendar/skill workflow; provider projection requires readback. |
+| Administrative health organization | PROPOSED/ACCEPTED direction | Medication-reminder safety core executable; broader service remains specification-only and must exclude diagnosis/dosing. |
 | Shopping/procurement | ACCEPTED direction | Spec-only. |
 | Recipes/meals/groceries | PROPOSED | Contract-only. |
 | Household/errands/admin/maintenance | ACCEPTED direction | Generic task system; dedicated module spec-only. |
@@ -164,8 +172,10 @@ Implementation states are independent: **executable**, **skill workflow**, **con
 | NAS/LAN/private-service bridge and VPN access | PROPOSED/INFRA | Not present | Threat model and explicit network boundary first. |
 | Family site-to-site VPN/redundancy/failover | PROPOSED | Not present | Separate infrastructure project, not beta-core LyfeOS. |
 | Twice-daily incremental, daily cloud, weekly full, rotation, encryption, restore tests | REQUIRED backlog | Spec-only | Define actual data set/RPO/RTO and prove restores before claiming backup. |
-| Knowledge ingestion with relevant excerpts, timestamps, URL/title/metadata, provenance, relationships, optional full pin | REQUIRED/ACCEPTED | Skill contract, no complete platform | Keep raw source temporary unless pinned; test retrieval/provenance. |
+| Knowledge ingestion with relevant excerpts, timestamps, URL/title/metadata, provenance, relationships, optional full pin | REQUIRED/ACCEPTED | Executable knowledge/provenance core + skill/provider workflow | Keep raw source temporary unless pinned; test retrieval/provenance and verify retained Drive objects by readback. |
 | Drive organization by domain and searchable metadata | ACCEPTED personal behavior | Skill workflow | User-specific layout stays private/configurable. |
+| Hierarchical machine-readable feature catalog with CI drift enforcement | CURRENT REQUIRED | Executable repository release gate | Update the forensic ledger, regenerate JSON/Markdown, attach code/test evidence to executable claims, then commit and push every durable feature change. |
+| Machine-enforced production-code inventory and anti-bloat ownership gate | CURRENT REQUIRED | Executable repository release gate | Every production Python file declares one bounded responsibility, why it is separate, and direct test evidence; unlisted code, debug execution, bare exceptions, wildcard imports, and `shell=True` fail CI. |
 
 ## Explicit exclusions and non-negotiable safety boundaries
 

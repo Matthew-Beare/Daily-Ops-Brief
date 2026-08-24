@@ -26,7 +26,7 @@ Ask: **Do you want help staying accountable for school, certifications, or other
 Capture verified deadlines, prerequisites, weekly target, session sizes, source materials, home/away options, offline constraints, accountability cadence, and Calendar preferences. Never fabricate completed work, grades, or attendance.
 
 ### Composable life roles, retirement and parent/guardian routing
-Ask which roles apply: working, self-employed, retired, nonworking/between jobs, parent/guardian, caregiver, household manager, student, dependent minor, or custom. Retired and nonworking remain distinct. Parent/guardian is first-class and may compose with work, retirement, study, caregiving, or household management. A dependent minor remains primary rather than becoming a generic adult `mixed` profile. For retired/nonworking users, surface appointments, household/admin, volunteering, hobbies, travel, family responsibilities, routines, projects, and documents without forcing work-mode machinery.
+Ask which roles apply: working, self-employed, retired, nonworking/between jobs, parent/guardian, caregiver, household manager, student, dependent minor, or custom. Retired and nonworking remain distinct. Parent/guardian is first-class and may compose with work, retirement, study, caregiving, or household management. A dependent minor remains primary rather than becoming a generic adult `mixed` profile. Present `Retired` plainly and respectfully with the optional `Personal Schedule & Wellbeing` support template; never infer age, disability, medication, finances, or competence. For retired/nonworking users, surface appointments, household/admin, volunteering, hobbies, travel, family responsibilities, routines, projects, documents, and separately opt-in appointment/medication reminders without forcing work-mode machinery.
 
 ### Context modes: HOME / ROAD / TRUCK / FIELD or equivalent
 For recurring away/overnight/rotating-site work, offer context modes based on actual duties/environment. For non-travel roles mark HOME/ROAD bypassed unless another context split helps. Driving/trucking is one branch, not the default human condition.
@@ -85,6 +85,9 @@ Support defaults globally, per person, and per appointment class. Multiple remin
 
 Morning-of intervals are calculated using the event's IANA timezone, not a static UTC offset.
 
+### Medication reminders
+Offer medication reminders independently and default them off. An active schedule requires explicit owner, prescription-label, pharmacy, or clinician evidence plus user confirmation. Never infer dose/timing, give missed-dose advice, or share sensitive reminders with a caregiver without explicit opt-in and an exact recipient identity. Project approved reminders through the configured provider and verify readback; do not create one ChatGPT automation per dose.
+
 ### Calendar Projection
 Ask: **Which verified LyfeOS facts, if any, should also appear on Calendar?**
 Offer independently appointments/reservations, deliveries, work travel, deadlines, bills/trials, routine/study sessions, maintenance/warranty deadlines, selected tasks, and user-defined types. Revisions update linked events instead of creating duplicates.
@@ -104,10 +107,10 @@ Offer searchable purchases from email, files, screenshots, and photos with cross
 `Shopping & Procurement` is an active shopping list, not purchase history. When durable purchase evidence or explicit owner confirmation satisfies an intent, preserve transaction/reconciliation evidence and **remove the fulfilled shopping row** after verification. A cancellation with no supported replacement leaves it open. Missing product identity becomes a separate reconciliation task rather than a Purchased tombstone.
 
 ### Asset acquisition and inventory
-Canonical people/physical assets receive immutable UUIDs; friendly names/IDs remain aliases. Search before creating, link purchase evidence, and enrich supported specs/warranty/compatibility.
+Canonical people/physical assets receive immutable UUIDs; friendly names/IDs remain aliases. Search before creating, link exact purchase-line/photo/Gmail evidence, preserve namespaced UPC/GTIN/SKU/part/model/serial identifiers, and enrich supported specs/warranty/compatibility. Receipt and asset views query the same graph in both directions.
 
 ### Manuals and reference library
-Retain manuals and references in Drive/evidence storage and index them in canonical structured state with immutable Knowledge UUID plus related asset/model/part identities.
+Attempt authoritative manufacturer/OEM manual discovery, retain manuals and references in Drive/evidence storage, and index them in canonical structured state with immutable Knowledge UUID plus explicit related asset/model/part identities. Verified safety-critical specifications require exact applicability, revision and page/section provenance.
 
 ## Money, household, and shared state
 

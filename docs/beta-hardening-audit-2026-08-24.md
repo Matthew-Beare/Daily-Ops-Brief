@@ -2,7 +2,7 @@
 
 ## Release disposition
 
-**Clean-history release: pass. Installed runtime: pass. Production scheduler clearance: pending.** The repaired `main` branch contains only the sanitized release history—not the contaminated legacy commits—and passes the deterministic test suites, repository contract, final policy fingerprint, and current/history privacy gates. Full beta readiness still requires these independent live/provider gates:
+**Clean-history release: pass. Installed runtime: pass. Production scheduler clearance: pending.** The repaired `main` branch contains only the sanitized release history—not the contaminated legacy commits—and passes the deterministic test suites, repository contract, final policy fingerprint, current/history privacy gates, machine feature-catalog drift gate, and code-inventory gate. Full beta readiness still requires these independent live/provider gates:
 
 1. the next real 2:45 AM/PM `America/New_York` dispatch produces the expected canonical Run Log evidence;
 2. `main` has an enforceable required-check/branch-protection rule, or the provider limitation is explicitly accepted.
@@ -19,7 +19,7 @@ The failure was a stack, not one magic typo:
 | Runtime clock handoff | The 2026-08-24 PM task was recorded by the provider at 14:45:29 Eastern, but the agent supplied an earlier timestamp to the policy guard and was rejected before Run Log entry. | Production `slot-check` no longer accepts a model-created timestamp: omitting `--now` makes the executable capture its own UTC clock, wait once for at most 60 seconds of early handoff, and recapture before entry. Explicit `--now` remains diagnostic-only. |
 | Delivery context | The task was bound to a long-lived chat and the client resurfaced an exact 2026-08-22 response instead of today's circuit-breaker result. | Production target is a standalone task whose runs start from the saved prompt. Every fresh brief begins with its deterministic `OPS-YYYY-MM-DD-AM|PM` Run ID and may not quote or reuse old chat output. |
 | Failure isolation | A malformed or unavailable mileage range could abort the whole brief even when mileage was not due. | Mileage is now Thursday-only, section-scoped, and explicitly degraded when due but unavailable. |
-| Deployment drift | The installed skill was older than the repository and routed through a duplicate wrapper that globally coupled optional inputs. | Deleted the wrapper/concurrency patch, made `ops_policy.py` the sole engine, synced the installed private skill, preserved its private locator separately, matched the public fingerprint, reran all 149 skill tests in place, and pushed the private skill commit. |
+| Deployment drift | The installed skill was older than the repository and routed through a duplicate wrapper that globally coupled optional inputs. | Deleted the wrapper/concurrency patch, made `ops_policy.py` the sole control engine, synced the installed private skill, preserved its private locator separately, matched the public fingerprint, reran all 221 skill tests in place, and pushed the private skill commit. |
 | Observability | “No Run Log row” was previously treated as proof that the scheduler never entered, even before the wrongly shifted execution instant. | Scheduled entry now upserts `Running` before downstream mutations and records logical slot, effective instant, delay, DST adjustment, phase, and state. |
 | Runtime resilience | Work-credit/platform stalls could leave a long run without a trustworthy phase boundary. | Module-scoped circuit breaker, bounded retry, deterministic IDs, and last-known-good readback are explicit contracts. |
 | Mode symptom | The visible brief could fall back or abort despite an active ROAD trip because the failing optional path prevented normal rendering. | Mode precedence is explicit override, active trip, then configured weekly schedule; optional module failure cannot erase core mode/tasks. |
@@ -52,6 +52,16 @@ The failure was a stack, not one magic typo:
 | Split tracking list | One active row per package | Split-package tests. |
 | Partial cancellation without order/tracking | Match original identity before replacing item | Partial-cancellation fallback test. |
 | True replacement | Close/flag original and link distinct replacement | Replacement tests. |
+| Receipt, asset, wheel, tire, vehicle, and evidence lookup from either end | Traverse only explicit typed relationships and return the same connected graph | Bidirectional graph-query and cycle tests. |
+| UPC/GTIN with leading zero | Preserve exact text and validate its check digit | UPC-A normalization and invalid-check-digit tests. |
+| Vendor SKU mistaken for UPC | Keep namespace/type explicit; never promote an unverified code | Identifier namespace and lookup-queue tests plus live Tire Rack readback. |
+| Serial, IMEI, or MAC collision across assets | Reject the conflicting identity instead of merging assets | Global-identifier collision and normalization tests. |
+| Evidence replay or attempted source mutation | Upsert idempotently; reject changes to immutable source identity | Reconciliation replay and immutable-field tests. |
+| Manual retained without a Drive identity/revision | Reject retention as incomplete | Knowledge/manual validation tests. |
+| Safety-critical torque, pressure, fluid, or capacity claim without authoritative source and exact locator | Reject the specification; never guess | Safety-specification provenance tests. |
+| Appointment reminders across DST or after event start | Use named IANA timezone, deduplicate equal instants, and suppress late reminders | Reminder DST, dedupe, and past-event tests. |
+| Medication schedule absent or unconfirmed | Produce no medication reminder and no dose advice | Medication evidence/confirmation failure tests. |
+| Caregiver sharing without consent or exact recipient | Keep reminders private to the user | Caregiver opt-in/recipient tests. |
 | Merchant says no settlement but nonzero debit remains | Actionable contradiction | Payment test. |
 | Debit and credit net to zero | Resolve no settlement | Payment zero-net test. |
 | Pending credit against posted debit | Preserve credit in projected net | Pending-credit test. |
@@ -76,6 +86,9 @@ Every current Python source was parsed/compiled, its imports were checked for us
 | `reconcile_shipments.py` | Deterministic active-fulfillment reducer with authority priority, package split, cancellations, and replacements. | Shipment and ordering suites. |
 | `payment_reconciliation.py` | Exact-cent expected/posted/pending debit-credit reconciliation. | Payment suite. |
 | `financial_resolution.py` | Separate five-business-day refund/reversal deadline gate. | Financial suite. |
+| `inventory_reconciliation.py` | Receipt-line-to-asset intent reducer with stable UUIDs and typed ownership/assignment relationships. | Inventory identity, replay, relationship, and failure suites. |
+| `asset_evidence.py` | Evidence, identifier, manual/knowledge, authoritative-specification, lookup-queue, and bidirectional graph reducer. | Asset-evidence suite, including malformed input, collision, provenance, immutability, idempotency, and CLI failures. |
+| `reminder_policy.py` | Deterministic appointment and evidence-confirmed medication reminder planner for projection through the consolidated cycle. | Reminder suite, including DST, dedupe, consent, missing evidence, and CLI failures. |
 | `starter/tools/onboarding_profile_router.py` | Composable profile/context/service activation router, including retiree and parent/guardian support. | Router suite. |
 | `starter/tools/validate_feature_manifest.py` | Closed portable-module schema, file-boundary, failure-domain, dependency/version, and honest-delivery validator. | Manifest/isolation suites. |
 | `scripts/bootstrap.py` | Strict, atomic project-instructions renderer. | Bootstrap suite. |
@@ -83,7 +96,9 @@ Every current Python source was parsed/compiled, its imports were checked for us
 | `scripts/audit_public_source.py` | Current/untracked/history credential, personal-data, authority-ID, symlink, and mutable-export gate. | Public-source audit suite and intentional history failure. |
 | `scripts/audit_starter_privacy.py` | Narrow portable-starter contamination gate. | Starter privacy suite. |
 | `scripts/policy_fingerprint.py` | Content-sensitive deployed-skill checkpoint, including agent metadata/assets but excluding tests and the explicit private authority locator. | Fingerprint suite. |
+| `scripts/feature_catalog.py` | Deterministically compiles the human forensic ledger into the hierarchical machine catalog and rejects drift. | Feature-catalog parser, schema, evidence-path, and drift tests. |
 | `scripts/validate_repo.py` | Cross-document/release invariant gate. | Root contract test. |
+| `docs/code-inventory.json` plus `tests/test_code_inventory.py` | Enumerates every production Python file, its single responsibility, separation rationale, and direct tests; rejects unlisted code and common high-risk bloat patterns. | Code-inventory gate. |
 | All `test_*.py` files | Regression evidence for the executable or contract named by the file; no test-only runtime path is deployed. | Three independent discovery suites plus manifest CLI. |
 | CI/YAML/JSON schemas and manifests | Machine-readable release, scheduling, compatibility, profile-question, and module-boundary contracts. | Repository validator, JSON parsing, manifest validator, privacy gates. |
 
@@ -103,19 +118,23 @@ The large policy functions remain only where they execute one cohesive reducer o
 ## Live state changes already verified
 
 - exactly one active `LyfeOS Control Cycle` dispatcher, with the only scheduled entries at 2:45 AM and 2:45 PM `America/New_York`;
-- receipt/order lifecycle, PM qualified-job monitoring, and brief rendering are module-isolated phases inside that dispatcher; the former standalone lifecycle and job-watch tasks are paused;
-- the dispatcher uses a thin policy-indirection prompt and read back with the exact recurrence, `exact_schedule`, `default_timezone=America/New_York`, and no active diagnostics;
+- receipt/order, bidirectional asset/evidence/manual/specification reconciliation, appointment/medication reminder projection, PM qualified-job monitoring, and brief rendering are explicitly routed through that one dispatcher; the former standalone lifecycle and job-watch tasks are paused;
+- the dispatcher uses a thin policy-indirection prompt and read back with the exact recurrence, `exact_schedule`, `default_timezone=America/New_York`, one enabled automation total, and no active diagnostics;
 - the canonical Ops Status Register now contains validated `Job Watch` and private `Job Watch Settings` tables for durable dedupe/report state without embedding a personal qualification baseline in portable source;
 - Run Log expanded additively from 13 to 21 columns and read back without losing existing rows;
 - weekly HOME and ROAD transition settings added to private Travel Settings and read back;
+- the Purchase & Receipt Archive now has a visible `Asset Browser` and normalized `Evidence Index`, `Asset Identifiers`, `Knowledge Relationships`, `Technical Specifications`, and `Asset Lookup Queue` tables; every new header and seeded record was read back;
+- the WRX, its exact M8R wheel set, the delivered Hankook tire set, and the originating receipt/evidence are queryable in both directions through stable UUIDs and typed relationships; physical mounting remains explicitly unconfirmed;
+- the Tire Rack code is recorded as a vendor SKU, not falsely labelled a UPC; retained manuals have Drive identity/revision evidence; the only seeded safety specification is an exact-model OEM transmission capacity with an exact source locator;
 - active-trip authority preserved; no mutable personal row was copied into this public repository.
-- installed private skill matches policy fingerprint `3e25de602af03bdddfab996e62768f66af23ca5aaacd038e9b57fc6ae52ba5e4`; its deployment-only locator remains outside the public fingerprint.
+- installed private skill matches policy fingerprint `05e2411ffb356cdeb0040af7ee1bca175d7cea2c858002e6bfb2f41d7fd0dd16`; its deployment-only locator remains outside the public fingerprint.
 
 ## Verification snapshot
 
-- 154/154 policy/runtime/reconciliation tests pass in the source tree and again in the installed private skill.
-- 53/53 starter/profile/manifest tests pass.
-- 80/80 repository/bootstrap/import/privacy/fingerprint/metadata tests pass.
+- 221/221 policy/runtime/reconciliation/asset-evidence/reminder tests pass in the source tree and again in the installed private skill.
+- 54/54 starter/profile/manifest tests pass.
+- 88/88 repository/bootstrap/import/privacy/fingerprint/feature-catalog/code-inventory tests pass.
+- 363/363 tests pass across all three suites.
 - Python compilation, JSON/YAML parsing, manifest file/dependency validation, whitespace checks, current-tree public-source audit, and starter privacy audit pass.
 - Clean reachable-history privacy audit passes. The legacy repository's 16 historical findings were not imported; weakening the gate remains prohibited.
 - The first clean-`main` CI run correctly failed because checkout exposed twelve legacy remote branches to the deliberate `--all` history scan. Those twelve named refs were then force-repointed to the sanitized release, read back at the expected commit, and the same all-ref history audit passed locally before the follow-up push.

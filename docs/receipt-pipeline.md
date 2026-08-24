@@ -8,7 +8,7 @@ Receipt ingestion and lifecycle reconciliation are one transaction:
 4. Upsert one transaction row and searchable line items under a stable Receipt ID.
 5. Append the lifecycle event instead of overwriting history.
 6. Allocate the single transaction total across cost owners without double counting.
-7. After core receipt PASS, reconcile supported inventory side effects through the immutable asset graph: exact receipt line → acquired asset UUID → explicit relationship target UUID(s). Then synchronize the active shipment queue, Gmail labels, Drive links, and specialized inventories such as Tool Inventory.
+7. After core receipt PASS, reconcile supported inventory side effects through the immutable asset graph: exact receipt line → acquired asset UUID → explicit relationship target UUID(s). Normalize Gmail/photo/label/manual evidence, namespaced identifiers, Knowledge relationships and verified specifications through `asset_evidence.py`; confirm receipt, asset/vehicle/tool UUID and identifier queries converge on the same graph. Then synchronize the active shipment queue, Gmail labels, Drive links, Asset Browser and specialized inventories such as Tool Inventory.
 8. Queue unknown classifications for the next brief instead of guessing.
 9. Rebuild the Audit gate and require every applicable check to pass.
 10. Only then archive routine Gmail source threads.
@@ -22,6 +22,8 @@ A same-order revision stays under one Receipt ID. A true replacement creates a n
 The monthly spending report is bounded to email-detected purchases. It is not represented as a complete bank, card, or household ledger.
 
 The user-facing front end is the Receipt Browser plus expandable detail ranges, not the legacy full-text Doc. Search tags remain visible and searchable while the long line-item body stays minimized.
+
+Receipt Browser and Asset Browser are two views over one graph. A receipt query returns its acquired assets and their explicit vehicle/tool/manual/specification links; an asset or vehicle query returns the connected receipt lines and purchase dates. Neither view owns data, and `owned_by` is never used as a broad join that contaminates one asset with the rest of the household.
 
 For a multi-quantity set/lot, preserve quantity under one UUID unless individual serial tracking is useful. `assigned_to` is not `installed_on`. Cancelled or otherwise excluded receipt lines remain searchable financial/lifecycle history and create no owned inventory asset.
 

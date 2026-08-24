@@ -27,13 +27,14 @@ If the user changes subjects, LyfeOS answers the immediate request first, record
 First boot can discover/configure, when useful:
 
 - concise briefs and prioritized next actions;
-- working/retired/other life-pattern support;
+- composable working, self-employed, retired, nonworking, parent/guardian, caregiver, household-manager, student, dependent and custom roles, including a respectful `Personal Schedule & Wellbeing` retired support template;
 - personal accountability/routines and exercise with optional wearable evidence;
 - education/study planning and home/away variants;
 - work/context modes for travel/overnight/field roles;
 - **meal planning**, recipes, grocery intent, leftovers/pantry/freezer workflows;
 - hobbies, hiking/outdoor preparation, vacations, and trip planning;
-- appointments/reservations with provider-type enrichment, configurable reminders, and verified email → Calendar reconciliation;
+- appointments/reservations with provider-type enrichment, day-before/morning-of/relative reminders, and verified evidence → Calendar reconciliation;
+- separately opt-in medication reminders from explicit supported schedules, with no dose inference or automatic caregiver sharing;
 - orders/receipts/shopping/payment reconciliation;
 - assets/manuals/knowledge, household/reimbursements, and optional finance workflows;
 - capability/plugin discovery so existing connected tools are reused before redundant setup is requested;
@@ -65,6 +66,8 @@ Structured recipe metadata, meal plans, pantry/freezer facts, meal history, and 
 Canonical appointment state lives in the structured state authority. Email is evidence and Calendar is projection/reminders. If provider type is not explicit, approved public research may identify an evidence-supported specialty such as cardiology, endocrinology, audiology, primary care, dental, etc. Specialty never implies diagnosis/treatment.
 
 Reminder profiles can combine day-before, configured morning-of local time, and relative intervals such as one hour before. Local-clock calculations use the event's IANA timezone.
+
+Medication reminders default off. An active schedule requires explicit owner, prescription-label, pharmacy, or clinician evidence plus confirmation. Never infer dose/timing, give missed-dose advice, or share with a caregiver without separate exact-recipient approval.
 
 ## Canonical-time scheduling
 

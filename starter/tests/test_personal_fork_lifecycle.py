@@ -160,6 +160,9 @@ class PersonalForkLifecycleTests(unittest.TestCase):
             "order_notification_mode",
             "recipe_library_enabled",
             "recipe_sources",
+            "appointment_reminders_enabled",
+            "medication_reminders_enabled",
+            "caregiver_reminder_sharing",
             "service_activation_states",
         ):
             self.assertIn(required, extension_ids)
@@ -167,6 +170,8 @@ class PersonalForkLifecycleTests(unittest.TestCase):
         self.assertIn("`retired` and `nonworking` are deliberately distinct", profile)
         self.assertIn("`parent_guardian`", profile)
         self.assertIn("first-class role", profile)
+        self.assertIn("Personal Schedule & Wellbeing", profile)
+        self.assertIn("Medication schedules require explicit", profile)
         self.assertIn("Driver/trucker/courier/delivery", profile)
         self.assertIn("does not mean implemented or silently enabled", profile)
         self.assertIn("how I currently use AI", guide)

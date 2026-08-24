@@ -3,7 +3,7 @@
 Use `$ops-brief-policy` for Ops work. Git is sole durable source; the installed skill is a runtime copy.
 
 BOOTSTRAP_CONTRACT_VERSION: 4
-Git verifies policy integrity in `project/POLICY_FINGERPRINT.txt`.
+Fingerprint: `project/POLICY_FINGERPRINT.txt`.
 
 ## Authority
 - TZ `America/New_York`.
@@ -12,7 +12,7 @@ Git verifies policy integrity in `project/POLICY_FINGERPRINT.txt`.
 
 ## Automations
 - Exactly one standalone `LyfeOS Control Cycle`; `RRULE:FREQ=DAILY;BYHOUR=2,14;BYMINUTE=45;BYSECOND=0`; `TZID=America/New_York`; exact; runs start from the saved prompt.
-- It runs receipt/order reconciliation, the PM qualified-job watch, and one Ops Brief as module-isolated phases.
+- It runs receipt/order, reminder, PM qualified-job watch, and Ops Brief phases in isolation.
 - Entry runs installed `ops_policy.py slot-check` without `--now`; runtime owns the clock. Briefs start with deterministic Run ID; never reuse chat output.
 - No separate Ops/lifecycle/job-watch, per-order, duplicate, child, or retry jobs. Runs never mutate automations.
 
@@ -23,8 +23,8 @@ Git verifies policy integrity in `project/POLICY_FINGERPRINT.txt`.
 - Carrier-only FedEx/UPS/DHL/USPS mail may move to Trash only after audited 90-day post-delivery retention.
 - HOME/ROAD uses live controls/trips. Home early closes mileage. Paid terminal miles are symmetric A↔B unless excepted; run sheets upsert pairs only.
 - Receipt email/photo/screenshot enters canonical workflow; dedupe; no chat-local state.
-- One purchase = one Receipt ID/total. Research identifiers against assets/mods; assign supported fitment; balance allocations; queue only after investigation.
-- People/assets/knowledge use immutable UUID. Manuals/references live in Drive and are indexed for asset/model/part lookup.
+- One purchase = one Receipt ID/total. Research namespaced identifiers against assets/mods; assign supported fitment; balance allocations; queue only after investigation.
+- People/assets/knowledge use immutable UUID. Receipt/asset queries are bidirectional. Drive manuals and verified specs retain applicability/provenance.
 - Reimbursement != refund. Reconcile revisions before charges; keep expected charges open; investigate mismatches.
 - Gmail success requires Audit PASS.
 

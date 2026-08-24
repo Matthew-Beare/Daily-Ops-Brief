@@ -32,11 +32,20 @@ Every person and physical asset in canonical LifeOS state gets one immutable RFC
 
 `People & Assets` is the canonical general physical-asset registry. Specialized inventories such as Tool Inventory retain their domain-specific columns but expose one `Entity UUID` per physical record. `Asset Relationships` is the canonical graph for UUID-to-UUID ownership, assignment, installation, storage, replacement, alias/merge, and supported-use edges.
 
+Normalized supporting tables are not optional free-text duplicates:
+
+- `Evidence Index` retains Gmail/photo/receipt/label/manual/manufacturer evidence identity, source locator/hash, exact entity/Receipt ID/receipt-line links, and status;
+- `Asset Identifiers` stores one namespaced identifier row per Entity UUID/value/type, preserving the printed value and a deterministic normalized search value;
+- `Knowledge Index` plus `Knowledge Relationships` stores retained manuals/references and their explicit asset/vehicle/tool applicability;
+- `Technical Specifications` stores one exact subject UUID, value/unit, applicability, revision, source tier, source URL or Knowledge UUID, and page/section locator;
+- `Asset Browser` is a user-facing projection over those authorities, not an editable second registry.
+
 - Receipt-created assets carry the exact `Receipt ID` and exact receipt-line coordinate/source key; never link only by a descriptive item string.
 - Relationship rows carry their own immutable RFC 4122 UUID, both endpoint UUIDs, relationship type/status, source identity, timestamps, and receipt/evidence provenance when applicable.
 - Use `assigned_to` for intended or canonical allocation and `installed_on` only for supported physical-installation evidence. Never silently upgrade one to the other.
 - One set/lot may have quantity greater than one under one asset UUID. Use one UUID per item only when serial-level identity, warranty, maintenance, loss, or movement tracking is genuinely useful.
 - Run `scripts/inventory_reconciliation.py` before provider writes. It rejects UUID replacement/collision, duplicate source identity, invalid quantity/tracking mode, unknown relationship endpoints, self-links, and inventory creation from excluded receipt lines.
+- Run `scripts/asset_evidence.py` before identifier/evidence/knowledge/specification writes. It rejects invalid GTIN/IMEI check digits, missing namespaces, serial/IMEI/MAC collisions, cross-asset evidence misuse, unretained manual claims, unsafe specification provenance, and source-identity mutation.
 
 ## Identity resolution
 
@@ -44,6 +53,9 @@ Every person and physical asset in canonical LifeOS state gets one immutable RFC
 2. Normalize formatting but preserve the source text/provenance.
 3. Search manufacturer/OEM documentation first, then exact vendor SKU/product pages, then reputable specialist catalogs.
 4. Enrich evidence-backed specifications useful for future matching: dimensions, platform/battery family, voltage, compatibility/application, capacities, warranty, included accessories, color/variant, etc.
+5. Treat OCR and barcode decoding as extraction, not truth. Preserve the exact source, corroborate material identity, and keep unsupported candidates out of `verified` state.
+
+UPC/GTIN lookup uses the printed digits including leading zeroes and validates the check digit before web research. A merchant SKU, manufacturer part number, model number, and serial number always carries its merchant/manufacturer namespace. Never relabel a merchant SKU as UPC merely because it is numeric.
 5. Never invent a serial/model digit that is unreadable. Queue the missing value only when it is actually required.
 
 ## Dedupe and ownership
@@ -70,6 +82,10 @@ When purchase/reference evidence exists:
 - keep replacement/returned/disposed status as lifecycle state rather than deleting the original asset identity.
 
 These relationships are independently reconcilable. A relationship is not considered healthy until its target readback agrees, but relationship failure does not invalidate the already verified source UUID. The exact receipt line must also read back its acquired asset UUID and assigned target UUID(s); a note or vehicle-name string alone is not an integrated relationship.
+
+## Bidirectional query contract
+
+Receipt Browser and Asset Browser use the same graph query. Starting from an exact Receipt ID, Entity UUID, or namespaced identifier must return the same connected receipt lines, assets, explicit relationships, evidence, manuals and verified specifications. Relationship traversal is bidirectional for `assigned_to`, `installed_on`, `used_with`, storage/replacement and alias edges. Do not traverse `owned_by` as a general join: doing so would make a WRX query return every tool and vehicle owned by the same person.
 
 ## Completion gate
 

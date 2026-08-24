@@ -67,15 +67,16 @@ Sharing a **feature** is different from sharing **state**. A deployment may expl
 The adaptive interview can surface domains the user may not know to request, including:
 
 - briefs and prioritized next actions;
-- working/retired/other life-pattern discovery;
+- composable working, self-employed, retired, nonworking, parent/guardian, caregiver, household-manager, student, dependent and custom roles; the respectful retired support template is `Personal Schedule & Wellbeing` and never infers age or ability;
 - tasks, projects, household/admin, and recurring accountability;
 - exercise/fitness/hiking with optional supported wearable/activity evidence;
 - school/study planning and context-aware coaching;
 - meal planning, recipes, pantry/freezer/leftovers, grocery intent, and cost/waste workflows;
 - hobbies, hiking/outdoor preparation, vacations/trip planning, and travel logistics;
-- appointments/reservations with verified email → Calendar reconciliation;
+- appointments/reservations with verified evidence → Calendar reconciliation plus opt-in day-before, morning-of and relative reminders;
+- opt-in medication reminders from explicit owner/prescription/pharmacy/clinician schedules, with no dose inference or automatic caregiver sharing;
 - orders, receipts, cancellations, replacements, refunds, and active shopping intent;
-- assets, manuals/reference knowledge, warranties, and maintenance;
+- assets, namespaced UPC/GTIN/SKU/part/model/serial identities, bidirectional receipt links, manuals/reference knowledge, verified specifications, warranties, and maintenance;
 - household/reimbursement and optional finance evidence;
 - actionable email and durable reference material.
 
@@ -102,6 +103,14 @@ Appointment reconciliation can:
 Supported organizational labels can include cardiology, endocrinology, audiology, primary care, dental, etc. Specialty is never treated as diagnosis/treatment evidence.
 
 Reminder profiles may include multiple reminders such as day-before, a configured morning-of local clock time, and one hour before. Calendar owns event-specific reminders rather than spawning one ChatGPT Scheduled Task per appointment.
+
+Medication reminders are independent and default off. An active regimen schedule must be explicitly confirmed from owner, prescription-label, pharmacy, or clinician evidence. LyfeOS does not infer dose/timing, advise on missed doses, or share with a caregiver without explicit scope and recipient approval.
+
+## Receipt-linked assets and technical knowledge
+
+One normalized graph connects exact receipt lines, immutable asset/vehicle/tool UUIDs, explicit assignment/installation/use relationships, evidence objects, namespaced identifiers, retained manuals, and technical specifications. Receipt Browser and Asset Browser query that graph from either direction. General ownership edges are excluded from traversal so a vehicle query does not pull in every household asset.
+
+Photo/OCR/barcode extraction is candidate evidence, not automatic truth. UPC/GTIN values retain leading zeroes and pass check-digit validation; merchant SKU, manufacturer part/model and serial values retain their namespace. Retained manuals require canonical Drive readback. Verified safety-critical torque, tire-pressure, fluid, alignment and load specifications require authoritative source tier, exact applicability, revision, and page/section provenance.
 
 ## Canonical scheduler clock
 
@@ -132,12 +141,15 @@ Use the fewest authorities necessary:
 - `scripts/` — validation/source/privacy/bootstrap/fingerprint/import tools
 - `tests/` and `starter/tests/` — regression and portable lifecycle tests
 - `docs/feature-ledger-2026-08-24.md` — project-conversation feature inventory with requirement and implementation status kept separate
+- `docs/feature-catalog.json` and `docs/feature-catalog.md` — generated hierarchical catalog; CI rejects drift and requires code/test evidence paths for integrated claims
+- `docs/code-inventory.json` — one bounded responsibility, separation rationale, and direct test suite for every production Python file; unlisted code fails CI
 - `docs/beta-hardening-audit-2026-08-24.md` — root cause, failure matrix, code justification, and release blockers
 
 ## Validate
 
 ```bash
 python3 scripts/validate_repo.py .
+python3 scripts/feature_catalog.py --check
 python3 scripts/audit_public_source.py . --history
 python3 scripts/audit_starter_privacy.py starter
 python3 -m unittest discover -s tests -p 'test_*.py'
