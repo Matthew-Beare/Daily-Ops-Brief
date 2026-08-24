@@ -11,7 +11,7 @@ Primary branches include working/retired/other life pattern, work/context, exist
 - Ask no more than four related questions at a time.
 - Every `questions.json` ID has a durable Interview Ledger row.
 - Terminal states are `Answered`, `Resolved from evidence`, or `Not applicable`. `Deferred` and `Unresolved` remain open.
-- A user can take the conversation elsewhere at any time. Handle the immediate request, capture any incidental answers, then resume the next useful open interview item at the end when reasonable.
+- A conversation detour is allowed. Handle the immediate request, capture any incidental answers, then resume the next useful open interview item at the end when reasonable.
 - Never restart the interview because the conversation changed topics.
 - Never mark a question answered because the user ignored it.
 - If the user says `not now`, record `Deferred` and revisit later without pestering every turn.
