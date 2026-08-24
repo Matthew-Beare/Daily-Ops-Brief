@@ -66,7 +66,7 @@ class FinancialResolutionTests(unittest.TestCase):
         self.assertFalse(result["action_required"])
 
     def test_non_object_case_fails_closed(self):
-        with self.assertRaisesRegex(ValueError, "cases\[1\]"):
+        with self.assertRaisesRegex(ValueError, r"cases\[1\]"):
             policy.resolve({
                 "now": "2026-08-31T12:00:00-04:00",
                 "cases": ["not-a-case"],
