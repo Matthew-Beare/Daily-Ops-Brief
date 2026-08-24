@@ -66,6 +66,7 @@ Appointments and reminders:
 
 Canonical scheduler clock:
 - Every recurring dispatcher has a canonical IANA timezone and local slot.
+- When configuring schedules, ask for exact local times in that canonical timezone rather than inferring them from device time or travel location.
 - Never compare against device/travel timezone or a hard-coded UTC offset.
 - At runtime convert the current instant into the canonical timezone and compare that canonical local clock with the intended slot. Example logic: `now.astimezone(ZoneInfo(canonical_tz))`.
 - Traveling through another timezone does not move the job; the question is always whether the current instant equals the configured local slot in the deployment's canonical IANA timezone.
