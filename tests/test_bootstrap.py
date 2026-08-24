@@ -21,8 +21,9 @@ class BootstrapTests(unittest.TestCase):
         rendered = BOOTSTRAP.render(template, config)
         self.assertNotIn("{{", rendered)
         self.assertIn("$my-ops-policy", rendered)
-        self.assertIn("PRIVATE_REQUIRED_WHEN_PERSONAL_STATE_IS_ENABLED", rendered)
-        self.assertIn("PRIVATE_GIT_REPOSITORY/state", rendered)
+        self.assertIn("GOOGLE_SHEETS_DEFAULT_OR_SUPPORTED_DATABASE", rendered)
+        self.assertIn("REQUIRED_IN_STRUCTURED_STATE_STORE", rendered)
+        self.assertIn("IANA_TIMEZONE_CONVERSION_NEVER_DEVICE_TIME_OR_STATIC_OFFSET", rendered)
 
     def test_missing_key_fails(self) -> None:
         with self.assertRaisesRegex(ValueError, "missing configuration keys"):
@@ -35,7 +36,7 @@ class BootstrapTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "must be a scalar"):
                 BOOTSTRAP.load_config(path)
 
-    def test_human_first_boot_is_safe_bounded_and_git_state_native(self) -> None:
+    def test_human_first_boot_is_safe_bounded_and_fail_forward(self) -> None:
         guide = (ROOT / "starter/START_HERE.md").read_text(encoding="utf-8")
         lower = guide.lower()
         self.assertIn("Minimum Useful Setup", guide)
@@ -49,9 +50,13 @@ class BootstrapTests(unittest.TestCase):
         self.assertIn("mark HOME/ROAD bypassed", guide)
         self.assertIn("driving/trucking", lower)
         self.assertIn("true replacement", lower)
-        self.assertIn("automatically validates, commits, pushes", guide)
-        self.assertIn("private Git", guide)
+        self.assertIn("automatically update validation, commit, and push", guide)
+        self.assertIn("Google Sheets", guide)
+        self.assertIn("Google Drive", guide)
+        self.assertIn("Interview Ledger", guide)
+        self.assertIn("do not silently abandon", lower)
         self.assertIn("Do you want help with meal planning?", guide)
+        self.assertIn("ZoneInfo", guide)
         self.assertIn("public-source audit", lower)
         self.assertNotIn("1pHkTdCx", guide)
         self.assertNotIn("jbeare92", guide)
