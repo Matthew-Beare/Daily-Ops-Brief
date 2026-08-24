@@ -11,6 +11,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 ID_RE = re.compile(r"^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$")
+CROSS_WRITE_RE = re.compile(r"^[a-z][a-z0-9-]*:[a-z][a-z0-9-]*$")
 VERSION_RE = re.compile(r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$")
 REQUIRED_FIELDS = {
     "manifest_version",
@@ -50,6 +51,16 @@ def _string_list(value: Any, field: str, errors: list[str]) -> list[str]:
     if len(value) != len(set(value)):
         errors.append(f"{field} must not contain duplicates")
     return value
+
+
+def _id_list(value: Any, field: str, errors: list[str], *, allow_empty: bool = True) -> list[str]:
+    items = _string_list(value, field, errors)
+    if not allow_empty and not items:
+        errors.append(f"{field} must not be empty")
+    for item in items:
+        if not ID_RE.fullmatch(item):
+            errors.append(f"{field} contains invalid id: {item}")
+    return items
 
 
 def _safe_path(value: str) -> bool:
@@ -133,15 +144,17 @@ def validate_manifest(value: Any, check_files_from: Path | None = None) -> list[
                 errors.append("permissions.network_domains must contain domains, not URLs")
 
     boundary = value["data_boundary"]
+    runtime_state: str | None = None
     boundary_fields = {"source_contains_personal_data", "shared_logs_contain_personal_data", "runtime_state", "forbidden_source_data"}
     if not isinstance(boundary, dict) or set(boundary) != boundary_fields:
         errors.append("data_boundary fields do not match the portable contract")
     else:
+        runtime_state = boundary.get("runtime_state") if isinstance(boundary.get("runtime_state"), str) else None
         if boundary["source_contains_personal_data"] is not False:
             errors.append("source_contains_personal_data must be false")
         if boundary["shared_logs_contain_personal_data"] is not False:
             errors.append("shared_logs_contain_personal_data must be false")
-        if boundary["runtime_state"] not in RUNTIME_STATES:
+        if runtime_state not in RUNTIME_STATES:
             errors.append("data_boundary.runtime_state is invalid")
         forbidden = _string_list(boundary["forbidden_source_data"], "data_boundary.forbidden_source_data", errors)
         if not forbidden:
@@ -155,10 +168,17 @@ def validate_manifest(value: Any, check_files_from: Path | None = None) -> list[
         if not isinstance(domain, str) or not ID_RE.fullmatch(domain):
             errors.append("runtime_contract.failure_domain must be lowercase hyphen-case")
 
-        required = _string_list(runtime.get("required_capabilities"), "runtime_contract.required_capabilities", errors)
-        optional = _string_list(runtime.get("optional_capabilities"), "runtime_contract.optional_capabilities", errors)
-        if not required:
-            errors.append("runtime_contract.required_capabilities must not be empty")
+        required = _id_list(
+            runtime.get("required_capabilities"),
+            "runtime_contract.required_capabilities",
+            errors,
+            allow_empty=False,
+        )
+        optional = _id_list(
+            runtime.get("optional_capabilities"),
+            "runtime_contract.optional_capabilities",
+            errors,
+        )
         overlap = sorted(set(required) & set(optional))
         if overlap:
             errors.append(f"capabilities cannot be both required and optional: {', '.join(overlap)}")
@@ -166,19 +186,23 @@ def validate_manifest(value: Any, check_files_from: Path | None = None) -> list[
         conditional = runtime.get("conditional_capabilities")
         if not isinstance(conditional, dict) or any(
             not isinstance(key, str)
-            or not key.strip()
+            or not ID_RE.fullmatch(key)
             or not isinstance(rule, str)
             or not rule.strip()
             for key, rule in (conditional.items() if isinstance(conditional, dict) else [])
         ):
-            errors.append("runtime_contract.conditional_capabilities must be an object of nonempty string rules")
+            errors.append("runtime_contract.conditional_capabilities must map capability ids to nonempty string rules")
         elif not set(conditional) <= set(optional):
             errors.append("conditional capabilities must be declared optional capabilities")
 
-        state_classes = _string_list(runtime.get("canonical_state_classes"), "runtime_contract.canonical_state_classes", errors)
-        if boundary.get("runtime_state") == "external-authority" and "structured-state-authority" not in required:
+        state_classes = _id_list(
+            runtime.get("canonical_state_classes"),
+            "runtime_contract.canonical_state_classes",
+            errors,
+        )
+        if runtime_state == "external-authority" and "structured-state-authority" not in required:
             errors.append("external-authority features must require structured-state-authority")
-        if boundary.get("runtime_state") != "none" and not state_classes:
+        if runtime_state not in {None, "none"} and not state_classes:
             errors.append("stateful features must declare canonical_state_classes")
 
         idempotency = runtime.get("idempotency_scope")
@@ -188,7 +212,10 @@ def validate_manifest(value: Any, check_files_from: Path | None = None) -> list[
             errors.append("runtime_contract.on_required_failure must equal block-module-only")
         if runtime.get("on_optional_failure") != "degrade-capability-and-continue":
             errors.append("runtime_contract.on_optional_failure must equal degrade-capability-and-continue")
-        _string_list(runtime.get("cross_module_writes"), "runtime_contract.cross_module_writes", errors)
+        cross_writes = _string_list(runtime.get("cross_module_writes"), "runtime_contract.cross_module_writes", errors)
+        for write in cross_writes:
+            if not CROSS_WRITE_RE.fullmatch(write):
+                errors.append(f"runtime_contract.cross_module_writes contains invalid target: {write}")
 
     config_schema = value["config_schema"]
     if not isinstance(config_schema, dict):
