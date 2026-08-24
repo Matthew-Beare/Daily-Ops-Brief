@@ -15,11 +15,24 @@ The module uses the deployment's selected canonical structured state authority, 
 - `Recipes` stores canonical recipe identity, title/tags/provenance, and a Drive/document reference when the body is stored externally.
 - `Meal Plans` stores accepted/proposed plan state.
 - `Pantry & Freezer` stores user-supported inventory facts when enabled.
-- `Shopping & Procurement` stores active grocery/shopping intent.
 - Long recipe bodies, scans, images, PDFs, or other bulky originals may live in Drive/evidence storage with stable references.
-- Shopping intent is not purchase history. Purchase evidence later reconciles fulfillment through the purchase/shopping workflow.
+- Shopping intent is not purchase history. When enabled, active grocery intent is a declared downstream projection into `Shopping & Procurement`, not part of the meal plan's atomic source commit.
 - Do not fabricate inventory, allergies, medical diets, nutrition targets, or completed meals.
-- Every state mutation receives canonical authority readback before success is reported.
+- Every source-state mutation receives canonical authority readback before success is reported.
+
+## Failure-domain and projection contract
+
+Basic meal planning requires only its canonical structured state authority. Drive, shopping, finance, grocery, nutrition, and other integrations are adapters.
+
+For an accepted meal plan:
+
+1. commit/read back the canonical meal-plan state first;
+2. when shopping-intent projection is enabled, derive desired grocery intent from that committed plan using the meal-plan/correlation identity;
+3. write the declared `shopping-procurement:upsert-meal-plan-intent` projection;
+4. read the shopping target back before marking that projection successful;
+5. if the target is unavailable or disagrees, preserve the meal plan, report only shopping projection Degraded/Pending, and retry later by reconciling canonical meal-plan state against current shopping state.
+
+Do not roll back or duplicate a meal plan because shopping/Drive/finance is unavailable. Do not create a hidden retry job or a second shadow shopping database.
 
 ## Existing meal-planning import
 
@@ -39,7 +52,7 @@ Meal planning can use personal state or an explicitly shared authority. A user m
 
 ## Minimal dependencies
 
-Basic meal planning needs the selected structured state authority. Drive/files, shopping, finance, grocery, nutrition, or other integrations are optional adapters. Failure of one adapter must not disable basic meal planning.
+Basic meal planning needs the selected structured state authority. Drive/files, shopping, finance, grocery, nutrition, or other integrations are optional/conditional adapters. Failure of one adapter must not disable basic meal planning.
 
 ## Portability
 
