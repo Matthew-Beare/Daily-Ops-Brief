@@ -29,6 +29,14 @@ class FeatureManifestTests(unittest.TestCase):
     def test_validator_and_schema_require_the_same_top_level_fields(self):
         self.assertEqual(set(self.schema["required"]), validator.REQUIRED_FIELDS)
         self.assertFalse(self.schema["additionalProperties"])
+        self.assertEqual(self.schema["properties"]["manifest_version"]["const"], 2)
+
+    def test_validator_and_schema_require_the_same_runtime_fields(self):
+        runtime = self.schema["properties"]["runtime_contract"]
+        self.assertEqual(set(runtime["required"]), validator.RUNTIME_CONTRACT_FIELDS)
+        self.assertFalse(runtime["additionalProperties"])
+        self.assertEqual(runtime["properties"]["on_required_failure"]["const"], "block-module-only")
+        self.assertEqual(runtime["properties"]["on_optional_failure"]["const"], "degrade-capability-and-continue")
 
     def test_personal_data_in_shared_source_is_rejected(self):
         manifest = copy.deepcopy(self.fixture)
