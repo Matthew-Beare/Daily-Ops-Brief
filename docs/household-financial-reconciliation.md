@@ -12,9 +12,17 @@ Every person and physical asset uses one immutable collision-resistant RFC 4122 
 
 Suggested columns:
 
-`Entity UUID`, `Friendly Entity ID`, `Display Name`, `Entity Type`, `Relationship`, `Aliases`, `Financial Scope`, `Friendly Asset ID`, `Asset Type`, `Asset Label`, `Year`, `Make`, `Model`, `Notes`, `Updated ET`.
+`Entity UUID`, `Friendly Entity ID`, `Display Name`, `Entity Type`, `Relationship`, `Aliases`, `Financial Scope`, `Friendly Asset ID`, `Asset Type`, `Asset Label`, `Year`, `Make`, `Model`, `Notes`, `Updated ET`, `Quantity`, `Tracking Mode`, `Lifecycle Status`, `Source Authority`, `Source Record ID`, `Receipt ID`, `Receipt Line ID`, `Evidence Link`, `Schema Version`.
 
 When a person and an asset are modeled as distinct physical/logical entities, each receives its own Entity UUID and the ownership/beneficiary relationship links them. Do not stuff two independently addressable objects under one reused UUID merely because one row layout is convenient.
+
+### Asset Relationships
+
+Stores explicit graph edges between asset/person UUIDs. Suggested columns:
+
+`Relationship UUID`, `From Entity UUID`, `Relationship Type`, `To Entity UUID`, `Status`, `Source Authority`, `Source Record ID`, `Receipt ID`, `Receipt Line ID`, `Evidence Link`, `Notes`, `Effective From ET`, `Effective To ET`, `Updated ET`, `Schema Version`.
+
+Set/lot inventory uses one UUID plus quantity unless serial-level tracking is useful. `assigned_to` records allocation or intended fitment and never implies `installed_on`. A receipt-created asset must link the exact Receipt ID and exact receipt-line coordinate; excluded/cancelled lines do not create owned assets.
 
 ### Reimbursements
 
@@ -39,6 +47,7 @@ Suggested columns:
 - `Reimbursements.Receipt ID` -> zero or more non-merchant paybacks reducing net household cost without mutating gross merchant spend.
 - `Payment Reconciliation.Receipt ID` -> one or more settlement cases when a merchant legitimately settles separately; normally one case per current merchant order financial outcome.
 - `People & Assets` supplies immutable beneficiary/asset UUIDs plus friendly aliases referenced by allocations/reimbursements.
+- `Asset Relationships` supplies explicit UUID-to-UUID ownership/assignment/installation edges. Free-text fitment notes remain searchable context but are not the relationship authority.
 
 ## Financial views
 

@@ -28,6 +28,16 @@ Every person and physical asset in canonical LifeOS state gets one immutable RFC
 - Merging duplicate records retires/aliases the losing record to the surviving UUID with an audit relationship; it never silently reuses an old UUID for a different physical object.
 - External/beneficiary assets use the same UUID identity rules as household-owned assets.
 
+## Canonical asset and relationship records
+
+`People & Assets` is the canonical general physical-asset registry. Specialized inventories such as Tool Inventory retain their domain-specific columns but expose one `Entity UUID` per physical record. `Asset Relationships` is the canonical graph for UUID-to-UUID ownership, assignment, installation, storage, replacement, alias/merge, and supported-use edges.
+
+- Receipt-created assets carry the exact `Receipt ID` and exact receipt-line coordinate/source key; never link only by a descriptive item string.
+- Relationship rows carry their own immutable RFC 4122 UUID, both endpoint UUIDs, relationship type/status, source identity, timestamps, and receipt/evidence provenance when applicable.
+- Use `assigned_to` for intended or canonical allocation and `installed_on` only for supported physical-installation evidence. Never silently upgrade one to the other.
+- One set/lot may have quantity greater than one under one asset UUID. Use one UUID per item only when serial-level identity, warranty, maintenance, loss, or movement tracking is genuinely useful.
+- Run `scripts/inventory_reconciliation.py` before provider writes. It rejects UUID replacement/collision, duplicate source identity, invalid quantity/tracking mode, unknown relationship endpoints, self-links, and inventory creation from excluded receipt lines.
+
 ## Identity resolution
 
 1. Extract stable identifiers exactly when visible: manufacturer, product name, model, manufacturer part number, SKU, UPC/EAN/GTIN, serial number, IMEI/MAC or domain-specific identifiers.
@@ -59,7 +69,7 @@ When purchase/reference evidence exists:
 - capture warranty period/registration/support documentation only when supported;
 - keep replacement/returned/disposed status as lifecycle state rather than deleting the original asset identity.
 
-These relationships are independently reconcilable. A relationship is not considered healthy until its target readback agrees, but relationship failure does not invalidate the already verified source UUID.
+These relationships are independently reconcilable. A relationship is not considered healthy until its target readback agrees, but relationship failure does not invalidate the already verified source UUID. The exact receipt line must also read back its acquired asset UUID and assigned target UUID(s); a note or vehicle-name string alone is not an integrated relationship.
 
 ## Completion gate
 

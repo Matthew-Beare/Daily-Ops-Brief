@@ -17,6 +17,8 @@ People, physical assets and retained knowledge objects use immutable collision-r
 | Classification case | `Classification Queue` | `Queue ID` | Last-resort unresolved identity/ownership/fitment |
 | Payment case | `Payment Reconciliation` | `Payment Case ID` | Expected charge vs pending/posted settlement |
 | Person/asset registry | `People & Assets` | `Entity UUID` | People, beneficiaries, aliases, owned/external physical assets |
+| Asset relationship | `Asset Relationships` | `Relationship UUID` | Explicit UUID-to-UUID ownership, assignment, installation, storage and replacement edges |
+| Specialized inventory | Tool Inventory or configured domain source | `Entity UUID` | Detailed tool/collection fields without replacing global identity |
 | Knowledge/reference | `Knowledge Index` + Drive | `Entity UUID` | Manuals/datasheets/reference metadata and canonical file link |
 | Reimbursement | `Reimbursements` | `Reimbursement ID` | Expected/received payback separate from merchant refund |
 | Active fulfillment | Ops `Shipments` | `Shipment ID` | Undelivered/exception work queue only |
@@ -34,11 +36,13 @@ People, physical assets and retained knowledge objects use immutable collision-r
 4. A same-order merchant revision keeps one Receipt ID; a true new replacement order gets a separate Receipt ID and reciprocal relationship events.
 5. Lifecycle events append idempotently; corrections supersede earlier interpretations without erasing them.
 6. Product/asset identity may be enriched from model, serial, UPC/GTIN, SKU, part number, product photo, receipt, manual and manufacturer evidence. One physical asset uses one immutable Entity UUID.
-7. Retained product/service manuals and technical references use one immutable Knowledge UUID, live as files in canonical Drive, and are indexed by manufacturer/model/part/revision/asset relationships. Multiple upload/email/URL paths to the same document enrich one record rather than duplicating it.
-8. Unknown classification/fitment is queued only after reachable evidence and asset-registry exclusion checks are exhausted.
-9. Reimbursement is not merchant refund. Gross merchant purchase remains auditable while verified reimbursements reduce net household cost separately.
-10. Payment cases remain open until expected settlement is matched, split-matched, resolved as no-settlement or otherwise financially resolved. Actual posted amounts are compared with the latest supported same-order revision.
-11. Gmail/archive success requires the applicable Audit gate to pass.
+7. A receipt-created asset stores the exact Receipt ID and receipt-line coordinate/source identity. Each cross-asset edge stores its own immutable Relationship UUID and both endpoint Entity UUIDs. A descriptive fitment note is not a relationship record.
+8. A multi-quantity set/lot uses one Entity UUID plus quantity unless individual serial-level tracking is useful. `assigned_to` does not claim physical installation; only evidence may create `installed_on`. Cancelled/excluded receipt lines create no owned asset.
+9. Retained product/service manuals and technical references use one immutable Knowledge UUID, live as files in canonical Drive, and are indexed by manufacturer/model/part/revision/asset relationships. Multiple upload/email/URL paths to the same document enrich one record rather than duplicating it.
+10. Unknown classification/fitment is queued only after reachable evidence and asset-registry exclusion checks are exhausted.
+11. Reimbursement is not merchant refund. Gross merchant purchase remains auditable while verified reimbursements reduce net household cost separately.
+12. Payment cases remain open until expected settlement is matched, split-matched, resolved as no-settlement or otherwise financially resolved. Actual posted amounts are compared with the latest supported same-order revision.
+13. Gmail/archive success requires the applicable Audit gate to pass.
 
 ## Fulfillment and Gmail retention
 

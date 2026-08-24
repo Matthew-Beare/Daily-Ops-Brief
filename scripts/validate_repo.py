@@ -46,6 +46,7 @@ REQUIRED = (
     "skill/ops-brief-policy/references/vendor-contact.md",
     "skill/ops-brief-policy/references/chat-portability.md",
     "skill/ops-brief-policy/scripts/ops_policy.py",
+    "skill/ops-brief-policy/scripts/inventory_reconciliation.py",
     "scripts/import_run_sheet.py", "scripts/audit_public_source.py",
     "scripts/audit_starter_privacy.py", "privacy/starter-blocklist.txt",
 )
@@ -99,6 +100,7 @@ def validate(root: Path) -> list[str]:
     maintenance = text("skill/ops-brief-policy/references/state-maintenance.md")
     breaker = text("skill/ops-brief-policy/references/module-circuit-breaker-report.md")
     runtime = text("skill/ops-brief-policy/scripts/ops_policy.py")
+    inventory_runtime = text("skill/ops-brief-policy/scripts/inventory_reconciliation.py")
     receipt = text("skill/ops-brief-policy/references/receipt-ingestion.md")
     fitment = text("skill/ops-brief-policy/references/receipt-classification-fitment.md")
     photo = text("skill/ops-brief-policy/references/receipt-photo-intake.md")
@@ -171,6 +173,8 @@ def validate(root: Path) -> list[str]:
         errors,
     )
     require("products:" not in agent_metadata, "skill agent metadata contains unsupported products policy", errors)
+    require(all_terms(inventory_runtime, "receipt_line_intents", "entity_uuid", "relationship_uuid", "assigned_to", "include_in_inventory"), "inventory reconciler lacks identity/relationship contract", errors)
+    require(all_terms(asset, "Asset Relationships", "exact receipt line", "assigned_to", "installed_on", "inventory_reconciliation.py"), "asset policy lacks executable receipt-line relationship contract", errors)
 
     # Public upstream and starter source/state boundary.
     require(all_terms(readme, "intentionally public", "starter/start_here.md", "google sheets", "google drive", "mutable operational state", "public-source audit"), "README lacks public-upstream/external-state boundary", errors)

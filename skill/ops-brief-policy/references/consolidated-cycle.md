@@ -13,7 +13,7 @@ Load this reference completely for the single scheduled `LyfeOS Control Cycle`. 
 ## Fixed phase order
 
 1. **Entry:** run the live system-clock slot guard with no caller-supplied timestamp and upsert the Run Log.
-2. **Receipt/order lifecycle:** run the applicable email, receipt, classification/fitment, shopping, payment, reimbursement, shipment, evidence, and contact-proposal workflows. Commit/read back canonical commerce state before downstream projections.
+2. **Receipt/order lifecycle:** run the applicable email, receipt, classification/fitment, asset-identity/relationship, shopping, payment, reimbursement, shipment, evidence, and contact-proposal workflows. Commit/read back canonical commerce state before downstream projections. After core receipt PASS, use `scripts/inventory_reconciliation.py` for supported receipt-line inventory effects and verify the exact receipt line → asset UUID → relationship targets before reporting the asset projection healthy.
 3. **PM qualified-job watch:** only in the PM logical slot, run `qualified-job-watch.md`. The AM slot skips this phase unless canonical state proves the previous PM scan never completed and a bounded catch-up is safe.
 4. **Ops Brief:** run `brief-run.md` from current canonical state and include only meaningful lifecycle/job/failure actions.
 5. **Completion:** update the same Run Log row with phase outcomes and completion state.

@@ -12,7 +12,7 @@ Keep mutable operational state in canonical Sheets, durable policy/code/tests/on
 - Timezone: `America/New_York`.
 - Resolve the Ops Status Register, Mileage & Pay Tracker, Purchase & Receipt Archive, and optional projection authorities from the deployment's private Authority Registry. Public source contains no live resource IDs or URLs.
 - If `references/deployment-authorities.md` exists in an installed private deployment, read it only as the locator for that Authority Registry; it is deployment-local, excluded from the public fingerprint, and must never be copied into public source or output. If neither the private locator nor a connected Authority Registry is available, state the authority gap and do not guess IDs from chat history.
-- Runtime engine: `scripts/ops_policy.py`; shipment reconciler: `scripts/reconcile_shipments.py`.
+- Runtime engine: `scripts/ops_policy.py`; shipment reconciler: `scripts/reconcile_shipments.py`; receipt-line/asset identity reconciler: `scripts/inventory_reconciliation.py`.
 - `Shipments` is active fulfillment only; durable purchase/lifecycle/payment/asset/knowledge history belongs in canonical tables/evidence.
 - **Live order-status queries enumerate the current Ops `Shipments` projection first and only for active fulfillment.** `Orders - Database` and `Order Events` are durable history/enrichment and must never resurrect a transaction that is absent from `Shipments` as an active order unless the shipment projection is explicitly known to be degraded/pending.
 - If Ops is unavailable, report `Action Required — Ops Status Register unavailable.` Mileage failure is section-scoped; on Thursday report mileage/pay unavailable and continue other valid sections.
@@ -25,6 +25,7 @@ Treat each canonical authority/module family as its own failure domain unless a 
 - **Core Ops:** Ops Status Register, deterministic mode/tasks/routes/trips/active Shipments and brief Run Log.
 - **Mileage/Pay:** Mileage & Pay Tracker; never a global prerequisite for non-mileage work.
 - **Commerce:** Purchase & Receipt Archive plus required receipt evidence; canonical purchase state is independent from downstream Ops Shipment or Tool Inventory projections.
+- **Asset identity/relationships:** Purchase & Receipt Archive `People & Assets` and `Asset Relationships`; specialized sources such as Tool Inventory retain their detailed fields and expose one immutable Entity UUID per physical record.
 - **Evidence/projections:** Gmail, Calendar, Drive evidence paths and account data are adapter capabilities whose failure scope follows the workflow that selected them.
 
 A provider-wide outage can affect more than one authority hosted by that provider, but that does not authorize shadow state or a global retry loop. Stop only modules whose own required authorities/invariants are unavailable and continue unrelated healthy modules.
@@ -77,6 +78,7 @@ Cross-authority writes use source-first reconciliation, not a distributed all-or
 - Investigate UPC/GTIN/SKU/part/model/serial and exact compatibility against the full owned/external asset registry, modifications and exclusion evidence. Auto-assign unique supported fitment; queue only after reachable evidence is exhausted.
 - Every person/physical asset and retained knowledge object uses an immutable collision-resistant RFC 4122 UUID as canonical cross-database identity. Friendly IDs/names are aliases and UUIDs survive rename, ownership change, family expansion, or database migration.
 - Asset acquisition dedupes by UUID/stable identifiers/evidence and links physical assets to receipt lines/evidence rather than duplicating financial transactions.
+- A supported inventory side effect is complete only after the exact Receipt ID + receipt line resolves to one immutable asset UUID and every declared ownership/assignment edge reads back from `Asset Relationships`. Track a multi-quantity set/lot under one UUID unless serial-level individual tracking is useful. `assigned_to` never means physically `installed_on`, and a cancelled/excluded receipt line never creates an owned asset.
 - Retained manuals/references live in canonical Drive and are indexed by immutable Knowledge UUID plus manufacturer/model/part/asset relationships so later queries can return the canonical Drive link and relevant source section.
 - Outside-person purchases remain merchant purchases. Reimbursement is separate from merchant refund; preserve gross purchase and verified net household cost.
 - Same merchant order revision stays one Receipt ID and becomes the expected-charge source when strongest. A true replacement with a distinct merchant order gets a distinct linked Receipt ID.

@@ -212,6 +212,20 @@ class LifeOSPolicyContractTests(unittest.TestCase):
         self.assertIn("Entity UUID", schema)
         self.assertIn("Friendly", schema)
 
+    def test_receipt_inventory_uses_exact_line_and_explicit_uuid_edges(self) -> None:
+        skill = self.text("skill/ops-brief-policy/SKILL.md")
+        receipt = self.text("skill/ops-brief-policy/references/receipt-ingestion.md")
+        asset = self.text("skill/ops-brief-policy/references/asset-acquisition.md")
+        data_model = self.text("docs/lyfeos-data-model.md")
+        runtime = self.text("skill/ops-brief-policy/scripts/inventory_reconciliation.py")
+        for surface in (skill, receipt, asset, data_model):
+            self.assertIn("assigned_to", surface)
+            self.assertIn("installed_on", surface)
+        self.assertIn("exact receipt line", asset)
+        self.assertIn("Asset Relationships", data_model)
+        self.assertIn("receipt_line_intents", runtime)
+        self.assertIn("relationship_uuid", runtime)
+
     def test_calendar_projection_updates_in_place_without_task_fanout(self) -> None:
         calendar = self.text("skill/ops-brief-policy/references/calendar-projection.md")
         design = self.text("docs/automation-design.md")

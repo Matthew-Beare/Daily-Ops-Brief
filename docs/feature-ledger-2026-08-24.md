@@ -85,10 +85,10 @@ Implementation states are independent: **executable**, **skill workflow**, **con
 
 | Feature | Decision | Current status | Required disposition |
 | --- | --- | --- | --- |
-| Stable asset identity and item-to-vehicle/equipment fitment | REQUIRED | Skill workflow/data model | Keep; validate associations before recommendations. |
+| Stable asset identity and item-to-vehicle/equipment fitment | REQUIRED | Executable + skill workflow/data model | Receipt-line reconciler enforces immutable asset/relationship UUIDs, exact source identity, explicit endpoints, set/lot quantity and idempotent replay; provider adapters still require target readback. |
 | Asset purchase evidence, manuals, warranties, maintenance, and verified specifications | ACCEPTED | Skill workflows/contracts | Keep provenance and exact model/part-number evidence. |
 | Shopping intent separate from purchase history | ACCEPTED | Branch/catalog proposal | Implement only as distinct state to prevent duplicate spend/history. |
-| Immutable inventory/item IDs | ACCEPTED backlog | Spec-only | Required foundation before QR/mobile workflows. |
+| Immutable inventory/item IDs | ACCEPTED backlog | Executable beta core | UUID-backed asset and relationship reconciliation is implemented/tested; live specialized inventory migration is deployment state, while QR/mobile events remain later work. |
 | Hierarchical locations and intended-location versus last-moved-location | REQUIRED/under exploration | Spec-only | Implement minimally; avoid burdensome per-cut lumber tracking. |
 | QR/barcode scan-in and scan-out | ACCEPTED backlog | Spec-only | Defer until stable IDs/location/event schema exists. |
 | Queryable household/loft/shop inventory | REQUIRED direction | Spec-only | Generic location/category/search model; no personal inventory in public source. |
