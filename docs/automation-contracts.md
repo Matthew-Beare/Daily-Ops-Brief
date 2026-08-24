@@ -72,7 +72,7 @@ The dispatcher must not contain mutable task/route/order/routine data or inspect
 
 The first external mutation after deterministic entry should upsert the canonical Run Log row as `Running`; completion updates that same row. Missing Run Log evidence after an intended slot is a scheduler/runtime incident, not silent success.
 
-Within the Ops Brief service, a writable core Ops Run Log is an intentional entry barrier for downstream state-changing brief modules. This is a service-local safety dependency, not a global LyfeOS dependency: a failed Ops Brief does not block the separately scheduled receipt/order lifecycle or other independent module families.
+Within the Ops Brief service, a writable core Ops Run Log is an intentional entry barrier for downstream state-changing brief modules. This is a service-local safety dependency, not a global LyfeOS dependency: A failed Ops Brief does not block the separately scheduled receipt/order lifecycle or other independent module families.
 
 ## Receipt & Order Lifecycle
 
