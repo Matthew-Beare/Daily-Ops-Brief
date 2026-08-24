@@ -35,15 +35,31 @@ Read connected Google Calendar far enough ahead to cover the next seven days. Ca
 
 Appointment rendering is slot-based and independent of HOME/ROAD mode: the Saturday 2:45 AM brief shows appointments from Saturday through Friday (a half-open seven-calendar-day window); every other 2:45 AM brief shows appointments occurring that calendar day; every 2:45 PM brief shows appointments occurring the following calendar day. This produces the requested day-before and morning-of reminders without exposing confirmation state.
 
+## Canonical runtime clock gate
+
+The scheduled dispatcher is defined in `America/New_York`. Travel, device, session, or caller timezone is context only and **never** changes the scheduled slot.
+
+For every entered scheduled brief:
+
+1. capture the current instant as an offset-aware ISO-8601 timestamp; it may arrive in any real timezone/offset;
+2. run `python3 scripts/ops_policy_runtime.py slot-check --now <timestamp> --timezone America/New_York --pretty`;
+3. the runtime converts that instant with the IANA timezone database (`ZoneInfo("America/New_York")`) and returns `canonical_clock` plus `slot_match` for `02:45` / `14:45`;
+4. derive AM/PM from the **canonical New York clock**, not from travel/device time or a hard-coded UTC offset;
+5. a scheduled run proceeds only when `slot_match` is true. A mismatch is a scheduler-integrity failure: do not perform Gmail/Calendar/Drive/mileage or other downstream mutations, preserve/read back known-good state, and apply the Pants Filling With Shit Report scheduler boundary rather than trying to reinterpret local time.
+
+A manual brief is not rejected merely because it is invoked outside a scheduled slot. Manual invocations still use `America/New_York` for all canonical date/slot semantics.
+
+This guard intentionally makes an instant such as `2026-08-23T12:45:00-06:00` evaluate as `14:45` in New York, while `12:40-06:00` evaluates as `14:40` and does not match. DST comes from IANA timezone rules, never hand-maintained offset math.
+
 ## Deterministic pass and entry log
 
-1. Capture the actual start time in Eastern.
+1. Capture the actual start instant with an explicit UTC offset and use the canonical-clock gate above to resolve its Eastern representation and AM/PM slot.
 2. Build UTF-8 JSON with the raw range arrays and Calendar evidence:
 
 ```json
 {
-  "now": "current ISO-8601 timestamp with Eastern offset",
-  "brief_slot": "AM or PM",
+  "now": "current offset-aware ISO-8601 instant",
+  "brief_slot": "AM or PM derived from canonical America/New_York clock",
   "strict_inputs": true,
   "tasks_values": [["Task ID", "..."], ["TASK-001", "..."]],
   "control_values": [["Record ID", "..."], ["CTRL-001", "..."]],
@@ -59,12 +75,13 @@ Appointment rendering is slot-based and independent of HOME/ROAD mode: the Satur
 When mileage/pay is unavailable, omit or pass the failed mileage datasets as unavailable input to the hardened runtime; do not manufacture a readable-looking fake range.
 
 3. Run `python3 scripts/ops_policy_runtime.py resolve --input <json-file> --pretty` from the skill directory.
-4. Treat the result as authoritative for mode, input health, weather gates, mowing focus, route-watch eligibility, trip status, mileage/pay summary, actions, appointment items, task rendering, Run ID, and Run Log base fields. Mode precedence is live unexpired explicit override, then an active trip, then the weekly default. Company-paid terminal mileage is symmetric by canonical terminal pair unless an explicit exception is recorded; route geometry/runtime may remain directional.
-5. Accept `status: ok` or `status: degraded` as completed deterministic results. If execution fails or returns `status: error`, render its error compactly under `ACTION REQUIRED`; never improvise the failed policy.
-6. **Before Gmail, Calendar-projection, shipment, weather-state or other downstream mutations**, locate the deterministic Run ID in the loaded Run Log and upsert that exact row as `Running`, setting `Started (ET)` to the actual Eastern start time and preserving the engine policy version/mode/input health/action count. If the Run Log itself cannot be written, do not continue state-changing downstream modules; report the blocker. A retry updates the same Run ID and never creates a second row.
-7. Set `Weather Watch` to `Off` for every returned `expired_watch_trip_ids` value while retaining the trip row.
+4. Treat the result as authoritative for mode, input health, weather gates, mowing focus, route-watch eligibility, trip status, mileage/pay summary, actions, appointment items, task rendering, Run ID, Run Log base fields, and `canonical_clock_evidence`. Mode precedence is live unexpired explicit override, then an active trip, then the weekly default. Company-paid terminal mileage is symmetric by canonical terminal pair unless an explicit exception is recorded; route geometry/runtime may remain directional.
+5. For a scheduled brief, require `canonical_clock_evidence.slot_match: true` before downstream mutations. For a manual brief, record the evidence but do not use slot mismatch as a rejection condition.
+6. Accept `status: ok` or `status: degraded` as completed deterministic results. If execution fails or returns `status: error`, render its error compactly under `ACTION REQUIRED`; never improvise the failed policy.
+7. **Before Gmail, Calendar-projection, shipment, weather-state or other downstream mutations**, locate the deterministic Run ID in the loaded Run Log and upsert that exact row as `Running`, setting `Started (ET)` to the actual canonical Eastern start time and preserving the engine policy version/mode/input health/action count plus canonical clock evidence. If the Run Log itself cannot be written, do not continue state-changing downstream modules; report the blocker. A retry updates the same Run ID and never creates a second row.
+8. Set `Weather Watch` to `Off` for every returned `expired_watch_trip_ids` value while retaining the trip row.
 
-Loss of the Ops Status Register as a whole, deterministic policy failure unrelated to an isolated section, or a required mutation failure makes the run `Error`. A mileage/pay read failure alone is never a global `Error`; Thursday becomes `Degraded` with the explicit mileage action, and other days simply continue without that section.
+Loss of the Ops Status Register as a whole, deterministic policy failure unrelated to an isolated section, a scheduled canonical-slot mismatch, or a required mutation failure makes the run `Error`. A mileage/pay read failure alone is never a global `Error`; Thursday becomes `Degraded` with the explicit mileage action, and other days simply continue without that section.
 
 ## Bounded evidence pass
 
@@ -98,9 +115,9 @@ Perform one bounded pass per applicable external source. Run only the planned qu
 
 After evidence and required mutations finish, update the **same** deterministic Run ID row created as `Running` at entry. Never create two rows for one Run ID.
 
-- Keep the original `Started (ET)` and set `Completed (ET)` to the actual Eastern completion timestamp.
-- Preserve engine policy version, mode, input health, action count, and error notes.
-- Use `OK` when all requested checks complete, `Degraded` for a completed brief with a non-authoritative or isolated section failure including Thursday mileage/pay unavailability, and `Error` only for core policy/authority or required-mutation failure.
+- Keep the original `Started (ET)` and set `Completed (ET)` to the actual canonical Eastern completion timestamp.
+- Preserve engine policy version, mode, input health, action count, canonical clock evidence, and error notes.
+- Use `OK` when all requested checks complete, `Degraded` for a completed brief with a non-authoritative or isolated section failure including Thursday mileage/pay unavailability, and `Error` only for core policy/authority, scheduled canonical-slot integrity, or required-mutation failure.
 - In `External Evidence`, write only concise tokens such as `Calendar: OK; Gmail: 2 material threads; NWS: clear`.
 - In `Mutations`, write only stable IDs or `None`; never copy message bodies, secrets, or the full brief.
 - If final logging fails after downstream work, preserve the known-good mutations, do not create a second Run ID, and surface the incomplete final-log state under the Pants Filling With Shit recovery boundary.
