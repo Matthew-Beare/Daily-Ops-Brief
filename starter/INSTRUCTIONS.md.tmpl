@@ -8,6 +8,8 @@ Use `${{SKILL_NAME}}` for scheduled/manual ops runs and clear commands that chan
 - Canonical clock policy: `{{CANONICAL_CLOCK_POLICY}}`
 - Structured mutable state: `{{STATE_STORE}}`
 - Secondary state: `{{SECONDARY_STATE_STORE}}`
+- Failure-domain policy: `{{FAILURE_DOMAIN_POLICY}}`
+- Recovery snapshot policy: `{{RECOVERY_SNAPSHOT_POLICY}}`
 - Drive/evidence root: `{{DRIVE_ROOT}}`
 - Policy/source repository: `{{GITHUB_REPO}}`
 - Repository visibility: {{REPOSITORY_VISIBILITY}}
@@ -33,16 +35,23 @@ Mutable live state belongs in its canonical structured authority, not prompts, m
 - After standing Git authorization, lasting policy/config/schema/feature/workflow changes automatically update validation, commit, push, and verify remote source. Do not ask repeatedly whether to push.
 - Routine tasks, appointments, recipes, meal history, shopping rows, routines, and other mutable life records write to canonical state authorities, not Git.
 - Keep stable personal source known-good; use feature/fix branches and an optional experimental integration branch for concurrent work.
+- Portable feature manifests use the current machine-validated runtime isolation contract, and feature dependencies must be acyclic.
 - When a coherent personal feature passes tests/privacy/source checks, ask exactly `Do you want to make this feature available to other people?`. A no keeps it local. A yes starts sanitization/portable extraction and upstream PR preparation. Never publish personal state automatically.
 
-## State and sharing
+## State, failure domains and sharing
 
 - Authority Registry: {{AUTHORITY_REGISTRY}}
 - Interview Ledger: {{INTERVIEW_LEDGER}}
+- Integration Registry: {{INTEGRATION_REGISTRY}}
 - Shared-state policy: {{SHARED_STATE_SCOPE}}
-- Use one canonical mutable authority per data class.
-- Google Sheets is the starter default structured authority; another supported database can replace it when deliberately selected.
+- Use one canonical mutable authority per data class, but do not interpret that as one giant physical workbook for every module.
+- Production deployments separate unrelated high-value/high-churn failure domains when useful, such as core Ops, commerce/receipts, and mileage/pay. Scoped appointments/meal/household authorities may be split for privacy, sharing, load, or isolation.
+- A missing required capability blocks only its module. A missing optional capability degrades only that path. Unrelated modules with healthy independent authorities continue.
+- Direct cross-module writes default to none. Any deliberate cross-module mutation must be declared, use stable IDs, and receive readback at both authority boundaries.
+- Google Sheets is the starter default structured provider; another supported database can replace it when deliberately selected.
 - Google Drive is the normal retained-file/evidence surface when selected modules need it.
+- A provider-wide outage may affect several authority resources hosted by that provider; do not manufacture shadow state. Continue only modules whose own authorities/invariants remain healthy.
+- Recovery snapshots/provider version history are non-authoritative recovery material, never a second writable master and never silently promoted.
 - Sharing a state authority with another person is explicit and separate from public feature sharing. Support whole-authority sharing or a scoped shared workbook/folder. Explain what becomes visible and verify provider access after sharing.
 
 ## Capability and existing-evidence discovery
@@ -51,7 +60,8 @@ Mutable live state belongs in its canonical structured authority, not prompts, m
 - Reuse verified existing authorities rather than creating duplicate stores.
 - Search current conversation and accessible uploaded/File Library/connected evidence before asking the user to recreate factual history.
 - Arbitrary old ChatGPT conversations are not guaranteed globally searchable. If prior-chat material is inaccessible, explain an ingestion/export path instead of pretending it was read.
-- Optional connectors fail only their dependent module.
+- Persist dependency health by module/capability/failure-domain in the Integration Registry; one module's success is not proof another module's dependencies are healthy.
+- Optional connectors fail only their dependent module/path.
 
 ## Stock modules and schedules
 
