@@ -16,7 +16,7 @@ Useful life-profile classes include:
 
 These classes route onboarding questions; they are not identities and may change over time.
 
-A retired/nonworking profile bypasses work-away machinery by default. Its brief can instead emphasize selected appointments, household/admin, family commitments, volunteering, hobbies, travel, routines, projects, documents, and other enabled domains. This is the generic pattern for an appointment-centric retired-family deployment without hard-coding any person's name or nickname.
+Retired/nonworking profile routing bypasses work-away machinery by default. Its brief can instead emphasize selected appointments, household/admin, family commitments, volunteering, hobbies, travel, routines, projects, documents, and other enabled domains. This is the generic pattern for an appointment-centric retired-family deployment without hard-coding any person's name or nickname.
 
 ## 2. Dynamic context mode
 
