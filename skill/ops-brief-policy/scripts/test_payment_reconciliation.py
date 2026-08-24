@@ -96,7 +96,7 @@ class PaymentReconciliationTests(unittest.TestCase):
             })
 
     def test_non_object_observation_fails_closed(self) -> None:
-        with self.assertRaisesRegex(ValueError, "observations\[1\]"):
+        with self.assertRaisesRegex(ValueError, r"observations\[1\]"):
             MODULE.reconcile_case({
                 "payment_case_id": "PAY-BAD-OBS",
                 "receipt_id": "R-BAD-OBS",
@@ -105,7 +105,7 @@ class PaymentReconciliationTests(unittest.TestCase):
             })
 
     def test_non_object_case_fails_closed(self) -> None:
-        with self.assertRaisesRegex(ValueError, "cases\[1\]"):
+        with self.assertRaisesRegex(ValueError, r"cases\[1\]"):
             MODULE.reconcile({"cases": ["not-a-case"]})
 
     def test_non_finite_money_fails_closed(self) -> None:
