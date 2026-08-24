@@ -29,8 +29,14 @@ import ops_policy as base
 
 POLICY_VERSION = "3.1.3"
 MILEAGE_KEYS = {"mileage_values", "mileage_settings_values"}
-CANONICAL_BRIEF_TIMEZONE = base.TZ_NAME
+CANONICAL_BRIEF_TIMEZONE = "America/New_York"
 CANONICAL_BRIEF_SLOTS: tuple[tuple[int, int], ...] = ((2, 45), (14, 45))
+
+if base.TZ_NAME != CANONICAL_BRIEF_TIMEZONE:
+    raise RuntimeError(
+        "Reference deployment timezone mismatch: "
+        f"base={base.TZ_NAME!r}, runtime={CANONICAL_BRIEF_TIMEZONE!r}"
+    )
 
 # The live Routes sheet retains two physical paid-mile columns so the schema can
 # represent an explicit directional exception. The current deployment's standing
