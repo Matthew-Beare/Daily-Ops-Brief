@@ -72,6 +72,33 @@ class FailureDomainArchitectureTests(unittest.TestCase):
         self.assertIn("shipment projection Degraded/Pending", receipt)
         self.assertIn("does not roll back the core receipt", receipt)
 
+    def test_email_lifecycle_commits_commerce_before_ops_projection(self) -> None:
+        email = self.text("skill/ops-brief-policy/references/email-reconciliation.md")
+        self.assertIn("canonical append-only lifecycle history", email)
+        self.assertIn("active fulfillment **projection/working queue**", email)
+        self.assertIn("Commit/read back a supported lifecycle event", email)
+        self.assertIn("mark only shipment projection `Degraded/Pending`", email)
+        self.assertIn("Source-first transaction order", email)
+        self.assertIn("A shipment projection failure does not roll back commerce", email)
+
+    def test_asset_and_knowledge_links_are_source_first(self) -> None:
+        asset = self.text("skill/ops-brief-policy/references/asset-acquisition.md")
+        knowledge = self.text("skill/ops-brief-policy/references/knowledge-manual-ingestion.md")
+        self.assertIn("Failure-domain boundary", asset)
+        self.assertIn("create/enrich the canonical asset UUID and read it back before mutating another authority", asset)
+        self.assertIn("Receipt/manual/warranty relationships that cross another authority are separate projection-health checks", asset)
+        self.assertIn("Failure-domain boundary", knowledge)
+        self.assertIn("required internal capabilities of the knowledge/manual module", knowledge)
+        self.assertIn("failure to update an external asset/receipt/project relationship does not roll back", knowledge)
+        self.assertIn("source-first", knowledge)
+
+    def test_automation_contract_forbids_cross_authority_rollback(self) -> None:
+        automation = self.text("docs/automation-contracts.md")
+        self.assertIn("Cross-authority transaction isolation", automation)
+        self.assertIn("commit the canonical source mutation first", automation)
+        self.assertIn("Never roll back, clone, renumber, or delete canonical source identity", automation)
+        self.assertIn("A failed Ops Brief does not block the separately scheduled receipt/order lifecycle", automation)
+
     def test_circuit_breaker_continues_unrelated_modules(self) -> None:
         pants = self.text("skill/ops-brief-policy/references/pants-filling-with-shit-report.md")
         self.assertIn("Stop writes for the affected module", pants)
