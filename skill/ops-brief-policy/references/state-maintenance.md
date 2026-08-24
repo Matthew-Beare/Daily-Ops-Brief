@@ -63,7 +63,7 @@ Read `references/email-reconciliation.md` before order-mail processing, shipment
 - Keep exactly one active combined `2:45 AM/PM Eastern Ops Brief` and exactly one active consolidated Receipt & Order Lifecycle schedule.
 - Scheduled runs never inspect/mutate automation definitions.
 - The canonical timezone is scheduling authority. Current device/location/travel timezone and HOME/ROAD mode are context only.
-- Runtime execution must independently convert the current offset-aware instant into the canonical IANA timezone and compare that canonical local clock with the intended slot. Never use the device/travel clock or a hand-maintained UTC offset as the execution gate.
+- Runtime execution must independently convert the current offset-aware instant into the canonical IANA timezone and compare that canonical local clock with the intended slot. Never use the device/travel clock, a static UTC offset, or a hand-maintained UTC offset as the execution gate.
 - Do not delete a chat that currently anchors an active Scheduled Task. Durable operational content still lives outside chat, but the active task anchor is a platform dependency until retired or deliberately migrated.
 
 ### Canonical runtime clock
