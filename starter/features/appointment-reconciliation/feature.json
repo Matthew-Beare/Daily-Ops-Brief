@@ -1,7 +1,7 @@
 {
-  "manifest_version": 1,
+  "manifest_version": 2,
   "id": "appointment-reconciliation",
-  "version": "0.3.0-beta.1",
+  "version": "0.4.0-beta.1",
   "summary": "Evidence-backed appointment reconciliation with structured canonical state, provider-type enrichment, configurable reminders, and verified Calendar projection.",
   "portable": true,
   "compatibility": {"core": ">=0.1.0-beta.1"},
@@ -23,6 +23,21 @@
     "shared_logs_contain_personal_data": false,
     "runtime_state": "external-authority",
     "forbidden_source_data": ["credentials", "private state exports", "private email bodies", "medical details", "personal appointment history", "private evidence references"]
+  },
+  "runtime_contract": {
+    "failure_domain": "appointments",
+    "required_capabilities": ["structured-state-authority"],
+    "optional_capabilities": ["email-evidence", "calendar-projection", "public-provider-research"],
+    "conditional_capabilities": {
+      "email-evidence": "required only for email-driven ingestion; manual appointment state remains available without it",
+      "calendar-projection": "required only for transactions whose selected policy enables Calendar projection",
+      "public-provider-research": "best-effort enrichment when selected; unresolved provider type asks or remains unresolved"
+    },
+    "canonical_state_classes": ["appointments", "calendar-projection"],
+    "idempotency_scope": "canonical appointment/source identity plus linked calendar event id",
+    "on_required_failure": "block-module-only",
+    "on_optional_failure": "degrade-capability-and-continue",
+    "cross_module_writes": []
   },
   "config_schema": {
     "type": "object",
