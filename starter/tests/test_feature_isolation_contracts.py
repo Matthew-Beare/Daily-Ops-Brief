@@ -29,9 +29,13 @@ class FeatureIsolationContractTests(unittest.TestCase):
             self.assertIn("structured-state-authority", runtime["required_capabilities"])
             self.assertEqual(runtime["on_required_failure"], "block-module-only")
             self.assertEqual(runtime["on_optional_failure"], "degrade-capability-and-continue")
-            self.assertEqual(runtime["cross_module_writes"], [])
             self.assertTrue(runtime["idempotency_scope"])
             self.assertTrue(runtime["canonical_state_classes"])
+
+        meal = self.load("meal-planning")["runtime_contract"]
+        appointment = self.load("appointment-reconciliation")["runtime_contract"]
+        self.assertEqual(meal["cross_module_writes"], ["shopping-procurement:upsert-meal-plan-intent"])
+        self.assertEqual(appointment["cross_module_writes"], [])
 
     def test_required_and_optional_capabilities_cannot_overlap(self) -> None:
         manifest = self.load("meal-planning")
@@ -72,7 +76,7 @@ class FeatureIsolationContractTests(unittest.TestCase):
         manifest["entrypoints"]["scripts"] = ["scripts/does-not-exist.py"]
         with tempfile.TemporaryDirectory() as tempdir:
             errors = VALIDATOR.validate_manifest(manifest, Path(tempdir))
-        self.assertTrue(any("references missing file" in error or "scripts references missing file" in error for error in errors))
+        self.assertTrue(any("references missing file" in error for error in errors))
 
 
 if __name__ == "__main__":
