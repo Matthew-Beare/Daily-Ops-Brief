@@ -4,11 +4,12 @@ The adaptive interview is a **durable workflow**, not a single uninterrupted cha
 
 ## Ledger
 
-First boot creates an `Interview Ledger` table in the selected structured state store. One row exists per question ID in `questions.json`.
+First boot creates an `Interview Ledger` table in the selected structured state store. One row exists per question ID across every installed question bank. `questions.json` is the core bank; versioned extension banks such as `questions.profile-and-stock-services.json` merge into the same ledger and must use globally unique IDs.
 
 Minimum fields:
 
 - Question ID
+- Question Bank
 - Section ID
 - Prompt Version
 - Status
@@ -30,7 +31,7 @@ Allowed status values:
 - `Not applicable`
 - `Deferred`
 
-An interview is complete only when every question in the installed question-bank version has a terminal resolution of `Answered`, `Resolved from evidence`, or `Not applicable`. `Deferred` and `Unresolved` remain open.
+An interview is complete only when every question in every installed question-bank version has a terminal resolution of `Answered`, `Resolved from evidence`, or `Not applicable`. `Deferred` and `Unresolved` remain open.
 
 This does **not** mean asking every prompt verbatim. Evidence can resolve questions, and branch logic can mark questions not applicable. The point is complete coverage, not 100-question punishment.
 
@@ -67,18 +68,21 @@ Before asking a factual question, search permitted current evidence and connecte
 - store the supporting source identifier/provenance;
 - only ask for confirmation when the fact is ambiguous, sensitive, contradictory, or materially affects permissions/safety.
 
-Preferences and consent are not silently inferred from evidence. For example, discovering recipes does not imply permission to enable meal planning.
+Preferences and consent are not silently inferred from evidence. For example, discovering recipes does not imply permission to enable meal planning or the stock recipe-library service.
 
 ## Question-bank upgrades
 
-When `questions.json` changes:
+When any installed question bank changes:
 
-1. compare installed prompt/question version with the ledger;
-2. add rows for new question IDs as `Unresolved`;
-3. retain prior answers for unchanged IDs;
-4. reopen a question only when the new version materially changes its meaning or a dependent policy requires reconfirmation;
-5. preserve provenance/history rather than wiping the interview and starting over.
+1. compare installed bank/version/question IDs with the ledger;
+2. reject duplicate IDs across banks;
+3. add rows for new question IDs as `Unresolved`;
+4. retain prior answers for unchanged IDs;
+5. reopen a question only when the new version materially changes its meaning or a dependent policy requires reconfirmation;
+6. preserve provenance/history rather than wiping the interview and starting over.
+
+Removing or disabling an extension bank does not delete its historical answers. Mark no-longer-installed rows inactive in the ledger while preserving provenance.
 
 ## Completion handoff
 
-When no open applicable rows remain, produce a compact final setup summary and mark onboarding complete in canonical state. Future feature additions may add new interview rows without invalidating completed unrelated sections.
+When no open applicable rows remain across all installed banks, produce a compact final setup summary and mark onboarding complete in canonical state. Future feature additions may add new interview rows without invalidating completed unrelated sections.
