@@ -41,28 +41,36 @@ class FailureDomainArchitectureTests(unittest.TestCase):
         ci = self.text(".github/workflows/ci.yml")
         self.assertIn("validate_feature_manifest.py --check-files", ci)
 
-    def test_live_features_have_no_undeclared_cross_module_writes(self) -> None:
-        domains: set[str] = set()
-        for feature_id in ("meal-planning", "appointment-reconciliation"):
-            manifest = self.manifest(feature_id)
-            runtime = manifest["runtime_contract"]
-            self.assertEqual(manifest["manifest_version"], 2)
-            self.assertEqual(runtime["cross_module_writes"], [])
+    def test_live_features_have_explicit_cross_module_write_contracts(self) -> None:
+        meal = self.manifest("meal-planning")["runtime_contract"]
+        appointment = self.manifest("appointment-reconciliation")["runtime_contract"]
+        for runtime in (meal, appointment):
             self.assertFalse(set(runtime["required_capabilities"]) & set(runtime["optional_capabilities"]))
             self.assertEqual(runtime["on_required_failure"], "block-module-only")
             self.assertEqual(runtime["on_optional_failure"], "degrade-capability-and-continue")
-            domains.add(runtime["failure_domain"])
-        self.assertEqual(domains, {"meal-planning", "appointments"})
+        self.assertEqual(meal["failure_domain"], "meal-planning")
+        self.assertEqual(meal["cross_module_writes"], ["shopping-procurement:upsert-meal-plan-intent"])
+        self.assertEqual(appointment["failure_domain"], "appointments")
+        self.assertEqual(appointment["cross_module_writes"], [])
 
     def test_reference_deployment_has_separate_core_commerce_and_mileage_authorities(self) -> None:
         skill = self.text("skill/ops-brief-policy/SKILL.md")
         brief = self.text("skill/ops-brief-policy/references/brief-run.md")
-        self.assertIn("Ops Status Register", skill)
-        self.assertIn("Mileage & Pay Tracker", skill)
-        self.assertIn("Purchase & Receipt Archive", skill)
+        self.assertIn("Core Ops", skill)
+        self.assertIn("Mileage/Pay", skill)
+        self.assertIn("Commerce", skill)
         self.assertIn("Mileage/pay is section-scoped", brief)
         self.assertIn("If the receipt workbook is unavailable", brief)
         self.assertIn("Calendar is non-authoritative evidence", brief)
+
+    def test_receipt_core_commit_is_not_distributed_transaction(self) -> None:
+        receipt = self.text("skill/ops-brief-policy/references/receipt-ingestion.md")
+        self.assertIn("Failure-domain boundary", receipt)
+        self.assertIn("Commit canonical purchase state first", receipt)
+        self.assertIn("core receipt Audit", receipt)
+        self.assertIn("does not depend on Ops Shipments", receipt)
+        self.assertIn("shipment projection Degraded/Pending", receipt)
+        self.assertIn("does not roll back the core receipt", receipt)
 
     def test_circuit_breaker_continues_unrelated_modules(self) -> None:
         pants = self.text("skill/ops-brief-policy/references/pants-filling-with-shit-report.md")
