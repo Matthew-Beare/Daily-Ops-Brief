@@ -7,7 +7,9 @@ contracts that scheduled runs require:
 1. an active trip forces ROAD when no live explicit Mode Override exists;
 2. mileage/pay is section-scoped, never a global strict-input prerequisite;
 3. Home early keeps the Friday 2:45 PM brief in HOME mode and closes the
-   current work-cycle accrual immediately.
+   current work-cycle accrual immediately;
+4. canonical brief-slot checks convert the current instant into the configured
+   IANA timezone instead of trusting travel/device timezone or static offsets.
 
 Delete this layer once the same behavior is folded into ops_policy.py and its
 full regression suite.
@@ -19,13 +21,16 @@ import argparse
 import json
 import sys
 from datetime import datetime, time, timedelta
-from typing import Any
+from typing import Any, Iterable
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import ops_policy as base
 
 
-POLICY_VERSION = "3.1.2"
+POLICY_VERSION = "3.1.3"
 MILEAGE_KEYS = {"mileage_values", "mileage_settings_values"}
+CANONICAL_BRIEF_TIMEZONE = base.TZ_NAME
+CANONICAL_BRIEF_SLOTS: tuple[tuple[int, int], ...] = ((2, 45), (14, 45))
 
 # The live Routes sheet retains two physical paid-mile columns so the schema can
 # represent an explicit directional exception. The current deployment's standing
@@ -44,6 +49,64 @@ base.ROUTE_KEYS.update(
 
 def _truthy(value: Any) -> bool:
     return base._truthy(value)
+
+
+def canonical_clock(moment: datetime, timezone_name: str = CANONICAL_BRIEF_TIMEZONE) -> datetime:
+    """Return *moment* represented in the authoritative IANA timezone.
+
+    The input may carry any real offset/timezone. It represents an instant, not
+    execution authority. Naive datetimes are rejected because guessing their
+    offset would recreate the scheduler bug this guard exists to prevent.
+    """
+    if moment.tzinfo is None or moment.utcoffset() is None:
+        raise ValueError("Current instant must include an explicit timezone/UTC offset.")
+    try:
+        timezone = ZoneInfo(timezone_name)
+    except ZoneInfoNotFoundError as exc:
+        raise ValueError(f"Unknown IANA timezone: {timezone_name}") from exc
+    return moment.astimezone(timezone)
+
+
+def _normalize_slots(slots: Iterable[tuple[int, int]]) -> tuple[tuple[int, int], ...]:
+    normalized: list[tuple[int, int]] = []
+    for hour, minute in slots:
+        if not (0 <= int(hour) <= 23 and 0 <= int(minute) <= 59):
+            raise ValueError(f"Invalid canonical slot: {hour:02d}:{minute:02d}")
+        slot = (int(hour), int(minute))
+        if slot not in normalized:
+            normalized.append(slot)
+    if not normalized:
+        raise ValueError("At least one canonical slot is required.")
+    return tuple(normalized)
+
+
+def canonical_slot_evidence(
+    moment: datetime,
+    *,
+    timezone_name: str = CANONICAL_BRIEF_TIMEZONE,
+    slots: Iterable[tuple[int, int]] = CANONICAL_BRIEF_SLOTS,
+) -> dict[str, Any]:
+    """Return deterministic evidence for canonical-time scheduled-entry checks."""
+    normalized_slots = _normalize_slots(slots)
+    local = canonical_clock(moment, timezone_name)
+    clock = (local.hour, local.minute)
+    return {
+        "timezone": timezone_name,
+        "canonical_now": local.isoformat(),
+        "canonical_date": local.date().isoformat(),
+        "canonical_clock": local.strftime("%H:%M"),
+        "configured_slots": [f"{hour:02d}:{minute:02d}" for hour, minute in normalized_slots],
+        "slot_match": clock in normalized_slots,
+    }
+
+
+def _parse_slot(value: str) -> tuple[int, int]:
+    try:
+        hour_text, minute_text = value.split(":", 1)
+        hour, minute = int(hour_text), int(minute_text)
+    except (ValueError, AttributeError) as exc:
+        raise ValueError(f"Invalid slot {value!r}; expected HH:MM") from exc
+    return _normalize_slots(((hour, minute),))[0]
 
 
 def _dataset_available(payload: dict[str, Any], values_key: str, object_key: str) -> bool:
@@ -129,6 +192,16 @@ def resolve(payload: dict[str, Any]) -> dict[str, Any]:
     result["policy_version"] = POLICY_VERSION
     if isinstance(result.get("run_log_fields"), dict):
         result["run_log_fields"]["Policy Version"] = POLICY_VERSION
+
+    # Scheduled/manual callers can inspect the same canonical-clock evidence.
+    # It is diagnostic in resolve(); the scheduled brief workflow decides
+    # whether a slot mismatch should stop downstream module work.
+    if moment is not None:
+        evidence = canonical_slot_evidence(moment)
+        result["canonical_clock_evidence"] = evidence
+        if isinstance(result.get("run_log_fields"), dict):
+            result["run_log_fields"]["Canonical Clock (ET)"] = evidence["canonical_clock"]
+            result["run_log_fields"]["Canonical Slot Match"] = evidence["slot_match"]
 
     # Make the real precedence visible instead of calling an active-trip
     # decision merely "normal".
@@ -238,15 +311,40 @@ def main(argv: list[str] | None = None) -> int:
     home_parser.add_argument("--now", required=True)
     home_parser.add_argument("--pretty", action="store_true")
 
+    slot_parser = subparsers.add_parser("slot-check")
+    slot_parser.add_argument("--now", required=True)
+    slot_parser.add_argument("--timezone", default=CANONICAL_BRIEF_TIMEZONE)
+    slot_parser.add_argument(
+        "--slot",
+        action="append",
+        default=None,
+        help="Canonical local slot HH:MM; repeat for multiple slots. Defaults to 02:45 and 14:45.",
+    )
+    slot_parser.add_argument("--pretty", action="store_true")
+
     args = parser.parse_args(argv)
     try:
         if args.command == "resolve":
             output = resolve(_read_json(args.input))
-        else:
+        elif args.command == "home-early":
             now = base.parse_datetime(args.now, "now")
             if now is None:
                 raise ValueError("Missing required current timestamp.")
             output = home_early(now)
+        else:
+            now = base.parse_datetime(args.now, "now")
+            if now is None:
+                raise ValueError("Missing required current timestamp.")
+            slots = (
+                tuple(_parse_slot(value) for value in args.slot)
+                if args.slot
+                else CANONICAL_BRIEF_SLOTS
+            )
+            output = {
+                "policy_version": POLICY_VERSION,
+                "status": "ok",
+                **canonical_slot_evidence(now, timezone_name=args.timezone, slots=slots),
+            }
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         output = {
             "policy_version": POLICY_VERSION,
