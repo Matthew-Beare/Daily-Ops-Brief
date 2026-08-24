@@ -140,6 +140,46 @@ class RuntimePolicyRegressionTests(unittest.TestCase):
         messages = [item.get("message") for item in result["actions_required"]]
         self.assertIn("Action Required — mileage/pay Sheet unavailable", messages)
 
+    def test_denver_summer_instant_matches_new_york_pm_slot(self):
+        moment = runtime.base.parse_datetime("2026-08-23T12:45:00-06:00", "now")
+        evidence = runtime.canonical_slot_evidence(moment)
+        self.assertEqual(evidence["timezone"], "America/New_York")
+        self.assertEqual(evidence["canonical_clock"], "14:45")
+        self.assertTrue(evidence["slot_match"])
+
+    def test_denver_summer_1240_does_not_match_new_york_slot(self):
+        moment = runtime.base.parse_datetime("2026-08-23T12:40:00-06:00", "now")
+        evidence = runtime.canonical_slot_evidence(moment)
+        self.assertEqual(evidence["canonical_clock"], "14:40")
+        self.assertFalse(evidence["slot_match"])
+
+    def test_denver_winter_uses_iana_dst_rules_not_summer_offset(self):
+        moment = runtime.base.parse_datetime("2026-12-15T12:45:00-07:00", "now")
+        evidence = runtime.canonical_slot_evidence(moment)
+        self.assertEqual(evidence["canonical_clock"], "14:45")
+        self.assertTrue(evidence["canonical_now"].endswith("-05:00"))
+        self.assertTrue(evidence["slot_match"])
+
+    def test_same_instant_matches_regardless_of_input_offset(self):
+        denver = runtime.base.parse_datetime("2026-08-23T12:45:00-06:00", "now")
+        utc = runtime.base.parse_datetime("2026-08-23T18:45:00+00:00", "now")
+        self.assertEqual(
+            runtime.canonical_slot_evidence(denver)["canonical_now"],
+            runtime.canonical_slot_evidence(utc)["canonical_now"],
+        )
+
+    def test_resolve_exposes_canonical_clock_evidence(self):
+        payload = base_payload("2026-08-23T12:45:00-06:00")
+        result = runtime.resolve(payload)
+        self.assertEqual(result["canonical_clock_evidence"]["canonical_clock"], "14:45")
+        self.assertTrue(result["canonical_clock_evidence"]["slot_match"])
+        self.assertEqual(result["run_log_fields"]["Canonical Clock (ET)"], "14:45")
+        self.assertTrue(result["run_log_fields"]["Canonical Slot Match"])
+
+    def test_naive_current_instant_is_rejected_for_canonical_clock(self):
+        with self.assertRaisesRegex(ValueError, "explicit timezone"):
+            runtime.canonical_clock(runtime.datetime(2026, 8, 23, 14, 45))
+
 
 if __name__ == "__main__":
     unittest.main()
