@@ -8,6 +8,16 @@ An asset may be established from one or several sources: receipt email, photogra
 
 Inspect images directly before OCR fallback. Preserve originals in canonical Drive evidence when normal ingestion is authorized.
 
+## Failure-domain boundary
+
+The asset registry owns physical-asset identity/state. Receipt, manual/knowledge and vehicle/project relationships are evidence/link projections around that identity; they are not permission to turn asset creation into a distributed all-or-nothing transaction.
+
+- When evidence is sufficient to establish the physical asset, create/enrich the canonical asset UUID and read it back before mutating another authority.
+- A receipt relationship uses an existing verified Receipt ID/line when reachable. If purchase evidence is temporarily unavailable but independent evidence sufficiently identifies the asset, preserve the asset and leave the receipt relationship unresolved rather than cloning/deleting the asset.
+- Manual/Knowledge linkage is downstream: a failed knowledge/manual ingestion does not erase an already verified physical asset.
+- Conversely, a manual can be durably ingested even when asset enrichment is temporarily unavailable; the Knowledge UUID remains canonical and the asset relationship can reconcile later.
+- Any cross-authority linkage uses stable UUID/Receipt/Knowledge IDs plus target readback. Never use a hidden retry job or shadow registry.
+
 ## Immutable identity
 
 Every person and physical asset in canonical LifeOS state gets one immutable RFC 4122 UUID (`Entity UUID`) at creation/import. The UUID is the durable cross-database identity and must be collision-resistant across deployments/family members, not merely unique inside one Sheet.
@@ -49,6 +59,10 @@ When purchase/reference evidence exists:
 - capture warranty period/registration/support documentation only when supported;
 - keep replacement/returned/disposed status as lifecycle state rather than deleting the original asset identity.
 
+These relationships are independently reconcilable. A relationship is not considered healthy until its target readback agrees, but relationship failure does not invalidate the already verified source UUID.
+
 ## Completion gate
 
-Asset acquisition is complete only when immutable UUID identity/dedupe, ownership/beneficiary, evidence links, receipt relationship when applicable, searchable identifiers and any required fitment are either verified or precisely queued. Never mark acquisition complete because a photo was merely saved.
+Core asset acquisition is complete only when immutable UUID identity/dedupe, ownership/beneficiary, searchable evidence-backed identifiers, and any asset-local required fitment/classification are verified or precisely queued. Never mark acquisition complete because a photo was merely saved.
+
+Receipt/manual/warranty relationships that cross another authority are separate projection-health checks. Report them `Degraded/Pending` when their target is unavailable or ambiguous, preserve the core asset, and reconcile later from the verified asset UUID plus target authority. Do not roll back or duplicate the physical asset to repair a relationship.
