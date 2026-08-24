@@ -1,40 +1,81 @@
 # LyfeOS State Authority Model
 
-LyfeOS separates **portable source** from **mutable life state**.
+LyfeOS separates **portable source** from **mutable life state** and treats runtime modules as independent failure domains wherever practical.
 
 ## Default authority stack
 
 For new-user deployments the default is intentionally boring and inspectable:
 
 - **Git repository:** code, policy, schemas, migrations, feature manifests, non-secret configuration, tests, onboarding, provenance, and recovery/version history.
-- **Google Sheets:** structured mutable operational state.
+- **Google Sheets or another selected database:** structured mutable operational state.
 - **Google Drive:** retained documents, images, receipts, manuals, recipe bodies or other bulky evidence that does not belong in table cells.
 - **Google Calendar:** optional projection/reminder surface. Calendar is not the sole state authority.
 
-Another supported database can replace Sheets later if its adapter satisfies the same read/write/dedupe/audit contract. Do not require a second state database merely because one is available.
+Another supported database can replace Sheets later if its adapter satisfies the same read/write/dedupe/audit contract. Do not require a second live state database merely because one is available.
 
 Git is never the default database for recipes, appointments, routines, meal history, shopping rows, medical-event scheduling, receipt bodies, or similar changing personal records.
 
+## Failure-domain architecture
+
+**One canonical authority per data class does not mean one giant workbook for the entire system.** Canonical identity and physical resource isolation are separate decisions.
+
+Every enabled module declares a runtime isolation contract containing:
+
+- its `failure_domain`;
+- baseline required capabilities;
+- optional/conditional capabilities;
+- canonical state classes;
+- idempotency scope;
+- required-failure behavior;
+- optional-failure behavior;
+- any deliberate cross-module writes.
+
+The normal rule is:
+
+- a missing **required** capability blocks that module only;
+- a missing **optional** capability degrades only that capability/path;
+- a module must not write directly into another module's canonical state unless the cross-module mutation is explicitly declared and verified at both authority boundaries;
+- feature-to-feature dependencies must be acyclic and must resolve to bundled/installed features;
+- retries, failure state and recovery remain module-scoped;
+- no module may silently substitute chat, Git, a stale export, or another module's store for its canonical state.
+
+### Recommended production resource boundaries
+
+A small deployment may begin with one structured state workbook when simplicity is more important than availability, but production use should split independent high-value/high-churn domains so one resource failure does not unnecessarily take unrelated workflows with it.
+
+A practical default is:
+
+1. **Core Ops authority** — Authority Registry, Interview Ledger, tasks/projects, controls, routines, trips/routes, lightweight run/audit state.
+2. **Commerce authority** — orders, receipts, payment reconciliation, shopping/procurement, purchase allocations.
+3. **Mileage/Pay authority** — only when work/pay mileage exists.
+4. **Scoped authorities when useful** — appointments, household/shared state, meal planning, school, or another domain may be separated when privacy, sharing, volume, or failure isolation justifies it.
+
+This is a failure-domain recommendation, not a demand for database sprawl. Two data classes may share one resource when their coupling is intentional and the user accepts the shared failure domain.
+
+A provider-wide outage can still affect multiple authorities hosted by that provider. LyfeOS treats that as an infrastructure failure, not permission to create shadow state. Unaffected providers/modules may continue, and recovery begins from the canonical authorities plus verified recovery snapshots/provider history.
+
 ## Authority Registry
 
-First boot creates an `Authority Registry` in the selected structured state store. Each row has at minimum:
+First boot creates an `Authority Registry` in the selected core structured state store. Each row has at minimum:
 
 - Authority UUID
 - Data Class
 - Provider/type
 - Provider resource ID or URL
+- Failure Domain
 - Owner person UUID
 - Scope (`personal`, `household`, `shared`, or another configured scope)
 - Read/write capability status
 - Sharing policy
 - Last verified timestamp
+- Recovery/backup policy reference
 - Notes
 
 Every mutable data class has exactly one canonical authority. Drive evidence can be linked from canonical rows by stable IDs/URLs without becoming a second database.
 
-## Default Sheets / Drive layout
+## Structured state / Drive layout
 
-A starter deployment may use one Google Sheet workbook with tables such as:
+A starter deployment may use tables such as:
 
 - `Authority Registry`
 - `Interview Ledger`
@@ -53,9 +94,39 @@ A starter deployment may use one Google Sheet workbook with tables such as:
 - `Integration Registry`
 - `Run Log`
 
-The exact enabled tables depend on selected modules. Do not create unused databases for sport.
+The exact enabled tables and physical workbook/database boundaries depend on selected modules and failure domains. Do not create unused databases for sport, but do not collapse unrelated high-value domains merely to save one resource.
 
-Drive may contain folders such as `Receipts`, `Manuals & Reference`, `Recipes`, `Appointments & Admin`, or another selected evidence class. Sheet rows retain the Drive file ID/link and provenance.
+Drive may contain folders such as `Receipts`, `Manuals & Reference`, `Recipes`, `Appointments & Admin`, or another selected evidence class. Canonical rows retain the Drive file ID/link and provenance.
+
+## Integration Registry and health
+
+The deployment should persist a compact `Integration Registry` or equivalent capability registry with:
+
+- module/feature ID;
+- capability/adapter ID;
+- required / optional / conditional role;
+- failure domain;
+- provider/resource reference;
+- current health (`Healthy`, `Degraded`, `Blocked`, `Unknown`);
+- circuit-breaker state;
+- last verified timestamp;
+- last material error/next action.
+
+This registry is observability/configuration, not a second mutable business-state database. A module decides whether it can proceed from its own declared contract plus current dependency health, not from another module's incidental success.
+
+## Recovery snapshots
+
+A recovery copy is not a second live authority.
+
+Where the provider supports version history/export/snapshots, first boot should offer a recovery policy appropriate to the selected state store. A recovery snapshot:
+
+- is immutable or timestamped;
+- is not read as live state during normal operation;
+- is never silently promoted after an outage;
+- is restored/promoted only through an explicit disaster-recovery transaction with validation and readback;
+- does not create two writable masters.
+
+This gives recoverability without inventing split-brain state.
 
 ## Sharing and collaboration
 
@@ -75,15 +146,16 @@ The system should be able to explain which data would become visible before a br
 
 For every state-changing workflow:
 
-1. read the canonical row/object and relevant evidence;
+1. read the module's canonical row/object and relevant evidence;
 2. correlate/dedupe with stable IDs;
-3. write the smallest required mutation;
-4. read the canonical authority back;
-5. verify identifiers and material fields;
-6. only then report completion or trigger dependent projections;
-7. retain append-only event/history rows where the module contract requires history.
+3. verify required dependencies for that module/path only;
+4. write the smallest required mutation;
+5. read the canonical authority back;
+6. verify identifiers and material fields;
+7. only then report completion or trigger declared dependent projections;
+8. retain append-only event/history rows where the module contract requires history.
 
-If the canonical state authority is unavailable, stop that state-changing module and report `Action Required — <authority> unavailable`. Do not substitute chat memory or Git files as mutable state.
+If the canonical state authority is unavailable, stop that state-changing module and report `Action Required — <authority> unavailable`. Do not substitute chat memory or Git files as mutable state. Unrelated modules with healthy independent authorities may continue.
 
 ## Git lineage
 
@@ -92,7 +164,7 @@ Each user still inherits the public LyfeOS foundation and should have their own 
 - exact upstream version/provenance;
 - enabled modules/features;
 - schemas and migrations for the selected state store;
-- authority *references/types*, never credentials;
+- authority *references/types/failure domains*, never credentials;
 - generated deployment policy and configuration;
 - integration contracts;
 - custom feature code/policy/tests;
