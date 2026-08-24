@@ -30,14 +30,14 @@
     "optional_capabilities": ["drive-evidence", "shopping-intent", "finance-evidence"],
     "conditional_capabilities": {
       "drive-evidence": "required only when the selected recipe/evidence policy stores long bodies or files externally",
-      "shopping-intent": "required only when an accepted meal plan is configured to emit shopping intent",
+      "shopping-intent": "required only for the shopping-procurement projection selected by an accepted meal plan; meal-plan state commits first",
       "finance-evidence": "optional cost evidence and never required for basic planning"
     },
-    "canonical_state_classes": ["recipes", "meal-plans", "pantry-freezer", "shopping-intent"],
-    "idempotency_scope": "canonical recipe ids plus meal-plan horizon and shopping-intent correlation ids",
+    "canonical_state_classes": ["recipes", "meal-plans", "pantry-freezer"],
+    "idempotency_scope": "canonical recipe ids plus meal-plan horizon; shopping projection uses meal-plan id plus shopping intent correlation id",
     "on_required_failure": "block-module-only",
     "on_optional_failure": "degrade-capability-and-continue",
-    "cross_module_writes": []
+    "cross_module_writes": ["shopping-procurement:upsert-meal-plan-intent"]
   },
   "config_schema": {
     "type": "object",
