@@ -1,6 +1,6 @@
 # MIRA | M.I.R.R.O.R. — Personal Google Beta
 
-**M.I.R.R.O.R.** stands for **Memory, Integration, Reality, Reconciliation, Observation, and Record**. **MIRA** is the **MIRROR Intelligence and Reasoning Assistant**. M.I.R.R.O.R. is the reality layer and **holds the durable reflection of reality**: the verified state, evidence, relationships, history, and provenance that describe a user's world. MIRA is the intelligence layer that talks with the user, reasons over that reflection, plans, recommends, and carries out approved actions.
+**M.I.R.R.O.R.** stands for **Memory, Integration, Reality, Reconciliation, Observation, and Record**. **MIRA** is the **MIRROR Intelligence and Reasoning Assistant**. The deliberately forced acronym is a nod to Dennis E. Taylor's *Bobiverse* books and their fondness for a good forced acronym. M.I.R.R.O.R. is the reality layer and **holds the durable reflection of reality**: the verified state, evidence, relationships, history, and provenance that describe a user's world. MIRA is the intelligence layer that talks with the user, reasons over that reflection, plans, recommends, and carries out approved actions.
 
 With the integrations and authorities a user chooses, M.I.R.R.O.R. can keep a connected record across assets and inventory, finances and reimbursements, calendars and appointments, email, orders, shipments, receipts and refunds, tasks and projects, medications and opt-in reminder schedules, documents and knowledge, travel and work, mileage, meals and groceries, and new domains the user creates. The point is not to dump everything into chat. The point is to maintain durable, queryable reality so MIRA can answer questions and coordinate work across those areas from evidence instead of guesswork.
 
@@ -58,6 +58,7 @@ Repository identifiers use punctuation-safe names such as `MIRA-Personal-Product
 - Email sending remains approval-gated.
 - Optional connector failures degrade only the dependent module.
 - Recurring work uses consolidated scheduling rather than one task per order, appointment, or chore.
+- A manual actual-brief smoke test can exercise the real brief pipeline at any time without claiming that the 2:45 scheduler fired.
 - Green CI proves source integrity, not live provider behavior or an actual scheduled firing.
 
 ## Validate

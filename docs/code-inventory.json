@@ -100,6 +100,12 @@
       "tests": ["skill/ops-brief-policy/scripts/test_inventory_reconciliation.py"]
     },
     {
+      "path": "skill/ops-brief-policy/scripts/manual_brief_smoke.py",
+      "responsibility": "Invoke the real Ops brief reducer at any wall-clock time with a uniquely namespaced manual Run ID and explicit non-scheduler evidence.",
+      "why_separate": "Manual smoke invocation is an entry and identity adapter around the sole ops_policy reducer; it must not duplicate policy logic or masquerade as scheduled execution.",
+      "tests": ["skill/ops-brief-policy/scripts/test_manual_brief_smoke.py"]
+    },
+    {
       "path": "skill/ops-brief-policy/scripts/ops_policy.py",
       "responsibility": "Resolve canonical-time entry, HOME/ROAD state, trips, tasks, appointments, mileage/pay, and deterministic Run Log/brief output.",
       "why_separate": "This is the sole cohesive brief-state reducer; duplicate wrappers are prohibited.",

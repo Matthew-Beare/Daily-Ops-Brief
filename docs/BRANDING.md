@@ -13,6 +13,8 @@
 
 **MIRA** is the **MIRROR Intelligence and Reasoning Assistant**.
 
+The deliberately forced acronym is a nod to Dennis E. Taylor's *Bobiverse* books and their fondness for a good forced acronym.
+
 **M.I.R.R.O.R. is the reality layer. MIRA is the intelligence layer.**
 
 M.I.R.R.O.R. **holds the durable reflection of reality**: the evidence-backed state, relationships, history, reconciliation, observations, and provenance that describe the user's world. MIRA is the assistant that converses with the user, reasons over that reflection, plans, recommends, and carries out approved actions.

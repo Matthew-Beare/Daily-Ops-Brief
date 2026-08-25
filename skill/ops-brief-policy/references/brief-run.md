@@ -50,11 +50,17 @@ For every entered scheduled brief:
 
 A manual brief is not rejected merely because it is invoked outside a scheduled slot. Manual invocations still use `America/New_York` for all canonical date/slot semantics.
 
+### Manual actual-brief smoke path
+
+When the owner explicitly asks to test or run an actual brief **now**, outside the scheduled slot, load and follow `references/manual-brief-smoke.md`. Do not run the scheduled slot gate. Read the same live authorities and applicable evidence adapters, then run `scripts/manual_brief_smoke.py` with explicit AM or PM semantics and **without `--now`**. The manual runner captures its own clock, returns a unique `OPS-MANUAL-...` Run ID, and marks `scheduled_firing_evidence: false` so the test cannot overwrite a scheduled Run Log identity or falsely clear a scheduler incident.
+
+A successful manual smoke proves the live policy/authority/rendering path works at test time. Only an observed scheduled run in the canonical 02:45/14:45 window proves scheduler execution.
+
 This guard intentionally makes an instant such as `2026-08-23T12:45:00-06:00` evaluate as `14:45` in New York, while `12:40-06:00` evaluates as `14:40` and does not match. DST comes from IANA timezone rules, never hand-maintained offset math.
 
 ## Deterministic pass and entry log
 
-1. Use the `canonical_now` returned by the live system-clock gate as the exact `now` input and derive AM/PM from its logical slot. Never recapture, round, or invent a second start timestamp.
+1. For a scheduled brief, use the `canonical_now` returned by the live system-clock gate as the exact `now` input and derive AM/PM from its logical slot. Never recapture, round, or invent a second start timestamp. For a manual actual-brief smoke, use `manual-brief-smoke.md`; the manual runner captures the clock itself.
 2. Build UTF-8 JSON with the raw range arrays and Calendar evidence:
 
 ```json
@@ -75,11 +81,11 @@ This guard intentionally makes an instant such as `2026-08-23T12:45:00-06:00` ev
 
 When mileage/pay is unavailable, omit or pass the failed mileage datasets as unavailable input to the hardened runtime; do not manufacture a readable-looking fake range.
 
-3. Run `python3 scripts/ops_policy.py resolve --input <json-file> --pretty` from the skill directory.
+3. For a scheduled brief, run `python3 scripts/ops_policy.py resolve --input <json-file> --pretty` from the skill directory. For a manual actual-brief smoke, run `python3 scripts/manual_brief_smoke.py --input <json-file> --slot AM --pretty` or `--slot PM` and omit `--now`.
 4. Treat the result as authoritative for mode, input health, weather gates, mowing focus, route-watch eligibility, trip status, mileage/pay summary, actions, appointment items, task rendering, Run ID, Run Log base fields, and `canonical_clock_evidence`. Mode precedence is live unexpired explicit override, then an active trip, then the weekly default. Company-paid terminal mileage is symmetric by canonical terminal pair unless an explicit exception is recorded; route geometry/runtime may remain directional.
-5. For a scheduled brief, require `canonical_clock_evidence.slot_match: true` before downstream mutations. For a manual brief, record the evidence but do not use slot mismatch as a rejection condition.
+5. For a scheduled brief, require `canonical_clock_evidence.slot_match: true` before downstream mutations. For a manual brief, require `manual_smoke.slot_gate_bypassed: true` and `manual_smoke.scheduled_firing_evidence: false`; record slot evidence but do not reject a mismatch.
 6. Accept `status: ok` or `status: degraded` as completed deterministic results. If execution fails or returns `status: error`, render its error compactly under `ACTION REQUIRED`; never improvise the failed policy.
-7. **Before Gmail, Calendar-projection, shipment, weather-state or other downstream mutations**, locate the deterministic Run ID in the loaded Run Log and upsert that exact row as `Running`, mapping engine fields by exact header name rather than dictionary order. Set `Started (ET)` to the actual canonical Eastern start time and preserve policy/mode/input/action plus logical slot, effective scheduled instant, dispatch delay/state and DST adjustment. If the Run Log itself cannot be written, do not continue state-changing downstream modules; report the blocker. A retry updates the same Run ID and never creates a second row.
+7. **Before Gmail, Calendar-projection, shipment, weather-state or other downstream mutations**, locate the returned Run ID in the loaded Run Log and upsert that exact row as `Running`, mapping engine fields by exact header name rather than dictionary order. Set `Started (ET)` to the actual canonical Eastern start time and preserve policy/mode/input/action plus logical slot, effective scheduled instant, dispatch delay/state and DST adjustment. If the Run Log itself cannot be written, do not continue state-changing downstream modules; report the blocker. A retry updates the same Run ID and never creates a second row. Manual smoke Run IDs are namespaced `OPS-MANUAL-...` and never replace scheduled `OPS-YYYY-MM-DD-AM|PM` rows.
 8. Set `Weather Watch` to `Off` for every returned `expired_watch_trip_ids` value while retaining the trip row.
 
 Loss of the Ops Status Register as a whole, deterministic policy failure unrelated to an isolated section, a scheduled canonical-slot mismatch, or a required mutation failure makes the run `Error`. A mileage/pay read failure alone is never a global `Error`; Thursday becomes `Degraded` with the explicit mileage action, and other days simply continue without that section.
@@ -125,7 +131,7 @@ After evidence and required mutations finish, update the **same** deterministic 
 
 ## Output contract
 
-The first line is exactly the deterministic Run ID returned by the engine, such as `OPS-2026-08-24-PM`. This makes every delivered notification self-identifying and prevents an old chat response from passing as a current brief. Generate the response only from the current run; never quote, summarize, or reuse prior chat output.
+The first line is exactly the deterministic Run ID returned by the engine, such as `OPS-2026-08-24-PM` for scheduled runs or `OPS-MANUAL-...-PM` for a manual smoke run. This makes every delivered notification self-identifying and prevents an old chat response from passing as a current brief. Generate the response only from the current run; never quote, summarize, or reuse prior chat output.
 
 Render only nonempty sections in this order:
 
