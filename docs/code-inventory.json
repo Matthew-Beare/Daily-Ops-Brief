@@ -76,6 +76,12 @@
       "tests": ["starter/tests/test_feature_reconciliation.py"]
     },
     {
+      "path": "starter/tools/behavior_dependency_check.py",
+      "responsibility": "Validate complete dependency coverage for every cataloged operational behavior and evaluate enabled behavior against observed capabilities, authorities, and behavior dependencies without mutating the deployment.",
+      "why_separate": "Runtime behavior readiness spans legacy and packaged workflows and must remain independent from upstream source reconciliation and provider-specific onboarding.",
+      "tests": ["starter/tests/test_behavior_dependency_check.py"]
+    },
+    {
       "path": "starter/life-planner/scripts/brief_schedule.py",
       "responsibility": "Validate deployment-owned arbitrary brief slots and compare live scheduler readback to the exact version-controlled user configuration without product-default times.",
       "why_separate": "Recurring timing is durable deployment configuration and scheduler projection, distinct from provider-state bootstrap and brief content rendering.",
