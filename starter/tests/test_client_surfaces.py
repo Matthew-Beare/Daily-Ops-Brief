@@ -29,7 +29,7 @@ class ClientSurfaceTests(unittest.TestCase):
         self.assertIn("BarcodeDetector", app)
         self.assertIn("capture.barcode_qr_scan", app)
         self.assertIn("idempotency_key", app)
-        self.assertIn("pending sync", html.lower())
+        self.assertIn("sync pending", html.lower())
         self.assertIn("usb/bluetooth scanner", html.lower())
         self.assertEqual("standalone", manifest["display"])
 
@@ -48,7 +48,8 @@ class ClientSurfaceTests(unittest.TestCase):
         android = self.text("clients/android/README.md")
         self.assertIn("speechSynthesis", app)
         self.assertIn("not background reminder-delivery evidence", app)
-        self.assertIn("not reliable background appointment delivery", pwa)
+        self.assertIn("background appointment delivery", pwa)
+        self.assertIn("must not set", pwa)
         self.assertIn("Android `TextToSpeech`", android)
         self.assertIn("Android's selected Text-to-Speech engine generates the actual voice locally", self.text("clients/README.md"))
 
