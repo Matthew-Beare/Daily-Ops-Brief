@@ -68,6 +68,45 @@ class ScanEventTests(unittest.TestCase):
         self.assertEqual(first["event"]["event_uuid"], second["event"]["event_uuid"])
         self.assertEqual("located_at", first["event"]["relationship_type"])
 
+    def test_rfid_presence_observation_is_deterministic_and_not_a_move(self):
+        payload = {
+            "tag_id": "E20034120123456789012345",
+            "protocol": "epc_gen2",
+            "observed_at": "2026-08-25T12:06:00-04:00",
+            "reader_id": "garage-reader-1",
+            "zone_uuid": LOCATION,
+            "antenna_id": "antenna-2",
+            "rssi_dbm": -48.5,
+        }
+        first = subject.normalize_rfid_observation(payload)
+        second = subject.normalize_rfid_observation(payload)
+        self.assertEqual("candidate_presence_observation", first["status"])
+        self.assertEqual(first["observation"]["observation_uuid"], second["observation"]["observation_uuid"])
+        self.assertIn("MUST NOT", first["location_rule"])
+        self.assertNotIn("relationship_type", first["observation"])
+
+    def test_rfid_rejects_unknown_protocol_and_naive_time(self):
+        base = {
+            "tag_id": "fixture-tag",
+            "protocol": "epc_gen2",
+            "observed_at": "2026-08-25T12:06:00-04:00",
+            "reader_id": "fixture-reader",
+        }
+        with self.assertRaisesRegex(ValueError, "protocol"):
+            subject.normalize_rfid_observation({**base, "protocol": "telepathy"})
+        with self.assertRaisesRegex(ValueError, "timezone"):
+            subject.normalize_rfid_observation({**base, "observed_at": "2026-08-25T12:06:00"})
+
+    def test_rfid_rssi_must_be_finite(self):
+        with self.assertRaisesRegex(ValueError, "finite"):
+            subject.normalize_rfid_observation({
+                "tag_id": "fixture-tag",
+                "protocol": "nfc_uid",
+                "observed_at": "2026-08-25T12:06:00-04:00",
+                "reader_id": "fixture-reader",
+                "rssi_dbm": float("nan"),
+            })
+
 
 if __name__ == "__main__":
     unittest.main()
