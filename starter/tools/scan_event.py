@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""Normalize barcode/QR scans, bind preprinted tags, and create location events."""
+"""Normalize barcode/QR/RFID observations, bind tags, and create location events."""
 
 from __future__ import annotations
 
 import argparse
 import json
+import math
 import re
 import sys
 import uuid
-from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -16,8 +16,10 @@ from typing import Any
 SCHEMA_VERSION = 1
 SCAN_NAMESPACE = uuid.UUID("46cfdb27-e298-43d7-bd0b-fbdb3e013c8f")
 MOVE_NAMESPACE = uuid.UUID("8ecab95c-24a2-4c54-92e8-5177f6724e89")
+RFID_NAMESPACE = uuid.UUID("19853b4d-d292-430b-af41-ad22721f0f62")
 TAG_PATTERN = re.compile(r"^MIRROR-TAG:([0-9a-fA-F-]{36})$")
 SUPPORTED_GTIN_LENGTHS = {8, 12, 13, 14}
+RFID_PROTOCOLS = {"epc_gen2", "nfc_uid", "hf_uid", "other"}
 
 
 def _text(value: Any) -> str:
@@ -50,6 +52,25 @@ def _timestamp(value: Any, field: str) -> str:
     if parsed.tzinfo is None or parsed.utcoffset() is None:
         raise ValueError(f"{field} must include timezone/offset")
     return parsed.isoformat()
+
+
+def _optional_uuid(value: Any, field: str) -> str:
+    raw = _text(value)
+    return _uuid(raw, field) if raw else ""
+
+
+def _optional_finite_number(value: Any, field: str) -> float | None:
+    if value is None or value == "":
+        return None
+    if isinstance(value, bool):
+        raise ValueError(f"{field} must be a finite number")
+    try:
+        result = float(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{field} must be a finite number") from exc
+    if not math.isfinite(result):
+        raise ValueError(f"{field} must be a finite number")
+    return result
 
 
 def _gtin_valid(value: str) -> bool:
@@ -100,7 +121,48 @@ def normalize_scan(payload: dict[str, Any]) -> dict[str, Any]:
         "raw_value": raw,
         "symbology": symbology,
         "classification": classify(raw, symbology),
-        "photo_evidence_uuid": _text(payload.get("photo_evidence_uuid")),
+        "photo_evidence_uuid": _optional_uuid(payload.get("photo_evidence_uuid"), "photo_evidence_uuid"),
+    }
+
+
+def normalize_rfid_observation(payload: dict[str, Any]) -> dict[str, Any]:
+    """Normalize one reader observation without pretending presence is a location move."""
+
+    if not isinstance(payload, dict):
+        raise ValueError("payload must be an object")
+    tag_id = _required(payload.get("tag_id"), "tag_id")
+    protocol = _required(payload.get("protocol"), "protocol").lower()
+    if protocol not in RFID_PROTOCOLS:
+        raise ValueError("protocol must be epc_gen2, nfc_uid, hf_uid, or other")
+    observed_at = _timestamp(payload.get("observed_at"), "observed_at")
+    reader_id = _required(payload.get("reader_id"), "reader_id")
+    zone_uuid = _optional_uuid(payload.get("zone_uuid"), "zone_uuid")
+    antenna_id = _text(payload.get("antenna_id"))
+    rssi_dbm = _optional_finite_number(payload.get("rssi_dbm"), "rssi_dbm")
+    observation_uuid = _text(payload.get("observation_uuid")) or str(
+        uuid.uuid5(
+            RFID_NAMESPACE,
+            f"{protocol}\x1f{tag_id}\x1f{reader_id}\x1f{zone_uuid}\x1f{antenna_id}\x1f{observed_at}",
+        )
+    )
+    observation_uuid = _uuid(observation_uuid, "observation_uuid")
+    observation = {
+        "observation_uuid": observation_uuid,
+        "tag_id": tag_id,
+        "protocol": protocol,
+        "observed_at": observed_at,
+        "reader_id": reader_id,
+        "zone_uuid": zone_uuid,
+        "antenna_id": antenna_id,
+        "rssi_dbm": rssi_dbm,
+    }
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "status": "candidate_presence_observation",
+        "observation": observation,
+        "identity_rule": "RFID tag identifiers are aliases/evidence linked to immutable asset UUIDs; they never replace canonical identity.",
+        "location_rule": "One RFID observation is presence evidence only and MUST NOT silently create or replace a canonical asset location event.",
+        "promotion_rule": "A configured bounded rule may promote corroborated reader/zone evidence to a location event only through canonical inventory authority with idempotency and readback.",
     }
 
 
@@ -183,13 +245,19 @@ def move_asset(payload: dict[str, Any]) -> dict[str, Any]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=["normalize", "bind", "resolve", "move"])
+    parser.add_argument("action", choices=["normalize", "bind", "resolve", "move", "rfid"])
     parser.add_argument("input", nargs="?", help="JSON input file; stdin when omitted")
     args = parser.parse_args()
     try:
         raw = Path(args.input).read_text(encoding="utf-8") if args.input else sys.stdin.read()
         payload = json.loads(raw)
-        fn = {"normalize": normalize_scan, "bind": bind_tag, "resolve": resolve_tag, "move": move_asset}[args.action]
+        fn = {
+            "normalize": normalize_scan,
+            "bind": bind_tag,
+            "resolve": resolve_tag,
+            "move": move_asset,
+            "rfid": normalize_rfid_observation,
+        }[args.action]
         print(json.dumps(fn(payload), indent=2, sort_keys=True))
         return 0
     except (OSError, json.JSONDecodeError, ValueError) as exc:
