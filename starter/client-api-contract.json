@@ -38,6 +38,7 @@
   "capture_surface": [
     "evidence_upload",
     "barcode_qr_scan_event",
+    "rfid_presence_observation",
     "owner_correction",
     "manual_appointment_or_receipt_entry"
   ],
