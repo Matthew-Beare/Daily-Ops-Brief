@@ -16,15 +16,24 @@ All three channels use the **same portable application code from the same canoni
 
 Separate repositories exist for onboarding and distribution boundaries, not because they are separate products.
 
+## Audit boundary
+
+The canonical Personal-Production repository is the source of truth and its CI performs the full reachable-history public-source audit with `scripts/audit_public_source.py . --history`.
+
+Generated distribution repositories do **not** reinterpret their own pre-promotion Git history as release payload. Their CI audits the **current generated tree** with `scripts/audit_public_source.py .`, validates the immutable `DEPLOYMENT_CHANNEL.json` hash manifest, and verifies that the tree is pinned to one exact canonical source revision. That source revision has already passed the canonical full-history audit before promotion.
+
+This split is deliberate. Renamed or previously bootstrapped distribution repositories may contain historical commits that are not part of the generated release. Rewriting that history would violate the no-force-push release contract and would provide no additional protection for the immutable current payload. Any current-tree leak, payload drift, wrong source revision, or manifest mismatch still fails distribution CI.
+
 ## Promotion transaction
 
 1. Make and test a coherent change in Personal-Production.
 2. Commit and push it without force.
-3. Build each distribution from that exact 40-character source commit.
-4. Run distribution validation, source/privacy audits, and portable starter tests.
-5. Publish the exact generated trees without manual drift.
-6. Perform remote readback of repository identity, visibility, `main` head, manifest, and source revision.
-7. Require green CI before calling promotion complete.
+3. Require canonical CI, including the reachable-history audit, to be green.
+4. Build each distribution from that exact 40-character source commit.
+5. Run generated-tree source/privacy audits and distribution validation before publishing.
+6. Publish the exact generated trees without manual drift.
+7. Perform remote readback of repository identity, visibility, `main` head, manifest, and source revision.
+8. Require each distribution's current-tree CI to be green before calling promotion complete.
 
 Never treat a generated distribution as an independent source of truth. Fix the canonical source and promote again.
 
