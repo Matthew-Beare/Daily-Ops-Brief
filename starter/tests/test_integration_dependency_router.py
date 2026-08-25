@@ -22,7 +22,8 @@ def _module():
 ROUTER = _module()
 CONTRACTS = json.loads((STARTER / "behavior-dependencies.json").read_text(encoding="utf-8"))
 WORKFLOWS = json.loads((STARTER / "integration-workflow-catalog.json").read_text(encoding="utf-8"))
-CATALOG = json.loads((ROOT / "docs" / "feature-catalog.json").read_text(encoding="utf-8"))
+CATALOG_PATH = ROOT / "docs" / "feature-catalog.json"
+CATALOG = json.loads(CATALOG_PATH.read_text(encoding="utf-8")) if CATALOG_PATH.is_file() else None
 
 
 class IntegrationDependencyRouterTests(unittest.TestCase):
@@ -182,10 +183,21 @@ class IntegrationDependencyRouterTests(unittest.TestCase):
         self.assertIn("Connected card accounts", finance["prompt"])
         self.assertFalse(finance["automatic_enablement"])
 
-    def test_review_audits_full_behavior_database_before_readiness(self) -> None:
+    def test_workflow_catalog_references_only_known_behaviors(self) -> None:
+        recommendations = ROUTER.recommend_workflows(self.registry(), CONTRACTS, WORKFLOWS)
+        self.assertEqual([], recommendations)
+        known = set(CONTRACTS["assignments"])
+        for workflow in WORKFLOWS["workflows"]:
+            self.assertTrue(set(workflow["behavior_ids"]).issubset(known))
+
+    def test_review_keeps_full_behavior_database_valid_when_catalog_is_present(self) -> None:
         registry = self.registry()
         result = ROUTER.review(registry, CONTRACTS, WORKFLOWS, CATALOG)
         self.assertEqual(123, len(CONTRACTS["assignments"]))
+        if CATALOG is not None:
+            audit = ROUTER.CHECKER.audit_catalog(CONTRACTS, CATALOG)
+            self.assertEqual(123, audit["behavior_count"])
+            self.assertTrue(audit["complete"])
         self.assertEqual(1, result["schema_version"])
         self.assertTrue(result["policy"]["verified_capabilities_only"])
         self.assertTrue(result["policy"]["explicit_user_goals_only"])
