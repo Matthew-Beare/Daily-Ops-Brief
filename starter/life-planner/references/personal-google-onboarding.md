@@ -20,7 +20,7 @@ Connection badges are not evidence. Read back the authenticated profile for GitH
 3. Collect the four kickoff answers, canonical IANA timezone, enabled modules, and Google identity.
 4. Create a deployment UUID and owner UUID. Keep the resulting plan out of portable Git because it contains personal provider references.
 5. Run `google_bootstrap.py plan` with the bundled blueprint and question bank.
-6. Create the planned native Google workbooks and tabs. Preserve header order exactly.
+6. Create the planned native Google workbooks and tabs. Preserve header order exactly, set each native spreadsheet's timezone property to the canonical IANA timezone, and read that property back.
 7. Create the planned Drive root/folders and move or link evidence resources there when the provider permits it.
 8. Populate `Metadata`, `Authority Registry`, `Interview Ledger`, `Integration Registry`, `People`, and `Services` from the plan.
 9. If Gmail is enabled, prove a bounded read without changing mail.

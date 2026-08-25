@@ -50,6 +50,7 @@ class PersonalGoogleBootstrapTests(unittest.TestCase):
             workbooks[workbook["logical_id"]] = {
                 "title": workbook["title"],
                 "native_google_sheets": True,
+                "spreadsheet_timezone": workbook["spreadsheet_timezone"],
                 "provider_id": "sheet-" + workbook["module_id"],
                 "url": "https://example.invalid/spreadsheet/" + workbook["module_id"],
                 "tabs": {
@@ -138,10 +139,12 @@ class PersonalGoogleBootstrapTests(unittest.TestCase):
         plan = self.plan()
         observed = self.observed(plan)
         observed["workbooks"]["workbook:core"]["tabs"]["People"]["values"][0] = ["wrong"]
+        observed["workbooks"]["workbook:core"]["spreadsheet_timezone"] = "America/Los_Angeles"
         observed["source"]["remote_readback_verified"] = False
         result = subject.verify(plan, observed)
         self.assertEqual("blocked", result["decision"])
         self.assertIn("header-mismatch-workbook:core-People", result["blocks"])
+        self.assertIn("spreadsheet-timezone-mismatch-workbook:core", result["blocks"])
         self.assertIn("source-remote-readback-verified-missing", result["blocks"])
 
     def test_seed_drift_and_plan_tampering_fail_closed(self) -> None:

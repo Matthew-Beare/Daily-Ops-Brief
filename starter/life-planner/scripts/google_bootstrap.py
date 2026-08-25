@@ -274,6 +274,7 @@ def build_plan(
             "module_id": module_id,
             "title": module["title"].format(deployment_label=config["deployment_label"]),
             "failure_domain": module["failure_domain"],
+            "spreadsheet_timezone": config["canonical_timezone"],
             "native_google_sheets_required": True,
             "tabs": tabs,
         })
@@ -522,6 +523,8 @@ def verify(plan: dict[str, Any], observed: dict[str, Any]) -> dict[str, Any]:
             blocks.append(f"title-mismatch-{logical_id}")
         if actual.get("native_google_sheets") is not True:
             blocks.append(f"not-native-google-sheets-{logical_id}")
+        if actual.get("spreadsheet_timezone") != workbook.get("spreadsheet_timezone"):
+            blocks.append(f"spreadsheet-timezone-mismatch-{logical_id}")
         if not str(actual.get("provider_id", "")).strip() or not str(actual.get("url", "")).strip():
             blocks.append(f"provider-readback-missing-{logical_id}")
         actual_tabs = _mapping(actual.get("tabs", {}), f"observed.workbooks.{logical_id}.tabs")
