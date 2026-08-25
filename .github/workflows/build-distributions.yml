@@ -1,0 +1,61 @@
+name: Build Distributions
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build Personal-Experimental
+        run: |
+          python3 scripts/build_distribution.py \
+            --channel public-experimental \
+            --source-revision "$GITHUB_SHA" \
+            --output "$RUNNER_TEMP/MIRA-Public-Experimental"
+          python3 scripts/validate_distribution.py \
+            "$RUNNER_TEMP/MIRA-Public-Experimental" \
+            --repository Matthew-Beare/MIRA-Public-Experimental \
+            --channel public-experimental \
+            --source-revision "$GITHUB_SHA"
+          python3 "$RUNNER_TEMP/MIRA-Public-Experimental/scripts/audit_starter_privacy.py" \
+            "$RUNNER_TEMP/MIRA-Public-Experimental/starter"
+      - name: Build Institutional-Experimental
+        run: |
+          python3 scripts/build_distribution.py \
+            --channel institutional-experimental \
+            --source-revision "$GITHUB_SHA" \
+            --output "$RUNNER_TEMP/MIRA-Institutional-Experimental"
+          python3 scripts/validate_distribution.py \
+            "$RUNNER_TEMP/MIRA-Institutional-Experimental" \
+            --repository Matthew-Beare/MIRA-Institutional-Experimental \
+            --channel institutional-experimental \
+            --source-revision "$GITHUB_SHA"
+          python3 "$RUNNER_TEMP/MIRA-Institutional-Experimental/scripts/audit_starter_privacy.py" \
+            "$RUNNER_TEMP/MIRA-Institutional-Experimental/starter"
+      - name: Upload Personal-Experimental
+        uses: actions/upload-artifact@v4
+        with:
+          name: MIRA-Public-Experimental-${{ github.sha }}
+          path: ${{ runner.temp }}/MIRA-Public-Experimental
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload Institutional-Experimental
+        uses: actions/upload-artifact@v4
+        with:
+          name: MIRA-Institutional-Experimental-${{ github.sha }}
+          path: ${{ runner.temp }}/MIRA-Institutional-Experimental
+          if-no-files-found: error
+          retention-days: 14
