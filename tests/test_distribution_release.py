@@ -51,6 +51,8 @@ class DistributionReleaseTests(unittest.TestCase):
                     self.assertTrue((output / "starter/PROVIDER_ONBOARDING.md").is_file())
                     self.assertTrue((output / "starter/QUICK_START.md").is_file())
                     self.assertTrue((output / "starter/SHARED_FEATURE_WORKFLOW.md").is_file())
+                    self.assertTrue((output / "starter/behavior-dependencies.json").is_file())
+                    self.assertTrue((output / "starter/tools/behavior_dependency_check.py").is_file())
                     self.assertTrue((output / "starter/life-planner/SKILL.md").is_file())
                     self.assertTrue((output / "starter/life-planner/scripts/google_bootstrap.py").is_file())
 
@@ -89,11 +91,12 @@ class DistributionReleaseTests(unittest.TestCase):
             (cache / "module.cpython-312.pyc").write_bytes(b"ignored cache")
             self.assertEqual([], VALIDATOR.validate(output))
 
-    def test_channel_contract_has_one_public_canonical_source_and_public_onboarding_repos(self) -> None:
+    def test_channel_contract_has_one_public_canonical_source_and_public_template_repos(self) -> None:
         config = json.loads((ROOT / "distribution/channels.json").read_text(encoding="utf-8"))
         self.assertEqual("sole-source-of-truth", config["canonical_source"]["role"])
         self.assertEqual("public", config["canonical_source"]["required_visibility"])
         self.assertEqual("Matthew-Beare/MIRA-Personal-Production", config["canonical_source"]["repository"])
+        self.assertTrue(config["canonical_source"]["template_repository"])
         self.assertFalse(config["promotion_contract"]["manual_edits_to_distribution_repositories_allowed"])
         self.assertFalse(config["promotion_contract"]["force_push_allowed"])
         channels = {row["channel_id"]: row for row in config["channels"]}
@@ -102,11 +105,13 @@ class DistributionReleaseTests(unittest.TestCase):
         self.assertEqual("Matthew-Beare/MIRA-Public-Experimental", channels["public-experimental"]["repository"])
         self.assertEqual("Matthew-Beare/MIRA-Institutional-Experimental", channels["institutional-experimental"]["repository"])
         self.assertTrue(channels["public-experimental"]["template_repository"])
+        self.assertTrue(channels["institutional-experimental"]["template_repository"])
         self.assertFalse(channels["institutional-experimental"]["regulated_data_allowed_in_git"])
 
     def test_canonical_source_keeps_history_audit_while_distributions_scan_current_tree(self) -> None:
         canonical_ci = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
         self.assertIn("scripts/audit_public_source.py . --history", canonical_ci)
+        self.assertIn("starter/tools/behavior_dependency_check.py audit", canonical_ci)
 
         for relative in (
             "distribution/overlays/public-experimental/.github/workflows/ci.yml",
@@ -117,6 +122,7 @@ class DistributionReleaseTests(unittest.TestCase):
                 self.assertIn("scripts/audit_public_source.py .", distribution_ci)
                 self.assertNotIn("scripts/audit_public_source.py . --history", distribution_ci)
                 self.assertIn("scripts/validate_distribution.py", distribution_ci)
+                self.assertIn("starter/tools/behavior_dependency_check.py validate", distribution_ci)
 
         release_doc = (ROOT / "distribution/README.md").read_text(encoding="utf-8")
         self.assertIn("canonical full-history audit", release_doc)
@@ -133,6 +139,7 @@ class DistributionReleaseTests(unittest.TestCase):
         self.assertEqual(4, workflow.count("python3 scripts/audit_public_source.py ."))
         self.assertEqual(4, workflow.count("python3 scripts/audit_starter_privacy.py starter"))
         self.assertEqual(4, workflow.count("python3 scripts/validate_distribution.py ."))
+        self.assertEqual(2, workflow.count("python3 starter/tools/behavior_dependency_check.py validate"))
         self.assertEqual(2, workflow.count("python3 starter/tools/validate_feature_manifest.py --check-files"))
         self.assertEqual(2, workflow.count("python3 -m unittest discover -s starter/tests -p 'test_*.py'"))
         self.assertEqual(2, workflow.count("-name __pycache__"))
