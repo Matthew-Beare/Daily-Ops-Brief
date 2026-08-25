@@ -105,6 +105,7 @@ Generated from `docs/feature-ledger-2026-08-24.md`. Edit the forensic ledger, th
 | `e-23` | Provider-neutral AI runtime capability routing | CURRENT REQUIRED | `executable` | `ci_evidence` |
 | `e-24` | Personal Git, organization Git, managed-central source, and explicit no-Git lanes | CURRENT REQUIRED | `executable` | `ci_evidence` |
 | `e-25` | Browser-only Google, Microsoft 365/OneDrive, Apple/iCloud, and alternative-AI onboarding | CURRENT REQUIRED | `documented` | `ci_evidence` |
+| `e-26` | Installable provider-neutral Life Planner skill and deterministic Personal Google bootstrap | CURRENT REQUIRED | `executable` | `ci_evidence` |
 
 ## F. Life-service modules discussed or catalogued
 

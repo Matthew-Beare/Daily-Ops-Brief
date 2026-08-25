@@ -59,7 +59,7 @@ Never give an assistant your GitHub password, verification code, recovery code, 
 
 The user can create this first repository entirely on GitHub's website. An assistant may create it only when the exact runtime exposes an approved repository-creation action and verifies the resulting owner, visibility, branch and commit. Default onboarding uses GitHub's browser template flow because that capability is widely available and makes the owner/visibility choice explicit.
 
-1. Open [Create your private copy](https://github.com/Matthew-Beare/Life-Planner-Public-Experimental/generate). If GitHub instead shows the public starter, select **Use this template** and then **Create a new repository**.
+1. Open [Create your private copy](https://github.com/Matthew-Beare/Daily-Ops-Brief/generate). If GitHub instead shows the public starter, select **Use this template** and then **Create a new repository**. This is the currently observed beta template; the separately planned `Life-Planner-Public-Experimental` repository is not yet published.
 2. Choose your own GitHub account as **Owner**.
 3. Give it a neutral personal name, such as `personal-organizer`.
 4. Select **Private**.
@@ -108,6 +108,14 @@ Do not claim installation succeeded. Do not send the user to Command Prompt as a
 
 ## Step 5 — Required verification
 
+Before Step 5, ask Codex to install and validate the `life-planner` skill from `starter/life-planner` in the new private repository. This is a browser/Codex action; the user does not download a ZIP, open a terminal, or paste commands. Codex must verify the installed skill contains `SKILL.md`, `assets/personal-google-blueprint.json`, and `scripts/google_bootstrap.py`. If the runtime cannot install a user skill, report:
+
+```text
+Runtime setup blocked — the Life Planner skill package cannot be installed or verified in this ChatGPT/Codex deployment.
+```
+
+Do not fall back to the reference deployment's `ops-brief-policy` skill because it contains another deployment's schedule and operating rules.
+
 Before asking life-planning questions, the assistant must show a lane-specific readback. The personal ChatGPT/Codex lane includes:
 
 ```text
@@ -150,6 +158,8 @@ Open [`PROVIDER_ONBOARDING.md`](PROVIDER_ONBOARDING.md) and choose exactly one s
 - an organization-approved combination documented by the accountable sponsor.
 
 The assistant performs bounded provider read → write → readback tests with synthetic setup records. A provider badge, readable file or account login is not enough. No local sync client, command prompt or shell is required.
+
+For Personal Google, the installed skill uses `assets/personal-google-blueprint.json` and `scripts/google_bootstrap.py` to generate the exact workbook/folder plan, seed the Authority Registry and Interview Ledger, and fail closed on missing headers, provider IDs, identity mismatch, source drift, or incomplete readback. The plan contains personal resource references and stays in canonical state; it is never committed to the public template.
 
 ## Step 7 — Start the personal interview
 

@@ -38,6 +38,11 @@ REQUIRED = (
     "starter/config.example.json", "starter/questions.json", "starter/INSTRUCTIONS.md.tmpl",
     "starter/install-flow.json", "starter/platform-capabilities.json",
     "starter/tools/provider_capability_router.py", "starter/tests/test_platform_portability.py",
+    "starter/life-planner/SKILL.md", "starter/life-planner/agents/openai.yaml",
+    "starter/life-planner/assets/personal-google-blueprint.json",
+    "starter/life-planner/scripts/google_bootstrap.py",
+    "starter/life-planner/references/personal-google-onboarding.md",
+    "starter/tests/test_personal_google_bootstrap.py",
     "starter/features/meal-planning/feature.json", "starter/features/meal-planning/FEATURE.md",
     "starter/features/appointment-reconciliation/feature.json", "starter/features/appointment-reconciliation/FEATURE.md",
     "skill/ops-brief-policy/SKILL.md",
@@ -175,6 +180,9 @@ def validate(root: Path) -> list[str]:
     appointment_feature = text("starter/features/appointment-reconciliation/FEATURE.md")
     importer = text("scripts/import_run_sheet.py")
     public_audit = text("scripts/audit_public_source.py")
+    portable_skill = text("starter/life-planner/SKILL.md")
+    google_bootstrap = text("starter/life-planner/scripts/google_bootstrap.py")
+    google_blueprint = load_json("starter/life-planner/assets/personal-google-blueprint.json")
 
     # Stable reference bootstrap and content-sensitive policy fingerprint.
     require(len(project) <= MAX_PROJECT_INSTRUCTIONS_CHARS, f"project contract exceeds {MAX_PROJECT_INSTRUCTIONS_CHARS} characters: {len(project)}", errors)
@@ -216,7 +224,7 @@ def validate(root: Path) -> list[str]:
     require(all_terms(asset_schema, "Evidence Index", "Asset Identifiers", "Knowledge Relationships", "Technical Specifications", "Asset Lookup Queue", "Asset Browser", "leading zeroes", "owned_by", "page/section"), "asset/evidence provider schema is incomplete", errors)
 
     # Canonical source, generated release channels, and starter state boundary.
-    require(all_terms(readme, "Life Planner (Personal-Production)", "private repository", "sole canonical source", "Life-Planner-Public-Experimental", "Life-Planner-Institutional-Experimental", "mutable operational state", "distribution/README.md"), "README lacks canonical-source/distribution boundary", errors)
+    require(all_terms(readme, "Life Planner — Personal Google Beta", "Matthew-Beare/Daily-Ops-Brief", "public beta source", "separate repositories are not live yet", "Life-Planner-Public-Experimental", "Life-Planner-Institutional-Experimental", "mutable operational state", "distribution/README.md"), "README lacks observed beta-source/distribution boundary", errors)
     require(all_terms(branding, "Life Planner (Personal-Production)", "Life-Planner-Personal-Production", "Life Planner (Public-Experimental)", "Life Planner (Institutional-Experimental)", "proper trademark/domain/app-store clearance"), "branding lacks channel names or clearance boundary", errors)
     require(all_terms(distribution_readme, "sole source of truth", "deterministic", "without force", "remote readback", "green CI", "Never patch a distribution repository by hand", "no PHI/PII"), "distribution promotion contract is incomplete", errors)
     require(all_terms(public_distribution_readme, "Public-Experimental", "public, sanitised", "not the canonical", "DEPLOYMENT_CHANNEL.json"), "public distribution overlay is incomplete", errors)
@@ -235,6 +243,9 @@ def validate(root: Path) -> list[str]:
     require(channel_rows.get("institutional-experimental", {}).get("repository") == "Matthew-Beare/Life-Planner-Institutional-Experimental" and channel_rows.get("institutional-experimental", {}).get("required_visibility") == "private" and channel_rows.get("institutional-experimental", {}).get("regulated_data_allowed_in_git") is False, "institutional experimental channel is invalid", errors)
     require(promotion.get("distribution_repositories_are_sources_of_truth") is False and promotion.get("manual_edits_to_distribution_repositories_allowed") is False and promotion.get("remote_readback_required") is True and promotion.get("green_ci_required") is True and promotion.get("force_push_allowed") is False, "distribution promotion safety contract is invalid", errors)
     require(all_terms(starter_readme, "google sheets", "google drive", "interview ledger", "git", "mutable personal records"), "starter README lacks source/state/interview boundary", errors)
+    require(all_terms(portable_skill, "name: life-planner", "personal google onboarding", "canonical structured state", "never send email automatically", "provider write before readback"), "portable Life Planner skill is incomplete", errors)
+    require(all_terms(google_bootstrap, "build_plan", "verify", "plan_sha256", "google-drive-identity-mismatch", "schedule-awaiting-observed-firing"), "Personal Google bootstrap lacks deterministic plan/readback gates", errors)
+    require(google_blueprint.get("schema_version") == 1 and google_blueprint.get("provider") == "google-workspace" and "core" in google_blueprint.get("required_modules", []) and {"core", "planning", "appointments", "meal-planning", "commerce", "assets", "job-watch", "work-travel"} <= set(google_blueprint.get("modules", {})), "Personal Google blueprint lacks required module schemas", errors)
     require(all_terms(state_model, "google sheets", "google drive", "authority registry", "one canonical authority", "sharing state and sharing a feature are different operations"), "starter state authority model is incomplete", errors)
     require(all_terms(git_state_redirect, "git is not the default mutable personal-state database", "state_authority_model.md", "google sheets", "google drive"), "legacy Git-state document does not redirect to current authority model", errors)
     require(all_terms(versioning, "routine mutable state changes do not create git commits", "google sheets", "google drive", "feature/*"), "starter versioning conflates source and mutable state", errors)
@@ -266,11 +277,12 @@ def validate(root: Path) -> list[str]:
     require(all_terms(provider_onboarding, "Google Workspace lane", "Microsoft 365, OneDrive and SharePoint lane", "Apple and iCloud lane", "Claude and other AI runtimes", "Institutional and VA deployment", "Authority Registry", "read → write → readback", "No local OneDrive sync client", "no PHI/PII"), "provider-specific onboarding contract is incomplete", errors)
     require(all_terms(enterprise, "Do not create a personal cloud account", "regulated-sensitive", "synthetic or public data", "generic or synthetic personas", "read → bounded write → readback", "VA-specific deployment gate", "observed firing"), "enterprise/VA pilot contract is incomplete", errors)
     require(all_terms(capability_router, "organization_approved_for_data", "organization_approval_reference", "unsupported capabilities", "structured_state_readback", "calendar_readback", "observed_scheduled_firing", "managed-source-write-readback-unavailable", 'decision = "blocked"'), "provider capability router lacks fail-closed readiness gates", errors)
-    require(isinstance(install_flow, dict) and install_flow.get("version") == 4, "browser install-flow schema is stale", errors)
+    require(isinstance(install_flow, dict) and install_flow.get("version") == 5, "browser install-flow schema is stale", errors)
     require(install_flow.get("provider_onboarding_document") == "PROVIDER_ONBOARDING.md", "browser install flow lacks provider onboarding", errors)
-    require(install_flow.get("upstream") == "Matthew-Beare/Life-Planner-Public-Experimental", "browser install flow points at the wrong public template", errors)
+    require(install_flow.get("upstream") == "Matthew-Beare/Daily-Ops-Brief", "browser install flow points at the wrong live beta template", errors)
+    require(install_flow.get("skill_package") == "life-planner" and install_flow.get("personal_google_blueprint") == "life-planner/assets/personal-google-blueprint.json" and install_flow.get("personal_google_verifier") == "life-planner/scripts/google_bootstrap.py", "browser install flow lacks installable Personal Google package", errors)
     require(set(install_flow.get("deployment_lanes", {})) == {"personal_browser", "enterprise_managed", "portable_manual"}, "browser install flow lacks exact deployment lanes", errors)
-    require(all(field in install_flow.get("assistant_readback_fields", []) for field in ("deployment_lane", "ai_runtime", "data_classification", "source_mode", "structured_state_provider", "evidence_provider", "mail_provider", "calendar_provider", "scheduling_provider", "organization_approval", "organization_approval_reference")), "browser install flow lacks provider/approval readback", errors)
+    require(all(field in install_flow.get("assistant_readback_fields", []) for field in ("life_planner_skill", "deployment_lane", "ai_runtime", "data_classification", "source_mode", "structured_state_provider", "evidence_provider", "mail_provider", "calendar_provider", "scheduling_provider", "organization_approval", "organization_approval_reference")), "browser install flow lacks skill/provider/approval readback", errors)
 
     config = load_json("starter/config.example.json")
     require(isinstance(config, dict) and all(isinstance(k, str) and k.isupper() for k in config), "starter config keys must be uppercase", errors)

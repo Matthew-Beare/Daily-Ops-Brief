@@ -45,9 +45,15 @@ First boot can discover/configure, when useful:
 
 Accounts, exact schedules, taxonomy, authority IDs, repository visibility, and selected features are never inherited from the reference deployment.
 
+## Installable beta skill
+
+`life-planner/` is the provider-neutral installable skill for new deployments. Its Personal Google blueprint defines module-scoped native Sheets workbooks, Drive folders, seed rows, immutable identities, and exact header contracts. Its verifier separates core source/Sheets/Drive blockers from optional Gmail, Calendar, and first-firing degradation.
+
+The reference deployment's `../skill/ops-brief-policy` is not a new-user package and must never be installed into another person's deployment.
+
 ## First-boot workflow
 
-1. Complete `INSTALL.md`: select personal, enterprise-managed, or portable-manual lane; use `PROVIDER_ONBOARDING.md` to select Google, Microsoft 365/OneDrive, Apple/manual or approved equivalent resources; verify the exact AI runtime, data classification, source, state and evidence capabilities. Personal ChatGPT/Codex users use the GitHub template/read/write path.
+1. Complete `INSTALL.md`: select personal, enterprise-managed, or portable-manual lane; install the `life-planner` skill; use `PROVIDER_ONBOARDING.md` to select Google, Microsoft 365/OneDrive, Apple/manual or approved equivalent resources; verify the exact AI runtime, data classification, source, state and evidence capabilities. Personal ChatGPT/Codex users use the GitHub template/read/write path.
 2. Record the observed upstream commit/provenance; never infer it from a local copy.
 3. Ask only the four kickoff questions in `START_HERE.md`.
 4. Discover existing capabilities/evidence before creating duplicate systems.

@@ -30,8 +30,8 @@ class NontechnicalInstallationTests(unittest.TestCase):
 
     def test_template_path_creates_private_user_owned_repository(self) -> None:
         flow = self.flow()
-        self.assertEqual(4, flow["version"])
-        self.assertEqual("Matthew-Beare/Life-Planner-Public-Experimental", flow["upstream"])
+        self.assertEqual(5, flow["version"])
+        self.assertEqual("Matthew-Beare/Daily-Ops-Brief", flow["upstream"])
         self.assertEqual("github-template", flow["copy_method"])
         self.assertEqual("private", flow["default_personal_visibility"])
         self.assertEqual("user", flow["first_repository_creation"]["default_actor"])
@@ -56,7 +56,22 @@ class NontechnicalInstallationTests(unittest.TestCase):
         ):
             self.assertIn(phrase, providers)
         self.assertIn("PROVIDER_ONBOARDING.md", self.text("INSTALL.md"))
-        self.assertIn("Life-Planner-Public-Experimental/generate", self.text("INSTALL.md"))
+        self.assertIn("Daily-Ops-Brief/generate", self.text("INSTALL.md"))
+
+    def test_installable_skill_and_personal_google_bootstrap_are_required(self) -> None:
+        flow = self.flow()
+        self.assertEqual("life-planner", flow["skill_package"])
+        for relative in (
+            "life-planner/SKILL.md",
+            flow["personal_google_blueprint"],
+            flow["personal_google_verifier"],
+        ):
+            self.assertTrue((ROOT / relative).is_file(), relative)
+        gates = {row["id"]: row for row in flow["capability_gates"]}
+        self.assertIn("life-planner-skill", gates)
+        install = self.text("INSTALL.md")
+        self.assertIn("install and validate the `life-planner` skill", install)
+        self.assertIn("Do not fall back to the reference deployment", install)
 
     def test_read_and_write_connections_are_independent_gates(self) -> None:
         flow = self.flow()

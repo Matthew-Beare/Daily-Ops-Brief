@@ -46,6 +46,8 @@ Use this lane when the selected identity can access Google Drive and the require
 5. Run the common bounded read → write → readback transaction for the Sheet, Drive folder and Calendar separately.
 6. Keep broad/sensitive OAuth scopes disabled unless the account owner or Workspace administrator explicitly approves them.
 
+The Personal Google beta packages the exact resource schema in `life-planner/assets/personal-google-blueprint.json` and the deterministic plan/readback gate in `life-planner/scripts/google_bootstrap.py`. Use that package instead of inventing tab names or declaring success from a connection badge. It provisions only `core` plus explicitly selected modules, so unused workbooks are not created.
+
 If the runtime can read a Sheet but cannot write and read it back, Life Planner may answer from that Sheet but cannot claim canonical-state mutation.
 
 ## Microsoft 365, OneDrive and SharePoint lane

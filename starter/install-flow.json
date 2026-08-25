@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "audience": "nontechnical-browser-only",
   "entry_document": "INSTALL.md",
   "portability_document": "PLATFORM_PORTABILITY.md",
@@ -7,7 +7,11 @@
   "capability_manifest": "platform-capabilities.json",
   "capability_router": "tools/provider_capability_router.py",
   "provider_onboarding_document": "PROVIDER_ONBOARDING.md",
-  "upstream": "Matthew-Beare/Life-Planner-Public-Experimental",
+  "upstream": "Matthew-Beare/Daily-Ops-Brief",
+  "upstream_status": "current-public-beta-template",
+  "skill_package": "life-planner",
+  "personal_google_blueprint": "life-planner/assets/personal-google-blueprint.json",
+  "personal_google_verifier": "life-planner/scripts/google_bootstrap.py",
   "copy_method": "github-template",
   "default_personal_visibility": "private",
   "deployment_lanes": {
@@ -58,6 +62,11 @@
       "blocked_action": "connect or authorize the repository in Codex; do not substitute the read-only ChatGPT GitHub app"
     },
     {
+      "id": "life-planner-skill",
+      "pass_evidence": ["life-planner skill installed from the exact private repository", "SKILL.md and Personal Google blueprint/verifier validated"],
+      "blocked_action": "install and validate starter/life-planner through Codex; do not install the reference deployment skill"
+    },
+    {
       "id": "runtime-and-data-approval",
       "pass_evidence": ["observed exact AI runtime/deployment", "recorded data classification", "current organization approval-evidence reference when regulated-sensitive"],
       "blocked_action": "use synthetic/non-sensitive data until the exact runtime, purpose and data class are organization-approved"
@@ -80,6 +89,7 @@
     "starter_commit",
     "chatgpt_read",
     "codex_write",
+    "life_planner_skill",
     "local_command_line_required",
     "deployment_lane",
     "ai_runtime",
@@ -116,6 +126,7 @@
     "template_missing": "Starter blocked — upstream is not enabled as a GitHub template.",
     "read_missing": "Source setup blocked — the exact personal repository is not readable through the ChatGPT GitHub app.",
     "write_missing": "Source setup blocked — ChatGPT can read the repository, but no verified Codex GitHub write capability is available.",
+    "skill_missing": "Runtime setup blocked — the Life Planner skill package cannot be installed or verified in this ChatGPT/Codex deployment.",
     "organization_approval": "Source setup blocked — the GitHub organization administrator must approve repository access.",
     "regulated_data_approval": "Enterprise setup blocked — use synthetic/non-sensitive data until the exact AI runtime, storage, purpose and connector actions have a current organization approval-evidence reference.",
     "state_write_missing": "State setup blocked — no verified structured-state write and provider readback capability is available.",

@@ -1,15 +1,15 @@
-# Life Planner (Personal-Production)
+# Life Planner — Personal Google Beta
 
 Life Planner is a version-controlled personal-operations framework for briefs, persistent state, receipts/orders, planning/accountability, work/context, meal planning, appointments/calendar reconciliation, assets/knowledge, travel/hobbies, and evidence-backed automation.
 
-This private repository is the sole canonical source and personal-production reference deployment. It is not the public onboarding template. Mutable operational state still does not belong in Git.
+The currently published `Matthew-Beare/Daily-Ops-Brief` repository is the public beta source and browser template. It contains sanitised portable onboarding plus a reference deployment, but no mutable operational state, credentials, live authority IDs, receipt bodies, medical records, or other personal exports. New users install the provider-neutral package at `starter/life-planner`; they do not inherit the reference deployment skill, schedule, accounts, tasks, vehicles, or aliases.
 
-Two deterministic, sanitised release channels are generated from exact commits here:
+The intended professional channel topology remains:
 
-- [`Life-Planner-Public-Experimental`](https://github.com/Matthew-Beare/Life-Planner-Public-Experimental) — public browser template using public/synthetic portable source;
+- `Life-Planner-Public-Experimental` — planned public browser template using public/synthetic portable source;
 - `Life-Planner-Institutional-Experimental` — private source-only institutional pilot channel with no PHI/PII or operational state in Git.
 
-The distribution repositories are outputs, never competing sources of truth. See [`distribution/README.md`](distribution/README.md).
+Those separate repositories are not live yet, so the beta installer deliberately targets the observed `Daily-Ops-Brief` template instead of a dead link. The planned distribution repositories remain outputs, never competing sources of truth. See [`distribution/README.md`](distribution/README.md).
 
 ## State and source architecture
 
@@ -28,20 +28,22 @@ See `starter/STATE_AUTHORITY_MODEL.md`. `starter/GIT_STATE_MODEL.md` is retained
 
 ## Start here as a new user
 
-Use [`starter/INSTALL.md`](starter/INSTALL.md). It is the browser-only path for a non-technical user and must be completed before [`starter/START_HERE.md`](starter/START_HERE.md). The normal personal lifecycle is:
+Use [`starter/INSTALL.md`](starter/INSTALL.md). It is the browser-only path for a non-technical user and must be completed before [`starter/START_HERE.md`](starter/START_HERE.md). The current Personal Google beta includes an installable `life-planner` skill plus a deterministic Google workbook/folder bootstrap and provider-readback verifier. The normal personal lifecycle is:
 
 1. use GitHub's web template flow once to create a private user-controlled repository from the audited public starter;
 2. connect that exact repository to the read-only ChatGPT GitHub app and separately to write-capable Codex;
 3. verify repository owner, visibility, default branch, commit, read access, and write access without a local command line;
-4. run adaptive first boot;
-5. inspect existing capabilities/evidence before asking the user to recreate information;
-6. create/select the structured state authority and Drive evidence root;
-7. create an `Authority Registry` and durable `Interview Ledger`;
-8. generate schemas/migrations/configuration/feature lock/policy in Git;
-9. verify state-authority writes and Git source checkpoint independently;
-10. continue unresolved interview items across future conversations instead of assuming one perfect setup chat;
-11. evolve custom behavior on feature branches;
-12. when a feature becomes reusable, ask whether the user wants to contribute a sanitized portable version upstream.
+4. install and validate `starter/life-planner` from the private personal repository;
+5. run the deterministic Personal Google bootstrap and verify Drive/Sheets plus any selected Gmail/Calendar capability;
+6. run adaptive first boot;
+7. inspect existing capabilities/evidence before asking the user to recreate information;
+8. create/select the structured state authority and Drive evidence root;
+9. create an `Authority Registry` and durable `Interview Ledger`;
+10. generate schemas/migrations/configuration/feature lock/policy in Git;
+11. verify state-authority writes and Git source checkpoint independently;
+12. continue unresolved interview items across future conversations instead of assuming one perfect setup chat;
+13. evolve custom behavior on feature branches;
+14. when a feature becomes reusable, ask whether the user wants to contribute a sanitized portable version upstream.
 
 Locked-down and regulated environments use [`starter/ENTERPRISE_PILOT.md`](starter/ENTERPRISE_PILOT.md). They may use approved organization Git or a managed central release so end users do not need personal Git accounts. ChatGPT, Claude, Microsoft/VA AI environments, Gemini and other runtimes share the portable policy/data core but have **no assumed feature parity**; see [`starter/PLATFORM_PORTABILITY.md`](starter/PLATFORM_PORTABILITY.md).
 
@@ -145,6 +147,7 @@ Use the fewest authorities necessary:
 ## Repository layout
 
 - `starter/` — portable onboarding/distribution boundary
+- `starter/life-planner/` — installable provider-neutral beta skill and Personal Google bootstrap/readback package
 - `starter/STATE_AUTHORITY_MODEL.md` — mutable-state/evidence authority contract
 - `starter/INTERVIEW_LEDGER.md` — durable fail-forward onboarding contract
 - `starter/PLATFORM_PORTABILITY.md` — AI/storage/source portability and honest capability boundaries
@@ -189,4 +192,4 @@ python3 -m unittest discover -s starter/tests -p 'test_*.py'
 - Email sending remains approval-gated.
 - CI success never substitutes for live provider readback when provider behavior matters.
 
-`main` is Personal-Production only after repository validation, source/privacy audits, deterministic/runtime tests and portable feature/starter tests pass. Public and institutional releases are then built from that exact commit, independently validated, published without force, remotely read back and accepted only after green CI.
+The observed `main` is the current public Personal Google beta only after repository validation, source/privacy audits, deterministic/runtime tests, and portable feature/starter tests pass. The planned private Personal-Production and separate public/institutional promotion topology does not become live until those repositories exist, visibility is remotely verified, generated trees are published without force, and their CI is green.

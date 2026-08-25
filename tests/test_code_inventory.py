@@ -11,6 +11,7 @@ INVENTORY = ROOT / "docs" / "code-inventory.json"
 PRODUCTION_GLOBS = (
     "scripts/*.py",
     "starter/tools/*.py",
+    "starter/life-planner/scripts/*.py",
     "skill/ops-brief-policy/scripts/*.py",
 )
 

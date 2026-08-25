@@ -1,0 +1,4 @@
+interface:
+  display_name: "Life Planner"
+  short_description: "Run a provider-backed personal planning system"
+  default_prompt: "Use $life-planner to set up or run my personal planning system."

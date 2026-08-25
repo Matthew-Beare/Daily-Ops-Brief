@@ -2,7 +2,7 @@
   "schema_version": 1,
   "catalog_version": "2026-08-25.1",
   "source": "docs/feature-ledger-2026-08-24.md",
-  "source_sha256": "f7b082b71e85664c5b04e536880851b938dd88224304f26fa44f3a9da513aac3",
+  "source_sha256": "542d35b847bd5a23c45221dc5b438e270d2456a76f267efd41815787727765de",
   "maintenance_rule": "Update the forensic ledger, regenerate this catalog, and commit tests/evidence for every delivery claim.",
   "status_warning": "CI evidence verifies repository behavior only; live provider deployment, permissions, scheduler firing, and mutable-state readback are separate gates.",
   "categories": [
@@ -1001,6 +1001,21 @@
             "starter/INSTALL.md",
             "starter/tests/test_platform_portability.py",
             "starter/tests/test_nontechnical_installation.py"
+          ]
+        },
+        {
+          "id": "e-26",
+          "title": "Installable provider-neutral Life Planner skill and deterministic Personal Google bootstrap",
+          "decision": "CURRENT REQUIRED",
+          "delivery": "executable",
+          "verification": "ci_evidence",
+          "current_status": "Executable installable skill, module-scoped Sheets/Drive blueprint, plan/readback validator, and CI failure tests; live template/provider smoke evidence remains a release gate",
+          "required_disposition": "Ship a self-contained new-user skill, create only selected Google modules, seed canonical registries/Interview Ledger, reject source/provider/identity/header drift, and never install the reference deployment skill for another user.",
+          "evidence_paths": [
+            "starter/life-planner/SKILL.md",
+            "starter/life-planner/assets/personal-google-blueprint.json",
+            "starter/life-planner/scripts/google_bootstrap.py",
+            "starter/tests/test_personal_google_bootstrap.py"
           ]
         }
       ]

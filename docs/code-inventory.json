@@ -70,6 +70,12 @@
       "tests": ["starter/tests/test_platform_portability.py"]
     },
     {
+      "path": "starter/life-planner/scripts/google_bootstrap.py",
+      "responsibility": "Generate and verify deterministic module-scoped Personal Google workbook, folder, identity, source, Calendar, Gmail, and scheduler bootstrap evidence.",
+      "why_separate": "Live provider provisioning has a distinct fail-closed readback boundary from profile routing and generic capability selection.",
+      "tests": ["starter/tests/test_personal_google_bootstrap.py"]
+    },
+    {
       "path": "starter/tools/validate_feature_manifest.py",
       "responsibility": "Validate portable feature manifests, schemas, file boundaries, dependencies, and honest delivery claims.",
       "why_separate": "Shared-feature isolation is a portable-source release boundary.",

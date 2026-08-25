@@ -77,6 +77,12 @@ EVIDENCE_RULES: tuple[tuple[str, tuple[str, ...]], ...] = (
         "starter/tests/test_platform_portability.py",
         "starter/tests/test_nontechnical_installation.py",
     )),
+    (r"installable provider-neutral life planner skill", (
+        "starter/life-planner/SKILL.md",
+        "starter/life-planner/assets/personal-google-blueprint.json",
+        "starter/life-planner/scripts/google_bootstrap.py",
+        "starter/tests/test_personal_google_bootstrap.py",
+    )),
     (r"explicit weather-in-briefs onboarding", (
         "starter/questions.json",
         "starter/install-flow.json",

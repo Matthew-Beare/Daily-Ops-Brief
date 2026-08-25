@@ -47,6 +47,8 @@ class DistributionReleaseTests(unittest.TestCase):
                     self.assertFalse((output / "project").exists())
                     self.assertFalse((output / "policy").exists())
                     self.assertTrue((output / "starter/PROVIDER_ONBOARDING.md").is_file())
+                    self.assertTrue((output / "starter/life-planner/SKILL.md").is_file())
+                    self.assertTrue((output / "starter/life-planner/scripts/google_bootstrap.py").is_file())
 
     def test_build_is_deterministic_for_same_channel_and_revision(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
