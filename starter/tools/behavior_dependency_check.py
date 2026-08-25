@@ -81,6 +81,26 @@ def _validate_profile(name: str, profile: Any) -> tuple[set[str], set[str]]:
     return required_capabilities | optional_capabilities, required_authorities | optional_authorities
 
 
+def _resolve_profile_reference(contracts: dict[str, Any], name: str) -> dict[str, Any]:
+    """Resolve a reusable profile or an explicit hyphenated direct capability selector."""
+
+    profiles = _mapping(contracts.get("profiles"), "profiles")
+    if name in profiles:
+        return _mapping(profiles[name], f"profile {name}")
+
+    capability_labels = _mapping(contracts.get("capability_labels"), "capability_labels")
+    direct_capability = name.replace("-", "_")
+    if direct_capability in capability_labels:
+        return {
+            "required_capabilities": [direct_capability],
+            "optional_capabilities": [],
+            "required_authorities": [],
+            "optional_authorities": [],
+        }
+
+    raise DependencyContractError(f"unknown dependency profile or capability selector: {name}")
+
+
 def validate_contracts(contracts: dict[str, Any]) -> None:
     """Validate the dependency database without requiring the canonical feature catalog."""
 
@@ -153,11 +173,8 @@ def validate_contracts(contracts: dict[str, Any]) -> None:
         selected_profiles = _string_list(row.get("profiles"), f"assignment {behavior_id}.profiles")
         if not selected_profiles:
             raise DependencyContractError(f"assignment {behavior_id} must select at least one profile")
-        unknown_profiles = sorted(set(selected_profiles) - set(profiles))
-        if unknown_profiles:
-            raise DependencyContractError(
-                f"assignment {behavior_id} references unknown profiles: {', '.join(unknown_profiles)}"
-            )
+        for profile_name in selected_profiles:
+            _resolve_profile_reference(contracts, profile_name)
         required = _string_list(
             row.get("requires_behaviors", []), f"assignment {behavior_id}.requires_behaviors"
         )
@@ -265,7 +282,7 @@ def resolve_behavior(
     contracts: dict[str, Any],
     catalog_features: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """Expand the named profiles for one behavior into concrete dependency sets."""
+    """Expand named profiles/direct capability selectors into concrete dependency sets."""
 
     assignments = contracts["assignments"]
     if behavior_id not in assignments:
@@ -277,7 +294,7 @@ def resolve_behavior(
     optional_authorities: set[str] = set()
 
     for profile_name in row["profiles"]:
-        profile = contracts["profiles"][profile_name]
+        profile = _resolve_profile_reference(contracts, profile_name)
         required_capabilities.update(profile.get("required_capabilities", []))
         optional_capabilities.update(profile.get("optional_capabilities", []))
         required_authorities.update(profile.get("required_authorities", []))
