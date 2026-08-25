@@ -31,7 +31,7 @@ class NontechnicalInstallationTests(unittest.TestCase):
     def test_template_path_creates_private_user_owned_repository(self) -> None:
         flow = self.flow()
         self.assertEqual(5, flow["version"])
-        self.assertEqual("Matthew-Beare/Daily-Ops-Brief", flow["upstream"])
+        self.assertEqual("Matthew-Beare/MIRA-Public-Experimental", flow["upstream"])
         self.assertEqual("github-template", flow["copy_method"])
         self.assertEqual("private", flow["default_personal_visibility"])
         self.assertEqual("user", flow["first_repository_creation"]["default_actor"])
@@ -56,7 +56,7 @@ class NontechnicalInstallationTests(unittest.TestCase):
         ):
             self.assertIn(phrase, providers)
         self.assertIn("PROVIDER_ONBOARDING.md", self.text("INSTALL.md"))
-        self.assertIn("Daily-Ops-Brief/generate", self.text("INSTALL.md"))
+        self.assertIn("MIRA-Public-Experimental/generate", self.text("INSTALL.md"))
 
     def test_installable_skill_and_personal_google_bootstrap_are_required(self) -> None:
         flow = self.flow()
@@ -157,18 +157,16 @@ class NontechnicalInstallationTests(unittest.TestCase):
         self.assertIn("Missing or stale weather degrades only the weather section", dependencies)
         self.assertIn("official alerts are distinct evidence classes", dependencies)
 
-    def test_public_front_door_uses_current_working_name(self) -> None:
-        surfaces = (
-            (ROOT.parent / "README.md").read_text(encoding="utf-8"),
-            self.text("README.md"),
-            self.text("START_HERE.md"),
-            self.text("INSTALL.md"),
-        )
-        for surface in surfaces:
-            self.assertIn("Life Planner", surface)
+    def test_public_front_door_uses_current_mira_mirror_brand(self) -> None:
+        root_readme = (ROOT.parent / "README.md").read_text(encoding="utf-8")
+        starter_readme = self.text("README.md")
+        install = self.text("INSTALL.md")
+        for surface in (root_readme, starter_readme, install):
+            self.assertIn("M.I.R.R.O.R.", surface)
+            self.assertIn("MIRA", surface)
             self.assertNotIn("# LyfeOS", surface)
         branding = (ROOT.parent / "docs" / "BRANDING.md").read_text(encoding="utf-8")
-        self.assertIn("owner-selected working name", branding)
+        self.assertIn("Life Planner", branding)
         self.assertIn("compatibility identifiers", branding)
         self.assertIn("proper trademark/domain/app-store clearance", branding)
 

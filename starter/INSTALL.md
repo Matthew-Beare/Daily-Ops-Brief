@@ -1,16 +1,18 @@
-# Install Life Planner — Browser only, No Command Prompt
+# Install MIRA | M.I.R.R.O.R. — Browser only, No Command Prompt
 
 This is the default browser-only setup path for a non-technical user. Do **not** open Command Prompt, PowerShell, Terminal, Git Bash, or a code editor. Do **not** install Git or GitHub CLI. Do **not** copy commands, tokens, SSH keys, or passwords.
 
+**M.I.R.R.O.R.** is the reality layer and **MIRA** is the MIRROR Intelligence and Reasoning Assistant. The internal `life-planner` skill/package ID remains only as a compatibility identifier.
+
 The personal ChatGPT/Codex lane has three separate jobs:
 
-1. GitHub creates a private personal copy of the public starter.
+1. GitHub creates a private personal copy of the public M.I.R.R.O.R. starter.
 2. The ChatGPT GitHub app receives read access to that personal repository.
 3. Codex receives repository access so it can validate, commit, and push lasting source changes.
 
 The ordinary ChatGPT GitHub app is read-only. A read connection is useful, but it is **not** proof that Codex can commit or push.
 
-Life Planner can also run through Claude, an organization-approved Microsoft/VA AI environment, Gemini, or another capable runtime. Those runtimes do not have automatic feature parity. Read [`PROVIDER_ONBOARDING.md`](PROVIDER_ONBOARDING.md) and [`PLATFORM_PORTABILITY.md`](PLATFORM_PORTABILITY.md); the assistant must verify the exact runtime, connector actions, storage and readback instead of assuming them from a brand name.
+M.I.R.R.O.R. can also run through Claude, an organization-approved Microsoft/VA AI environment, Gemini, or another capable runtime. Those runtimes do not have automatic feature parity. Read [`PROVIDER_ONBOARDING.md`](PROVIDER_ONBOARDING.md) and [`PLATFORM_PORTABILITY.md`](PLATFORM_PORTABILITY.md); the assistant must verify the exact runtime, connector actions, storage and readback instead of assuming them from a brand name.
 
 ## First — choose the deployment lane
 
@@ -57,9 +59,9 @@ Never give an assistant your GitHub password, verification code, recovery code, 
 
 ## Step 2 — Personal lane: make your private personal repository
 
-The user can create this first repository entirely on GitHub's website. An assistant may create it only when the exact runtime exposes an approved repository-creation action and verifies the resulting owner, visibility, branch and commit. Default onboarding uses GitHub's browser template flow because that capability is widely available and makes the owner/visibility choice explicit.
+The user can create this first repository entirely on GitHub's website. An assistant may create it only when the exact runtime exposes an approved repository-creation action and verifies the resulting owner, visibility, branch and commit. Default onboarding uses GitHub's browser template flow because it makes the owner/visibility choice explicit.
 
-1. Open [Create your private copy](https://github.com/Matthew-Beare/Daily-Ops-Brief/generate). If GitHub instead shows the public starter, select **Use this template** and then **Create a new repository**. This is the currently observed beta template; the separately planned `Life-Planner-Public-Experimental` repository is not yet published.
+1. Open [Create your private copy](https://github.com/Matthew-Beare/MIRA-Public-Experimental/generate). If GitHub instead shows the public starter, select **Use this template** and then **Create a new repository**. `MIRA-Public-Experimental` is the current public Personal-Experimental onboarding source.
 2. Choose your own GitHub account as **Owner**.
 3. Give it a neutral personal name, such as `personal-organizer`.
 4. Select **Private**.
@@ -68,7 +70,7 @@ The user can create this first repository entirely on GitHub's website. An assis
 
 GitHub documents this browser workflow in [Creating a repository from a template](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template).
 
-If **Use this template** is missing, stop and report: `Starter blocked — upstream is not enabled as a GitHub template.` Do not substitute a fork, Codespace, download, local copy, or command-line clone.
+If **Use this template** is missing, stop and report: `Starter blocked — MIRA-Public-Experimental is not enabled as a GitHub template.` Do not substitute a fork, Codespace, download, local copy, or command-line clone.
 
 When GitHub finishes, copy only the non-secret repository name shown near the top, in this form:
 
@@ -76,7 +78,7 @@ When GitHub finishes, copy only the non-secret repository name shown near the to
 your-github-name/personal-organizer
 ```
 
-Give that `owner/repository` name to the onboarding assistant. The assistant must read it back and verify the owner, private visibility, default branch, and current commit before continuing. It must never copy the reference deployment's personal data, schedules, accounts, or authority IDs.
+Give that `owner/repository` name to the onboarding assistant. The assistant must read it back and verify the owner, private visibility, default branch, and current commit before continuing. It must never copy another deployment's personal data, schedules, accounts, or authority IDs.
 
 ## Step 3 — Personal ChatGPT lane: give ChatGPT read access
 
@@ -108,15 +110,15 @@ Do not claim installation succeeded. Do not send the user to Command Prompt as a
 
 ## Step 5 — Required verification
 
-Before Step 5, ask Codex to install and validate the `life-planner` skill from `starter/life-planner` in the new private repository. This is a browser/Codex action; the user does not download a ZIP, open a terminal, or paste commands. Codex must verify the installed skill contains `SKILL.md`, `assets/personal-google-blueprint.json`, and `scripts/google_bootstrap.py`. If the runtime cannot install a user skill, report:
+Before Step 5, ask Codex to install and validate the `life-planner` skill from `starter/life-planner` in the new private repository. `life-planner` is a compatibility package ID; the product is M.I.R.R.O.R. and the assistant is MIRA. This is a browser/Codex action; the user does not download a ZIP, open a terminal, or paste commands. Codex must verify the installed skill contains `SKILL.md`, `assets/personal-google-blueprint.json`, and `scripts/google_bootstrap.py`. If the runtime cannot install a user skill, report:
 
 ```text
-Runtime setup blocked — the Life Planner skill package cannot be installed or verified in this ChatGPT/Codex deployment.
+Runtime setup blocked — the MIRA | M.I.R.R.O.R. skill package cannot be installed or verified in this ChatGPT/Codex deployment.
 ```
 
 Do not fall back to the reference deployment's `ops-brief-policy` skill because it contains another deployment's schedule and operating rules.
 
-Before asking life-planning questions, the assistant must show a lane-specific readback. The personal ChatGPT/Codex lane includes:
+Before asking whole-life planning questions, the assistant must show a lane-specific readback. The personal ChatGPT/Codex lane includes:
 
 ```text
 Repository: owner/name

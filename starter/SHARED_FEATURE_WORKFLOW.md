@@ -23,7 +23,7 @@ MIRA should then:
 
 If the answer is **no**, stop at the private, versioned implementation.
 
-If the answer is **yes**, continue through the portability gate below. A yes authorizes preparation for a public contribution, not publication of private data and not an automatic merge.
+If the answer is **yes**, continue through the portability gate below. A yes authorizes preparation for a public contribution, not publication of private data and not an automatic merge. **Publication authority** remains separate and requires explicit approval of the sanitized public diff.
 
 ## Source and state surfaces
 
