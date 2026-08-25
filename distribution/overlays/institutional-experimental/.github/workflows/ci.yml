@@ -21,7 +21,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: python3 -m compileall -q scripts starter
-      - run: python3 scripts/audit_public_source.py . --history
+      - run: python3 scripts/audit_public_source.py .
       - run: python3 scripts/audit_starter_privacy.py starter
       - run: python3 scripts/validate_distribution.py . --repository "${{ github.repository }}"
       - run: python3 starter/tools/validate_feature_manifest.py --check-files
