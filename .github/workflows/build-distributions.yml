@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -72,6 +73,7 @@ jobs:
               --source-revision "$GITHUB_SHA"
           )
       - name: Upload Personal-Experimental
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: MIRA-Public-Experimental-${{ github.sha }}
@@ -80,6 +82,7 @@ jobs:
           include-hidden-files: true
           retention-days: 14
       - name: Upload Institutional-Experimental
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: MIRA-Institutional-Experimental-${{ github.sha }}
