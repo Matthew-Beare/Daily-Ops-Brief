@@ -77,8 +77,8 @@ For each candidate:
 7. create/update the canonical appointment and linked provider/entity identity;
 8. create/update the linked Calendar event when enabled;
 9. generate configured canonical reminders and optional delivery intents;
-10. read enabled projections back where supported and verify IDs/material fields;
-11. read canonical state back;
+10. when Calendar projection is enabled, **read the Calendar event back** and verify event ID, target calendar, date/time/timezone, reminders, and source linkage; read every other enabled projection back where the adapter supports it;
+11. read canonical state back and verify material fields/source bindings;
 12. only after required canonical writes/projections agree mark the evidence reconciled.
 
 Later revision/cancellation evidence updates/cancels the same canonical appointment and projections. Never create a duplicate merely because a new email arrived.
