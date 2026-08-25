@@ -1,7 +1,7 @@
 "use strict";
 
 const CACHE = "mirror-capture-shell-v1";
-const SHELL = ["./", "./index.html", "./app.js", "./manifest.webmanifest"];
+const SHELL = ["./", "./index.html", "./app.js", "./manifest.webmanifest", "./icon.svg"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)));
