@@ -160,11 +160,13 @@ class PersonalGoogleBootstrapTests(unittest.TestCase):
         with self.assertRaises(subject.BootstrapError):
             subject.verify(plan, observed)
 
-    def test_excel_serial_timestamp_readback_matches_same_instant(self) -> None:
+    def test_google_null_blanks_and_excel_serial_timestamp_match_seed(self) -> None:
         plan = self.plan()
         observed = self.observed(plan)
         metadata = observed["workbooks"]["workbook:core"]["tabs"]["Metadata"]["values"]
         metadata[1][3] = 46260.0
+        interview = observed["workbooks"]["workbook:core"]["tabs"]["Interview Ledger"]["values"]
+        interview[1][5] = None
         result = subject.verify(plan, observed)
         self.assertEqual("ready", result["decision"])
 

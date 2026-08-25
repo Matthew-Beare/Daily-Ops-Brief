@@ -458,7 +458,10 @@ def _tab_values(value: Any) -> list[list[Any]] | None:
     width = len(value[0])
     if width == 0:
         return None
-    return [row[:width] + [""] * max(0, width - len(row)) for row in value]
+    return [
+        [("" if cell is None else cell) for cell in row[:width]] + [""] * max(0, width - len(row))
+        for row in value
+    ]
 
 
 def _timestamp_instant(value: Any) -> str | None:
