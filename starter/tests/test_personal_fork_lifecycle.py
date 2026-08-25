@@ -160,6 +160,7 @@ class PersonalForkLifecycleTests(unittest.TestCase):
             "order_notification_mode",
             "recipe_library_enabled",
             "recipe_sources",
+            "household_routines_enabled",
             "appointment_reminders_enabled",
             "medication_reminders_enabled",
             "caregiver_reminder_sharing",
@@ -182,6 +183,27 @@ class PersonalForkLifecycleTests(unittest.TestCase):
         )
         for key in ("BRIEF_SERVICE", "ORDER_LIFECYCLE_SERVICE", "RECIPE_LIBRARY_SERVICE"):
             self.assertEqual("STOCK_PROVISIONED_USER_CONFIGURED_OR_DISABLED", config[key])
+
+    def test_nontechnical_setup_precedes_interview_and_never_uses_local_git(self) -> None:
+        install = self.text("INSTALL.md")
+        guide = self.text("START_HERE.md")
+        lifecycle = self.text("PERSONAL_FORK_LIFECYCLE.md")
+        self.assertIn("browser-only", install)
+        self.assertIn("ordinary ChatGPT GitHub app is read-only", install)
+        self.assertIn("Codex write", install)
+        self.assertIn("INSTALL.md", guide)
+        self.assertIn("template copy", lifecycle)
+        self.assertNotIn("fork/clone", lifecycle)
+
+    def test_household_laundry_and_pickup_questions_are_explicit(self) -> None:
+        questions = json.loads(self.text("questions.json"))
+        rows = [q for section in questions["sections"] for q in section["questions"]]
+        ids = {q["id"] for q in rows}
+        self.assertTrue({
+            "household_routine_help",
+            "laundry_workflow",
+            "dropoff_pickup_reminders",
+        }.issubset(ids))
 
 
 if __name__ == "__main__":

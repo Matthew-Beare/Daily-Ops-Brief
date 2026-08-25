@@ -1,13 +1,13 @@
 # Personal Fork Lifecycle
 
-LyfeOS is designed to be inherited, personalized, versioned, and optionally improved upstream without treating Git as the user's live database.
+Personal Ops Planner is designed to be inherited, personalized, versioned, and optionally improved upstream without treating Git as the user's live database.
 
 ## Repository lineage
 
 ```text
-public upstream main/tag
-        ↓ fork/clone/pin
-user-owned LyfeOS source repository
+public upstream GitHub template
+        ↓ private browser-created template copy
+user-owned Personal Ops Planner source repository
         ↓ first-boot source/config checkpoint
 feature/fix branches + optional experimental integration
         ↓ tested personal release
@@ -19,20 +19,23 @@ The user's Git repository is the durable source of truth for **behavior and stru
 
 Mutable personal operational state lives in canonical authorities described in `STATE_AUTHORITY_MODEL.md`, normally Google Sheets plus Google Drive evidence for the starter.
 
+Despite this file's historical name, the non-technical default is a GitHub **template copy**, not a Git fork or local clone. Complete `INSTALL.md`: the user creates the first private repository once on GitHub's website, the ChatGPT GitHub app receives read access, and Codex separately receives write access. No command line is part of default onboarding.
+
 ## First boot
 
-After capability discovery and bounded provisioning approval:
+After the browser setup and repository capability readback in `INSTALL.md`, then capability discovery and bounded provisioning approval:
 
 1. resolve the exact upstream tag/commit/tree used;
-2. verify the user-owned repository is writable and record visibility/provenance;
-3. create/select the structured state authority and evidence root;
-4. create and verify the `Authority Registry` and `Interview Ledger`;
-5. write non-secret deployment configuration, selected feature IDs/versions, schemas/migrations, and policy;
-6. import approved accessible existing information into the selected canonical state/evidence authorities with provenance;
-7. run applicable validation/privacy/source tests;
-8. commit and push one coherent Git source/config checkpoint;
-9. read back the remote source commit;
-10. read back canonical state/evidence writes before calling initialization complete.
+2. verify the user-owned repository is private and record visibility/provenance;
+3. verify ChatGPT read and Codex write capabilities independently;
+4. create/select the structured state authority and evidence root;
+5. create and verify the `Authority Registry` and `Interview Ledger`;
+6. write non-secret deployment configuration, selected feature IDs/versions, schemas/migrations, and policy;
+7. import approved accessible existing information into the selected canonical state/evidence authorities with provenance;
+8. run applicable validation/privacy/source tests;
+9. commit and push one coherent Git source/config checkpoint;
+10. read back the remote source commit;
+11. read back canonical state/evidence writes before calling initialization complete.
 
 Credentials, OAuth tokens, passwords, raw authentication material, full payment credentials, mutable Sheet exports, and private Drive evidence do not belong in portable Git source.
 
@@ -65,7 +68,7 @@ Examples:
 
 ## Portable feature candidate gate
 
-When a custom feature reaches a coherent tested checkpoint, LyfeOS asks exactly:
+When a custom feature reaches a coherent tested checkpoint, Personal Ops Planner asks exactly:
 
 `Do you want to make this feature available to other people?`
 
@@ -91,10 +94,10 @@ User deployments pin known-good upstream versions. Updating is deliberate:
 - test against the user's configuration/state schemas;
 - apply compatible source and bounded state-store migrations;
 - preserve canonical state and local features;
-- merge under the user's policy;
+- apply the audited source delta under the user's policy; a private template copy may not share a Git merge base with upstream;
 - verify remote source commit and state migration readback.
 
-Never reset a user's deployment to upstream or discard local state/features merely because public upstream advanced.
+Never assume template history is a fork, force unrelated histories together, reset a user's deployment to upstream, or discard local state/features merely because public upstream advanced.
 
 ## Failure isolation
 

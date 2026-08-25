@@ -1,6 +1,6 @@
-# LyfeOS State Authority Model
+# Personal Ops Planner State Authority Model
 
-LyfeOS separates **portable source** from **mutable life state** and treats runtime modules as independent failure domains wherever practical.
+Personal Ops Planner separates **portable source** from **mutable life state** and treats runtime modules as independent failure domains wherever practical.
 
 ## Default authority stack
 
@@ -52,7 +52,7 @@ A practical default is:
 
 This is a failure-domain recommendation, not a demand for database sprawl. Two data classes may share one resource when their coupling is intentional and the user accepts the shared failure domain.
 
-A provider-wide outage can still affect multiple authorities hosted by that provider. LyfeOS treats that as an infrastructure failure, not permission to create shadow state. Unaffected providers/modules may continue, and recovery begins from the canonical authorities plus verified recovery snapshots/provider history.
+A provider-wide outage can still affect multiple authorities hosted by that provider. Personal Ops Planner treats that as an infrastructure failure, not permission to create shadow state. Unaffected providers/modules may continue, and recovery begins from the canonical authorities plus verified recovery snapshots/provider history.
 
 ## Authority Registry
 
@@ -159,7 +159,7 @@ If the canonical state authority is unavailable, stop that state-changing module
 
 ## Git lineage
 
-Each user still inherits the public LyfeOS foundation and should have their own Git lineage from first boot. Git records:
+Each user still inherits the public Personal Ops Planner foundation and should have their own Git lineage from first boot. Git records:
 
 - exact upstream version/provenance;
 - enabled modules/features;
@@ -174,7 +174,7 @@ After standing Git authorization, lasting behavior/config/schema changes validat
 
 ## Portability boundary
 
-When a personal feature becomes reusable, LyfeOS asks exactly:
+When a personal feature becomes reusable, Personal Ops Planner asks exactly:
 
 `Do you want to make this feature available to other people?`
 

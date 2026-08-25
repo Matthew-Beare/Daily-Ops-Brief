@@ -2,7 +2,7 @@
   "schema_version": 1,
   "catalog_version": "2026-08-24.1",
   "source": "docs/feature-ledger-2026-08-24.md",
-  "source_sha256": "297049fed0791b487a5b0385954a5d6e9fc39565c061da965cd91f64900aa0d2",
+  "source_sha256": "237aca3cb11075b156685390923dd5b5fcfc0fd5fb03fbf1ad119f7862fe8408",
   "maintenance_rule": "Update the forensic ledger, regenerate this catalog, and commit tests/evidence for every delivery claim.",
   "status_warning": "CI evidence verifies repository behavior only; live provider deployment, permissions, scheduler firing, and mutable-state readback are separate gates.",
   "categories": [
@@ -671,11 +671,11 @@
         {
           "id": "d-16",
           "title": "Recipes, meal planning, shopping linkage",
-          "decision": "PROPOSED",
+          "decision": "CURRENT REQUIRED",
           "delivery": "contract",
           "verification": "documented",
           "current_status": "Contract-only manifest",
-          "required_disposition": "Mark honestly; do not call implemented until executable and tested.",
+          "required_disposition": "Keep onboarding/configuration available, but do not call the planner implemented until executable behavior and tests exist.",
           "evidence_paths": []
         }
       ]
@@ -927,6 +927,34 @@
           "current_status": "Partial template/process",
           "required_disposition": "Move durable behavior to policy-as-code; emit copy-ready instruction changes where UI cannot be mutated safely.",
           "evidence_paths": []
+        },
+        {
+          "id": "e-21",
+          "title": "Browser-only non-technical installation with no terminal fallback",
+          "decision": "CURRENT REQUIRED",
+          "delivery": "documented",
+          "verification": "ci_evidence",
+          "current_status": "Machine-readable browser workflow + CI contract; upstream template setting still requires live GitHub readback",
+          "required_disposition": "Create a private repository from the web template, block on missing capability, and never substitute Command Prompt, PowerShell, local Git, GitHub CLI, Codespaces, tokens, or SSH keys.",
+          "evidence_paths": [
+            "starter/INSTALL.md",
+            "starter/install-flow.json",
+            "starter/tests/test_nontechnical_installation.py"
+          ]
+        },
+        {
+          "id": "e-22",
+          "title": "Independent ChatGPT GitHub read and Codex GitHub write gates",
+          "decision": "CURRENT REQUIRED",
+          "delivery": "documented",
+          "verification": "ci_evidence",
+          "current_status": "Machine-readable capability/readback contract with CI coverage",
+          "required_disposition": "Never infer write access from the read-only ChatGPT GitHub app; verify the exact personal repository and remote commit readback.",
+          "evidence_paths": [
+            "starter/INSTALL.md",
+            "starter/install-flow.json",
+            "starter/tests/test_nontechnical_installation.py"
+          ]
         }
       ]
     },
@@ -1042,25 +1070,40 @@
         {
           "id": "f-10",
           "title": "Recipes/meals/groceries",
-          "decision": "PROPOSED",
+          "decision": "CURRENT REQUIRED",
           "delivery": "contract",
           "verification": "documented",
-          "current_status": "Contract-only.",
+          "current_status": "Contract-only; onboarding selection and storage/projection contracts exist, executable planner remains absent.",
           "required_disposition": "",
           "evidence_paths": []
         },
         {
           "id": "f-11",
           "title": "Household/errands/admin/maintenance",
-          "decision": "ACCEPTED direction",
-          "delivery": "specification",
+          "decision": "CURRENT REQUIRED direction",
+          "delivery": "documented",
           "verification": "documented",
-          "current_status": "Generic task system; dedicated module spec-only.",
+          "current_status": "Generic task system plus machine-readable household-routine service/onboarding contract; live reminder projection remains capability-gated.",
           "required_disposition": "",
           "evidence_paths": []
         },
         {
           "id": "f-12",
+          "title": "Laundry stages and drop-off/pickup reminders",
+          "decision": "CURRENT REQUIRED",
+          "delivery": "documented",
+          "verification": "ci_evidence",
+          "current_status": "Machine-readable router/reminder contract with tests; live brief/Calendar delivery requires provider capability and readback.",
+          "required_disposition": "",
+          "evidence_paths": [
+            "starter/questions.json",
+            "starter/tools/onboarding_profile_router.py",
+            "starter/tests/test_onboarding_profile_router.py",
+            "starter/tests/test_nontechnical_installation.py"
+          ]
+        },
+        {
+          "id": "f-13",
           "title": "Routines/fitness/accountability",
           "decision": "REQUIRED for user; optional stock service",
           "delivery": "workflow",
@@ -1070,7 +1113,7 @@
           "evidence_paths": []
         },
         {
-          "id": "f-13",
+          "id": "f-14",
           "title": "Education/study/deadlines/offline road preparation",
           "decision": "REQUIRED for user; optional stock service",
           "delivery": "workflow",
@@ -1080,7 +1123,7 @@
           "evidence_paths": []
         },
         {
-          "id": "f-14",
+          "id": "f-15",
           "title": "Parent/child school coordination",
           "decision": "CURRENT REQUIRED direction",
           "delivery": "documented",
@@ -1090,7 +1133,7 @@
           "evidence_paths": []
         },
         {
-          "id": "f-15",
+          "id": "f-16",
           "title": "Travel/vacation/outdoor planning",
           "decision": "ACCEPTED direction",
           "delivery": "workflow",
@@ -1100,7 +1143,7 @@
           "evidence_paths": []
         },
         {
-          "id": "f-16",
+          "id": "f-17",
           "title": "Work-trip/route/paid-work tracking",
           "decision": "REQUIRED",
           "delivery": "executable",
@@ -1114,7 +1157,7 @@
           ]
         },
         {
-          "id": "f-17",
+          "id": "f-18",
           "title": "Assets/maintenance/warranties/manuals",
           "decision": "ACCEPTED",
           "delivery": "workflow",
@@ -1124,7 +1167,7 @@
           "evidence_paths": []
         },
         {
-          "id": "f-18",
+          "id": "f-19",
           "title": "Personal knowledge/reference library",
           "decision": "ACCEPTED",
           "delivery": "workflow",
@@ -1134,7 +1177,7 @@
           "evidence_paths": []
         },
         {
-          "id": "f-19",
+          "id": "f-20",
           "title": "Backup/disaster recovery",
           "decision": "REQUIRED backlog",
           "delivery": "specification",
@@ -1144,7 +1187,7 @@
           "evidence_paths": []
         },
         {
-          "id": "f-20",
+          "id": "f-21",
           "title": "Custom skill/automation builder",
           "decision": "PROPOSED/ACCEPTED direction",
           "delivery": "documented",
@@ -1154,7 +1197,7 @@
           "evidence_paths": []
         },
         {
-          "id": "f-21",
+          "id": "f-22",
           "title": "Activity trackers/wearable data",
           "decision": "PROPOSED",
           "delivery": "not_present",
@@ -1276,7 +1319,7 @@
           "delivery": "not_present",
           "verification": "documented",
           "current_status": "Not present",
-          "required_disposition": "Separate infrastructure project, not beta-core LyfeOS.",
+          "required_disposition": "Separate infrastructure project, not beta-core Personal Ops Planner.",
           "evidence_paths": []
         },
         {

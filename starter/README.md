@@ -1,10 +1,10 @@
-# Generic LyfeOS First-Boot Starter
+# Generic Personal Ops Planner First-Boot Starter
 
-This reusable onboarding kit builds a new user's LyfeOS without copying the reference deployment's mutable state. The human entry point is [`START_HERE.md`](START_HERE.md).
+This reusable onboarding kit builds a new user's Personal Ops Planner without copying the reference deployment's mutable state. The non-technical human entry point is [`INSTALL.md`](INSTALL.md); [`START_HERE.md`](START_HERE.md) begins only after repository capability verification.
 
 ## Public distribution boundary
 
-`starter/` is the portable surface of the public upstream. Users may fork, clone, or seed from a pinned audited release. Git carries portable behavior, schemas, migrations, configuration, tests, onboarding, and feature lineage. Mutable personal records stay in selected state/evidence authorities.
+`starter/` is the portable surface of the public upstream. The default path uses GitHub's browser template flow to create a private user-owned repository from the audited default branch. Local Git is developer-only and never a non-technical fallback. Git carries portable behavior, schemas, migrations, configuration, tests, onboarding, and feature lineage. Mutable personal records stay in selected state/evidence authorities.
 
 The default starter authority stack is:
 
@@ -20,7 +20,7 @@ A supported database may replace Sheets when deliberately selected. Read `STATE_
 
 First boot creates an `Interview Ledger` in canonical structured state. Every question ID in `questions.json` remains tracked until it is `Answered`, `Resolved from evidence`, or `Not applicable`. `Deferred` and `Unresolved` remain open.
 
-If the user changes subjects, LyfeOS answers the immediate request first, records any incidental answers, and later resumes the next useful unresolved interview item. This is defined in `INTERVIEW_LEDGER.md` and prevents a lively human conversation from quietly deleting half the setup process.
+If the user changes subjects, Personal Ops Planner answers the immediate request first, records any incidental answers, and later resumes the next useful unresolved interview item. This is defined in `INTERVIEW_LEDGER.md` and prevents a lively human conversation from quietly deleting half the setup process.
 
 ## Built-in discovery and capabilities
 
@@ -29,6 +29,7 @@ First boot can discover/configure, when useful:
 - concise briefs and prioritized next actions;
 - composable working, self-employed, retired, nonworking, parent/guardian, caregiver, household-manager, student, dependent and custom roles, including a respectful `Personal Schedule & Wellbeing` retired support template;
 - personal accountability/routines and exercise with optional wearable evidence;
+- household routines and pickup/drop-off reminders, including multi-stage laundry, without per-chore Scheduled Task sprawl;
 - education/study planning and home/away variants;
 - work/context modes for travel/overnight/field roles;
 - **meal planning**, recipes, grocery intent, leftovers/pantry/freezer workflows;
@@ -44,18 +45,19 @@ Accounts, exact schedules, taxonomy, authority IDs, repository visibility, and s
 
 ## First-boot workflow
 
-1. Pin/inherit a public upstream release/commit/tree and record provenance.
-2. Ask only the four kickoff questions in `START_HERE.md`.
-3. Discover existing capabilities/evidence before creating duplicate systems.
-4. Create/select the structured state authority and evidence root.
-5. Create the `Authority Registry` and `Interview Ledger`.
-6. Conduct `LIFE_INTERVIEW.md` in batches of at most four related questions, using evidence and branch logic to resolve questions when appropriate.
-7. Recommend a Minimum Useful Setup and adjacent capabilities the user may not know to request.
-8. Verify only dependencies required by selected modules; optional connector failures are module-scoped.
-9. Obtain bounded provisioning approval and create/verify state/evidence resources.
-10. Generate/validate/commit/push the user's source configuration, schemas/migrations, feature lock, and policy.
-11. Continue unresolved Interview Ledger items across later conversations until coverage is complete.
-12. Never treat green CI as proof of live scheduler/provider behavior without required readback/observed execution.
+1. Complete `INSTALL.md`: create the private repository with GitHub's web template, configure the read-only ChatGPT GitHub app, separately authorize Codex, and verify read/write capabilities.
+2. Record the observed upstream commit/provenance; never infer it from a local copy.
+3. Ask only the four kickoff questions in `START_HERE.md`.
+4. Discover existing capabilities/evidence before creating duplicate systems.
+5. Create/select the structured state authority and evidence root.
+6. Create the `Authority Registry` and `Interview Ledger`.
+7. Conduct `LIFE_INTERVIEW.md` in batches of at most four related questions, using evidence and branch logic to resolve questions when appropriate.
+8. Recommend a Minimum Useful Setup and adjacent capabilities the user may not know to request.
+9. Verify only dependencies required by selected modules; optional connector failures are module-scoped.
+10. Obtain bounded provisioning approval and create/verify state/evidence resources.
+11. Generate/validate/commit/push the user's source configuration, schemas/migrations, feature lock, and policy.
+12. Continue unresolved Interview Ledger items across later conversations until coverage is complete.
+13. Never treat green CI as proof of live scheduler/provider behavior without required readback/observed execution.
 
 ## Meal planning storage
 
@@ -87,6 +89,8 @@ When a coherent personal feature passes tests/privacy/source checks, ask exactly
 ## Boundaries
 
 - Never inherit another user's timezone, schedule, accounts, assets, receipts, authority IDs, or mutable records.
+- Never route a non-technical onboarding user to Command Prompt, PowerShell, Terminal, local Git, GitHub CLI, Codespaces, tokens, or SSH keys.
+- Never treat the read-only ChatGPT GitHub app as proof of Codex write capability.
 - Never claim arbitrary old ChatGPT conversations are globally searchable.
 - Never create one automation per order, appointment, routine, or assignment when Calendar/consolidated dispatch can handle it.
 - Never request/commit passwords, tokens, keys, full card data, private message/receipt bodies, account exports, medical records, school submissions, or mutable operational exports to portable Git.

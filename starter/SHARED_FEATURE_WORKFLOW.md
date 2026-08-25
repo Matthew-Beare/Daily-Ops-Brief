@@ -1,8 +1,8 @@
-# Shared LyfeOS Feature Workflow
+# Shared Personal Ops Planner Feature Workflow
 
 ## Decision
 
-LyfeOS is an ecosystem of personal deployments built from a stable **public upstream**. Git versions portable behavior/config/schema/tests/features. Mutable operational state stays in the deployment's selected canonical authorities, normally Sheets + Drive for the starter.
+Personal Ops Planner is an ecosystem of personal deployments built from a stable **public upstream**. Git versions portable behavior/config/schema/tests/features. Mutable operational state stays in the deployment's selected canonical authorities, normally Sheets + Drive for the starter.
 
 | Surface | Contents | Rule |
 |---|---|---|
@@ -22,7 +22,7 @@ LyfeOS is an ecosystem of personal deployments built from a stable **public upst
 
 ## Personal feature lifecycle
 
-1. User identifies a problem or LyfeOS discovers a useful workflow opportunity.
+1. User identifies a problem or Personal Ops Planner discovers a useful workflow opportunity.
 2. Create/modify the feature on a feature branch.
 3. Add/update policy, configuration schema, state-store schema/migrations, and tests as needed.
 4. Test against synthetic fixtures plus the deployment interfaces without copying live state into portable source.
@@ -45,7 +45,7 @@ Before an upstream contribution:
 8. add feature version/manifest and compatibility range;
 9. run feature tests, repository validation, starter privacy audit, and public-source history/current-tree audit;
 10. show the exact public contribution diff and what becomes public;
-11. open an upstream PR only under explicit publication authority.
+11. under explicit publication authority, create or use a sanitized contribution branch in the upstream contribution network and open an upstream PR. A private template copy is not assumed to be a fork and cannot itself prove PR compatibility.
 
 Never interpret permission to auto-version a personal source repository as permission to publish upstream.
 
@@ -56,12 +56,12 @@ Portable modules live under `starter/features/<feature-id>/` when useful. Their 
 ## Bidirectional exchange
 
 ```text
-public upstream release
-        ↓ inherit
+public upstream template/release
+        ↓ private template copy + pinned provenance
 personal source repository + selected state authorities
         ↓ customization
 personal feature
-        ↓ opt-in sanitization + PR
+        ↓ opt-in sanitization + contribution branch/fork + PR
 public upstream
         ↓ review/release
 other deployments

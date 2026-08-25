@@ -1,8 +1,8 @@
-# LyfeOS Starter Versioning and Personal Deployments
+# Personal Ops Planner Starter Versioning and Personal Deployments
 
 ## Repository roles
 
-- This repository is the public LyfeOS upstream and reference implementation.
+- This repository is the public Personal Ops Planner upstream and reference implementation.
 - `starter/` is the portable onboarding/distribution boundary.
 - A user's Git repository preserves source lineage: policy, non-secret configuration, schemas, migrations, enabled features, tests, onboarding, authority references, and custom feature work.
 - Mutable operational state lives in selected canonical authorities, defaulting to Google Sheets for structured state and Google Drive for retained evidence/documents.
@@ -12,9 +12,9 @@ Read `STATE_AUTHORITY_MODEL.md`, `INTERVIEW_LEDGER.md`, and `PERSONAL_FORK_LIFEC
 
 ## Normal inheritance path
 
-1. fork/clone or seed from a pinned audited public LyfeOS release/commit/tree;
-2. create/select a user-controlled Git repository and record upstream provenance;
-3. run `START_HERE.md`;
+1. complete the browser-only `INSTALL.md` flow: create one private repository from the audited public GitHub template;
+2. record observed upstream provenance and independently verify ChatGPT read plus Codex write capability;
+3. run `START_HERE.md`; non-technical onboarding never falls back to Command Prompt, local Git, Codespaces, tokens, or SSH keys;
 4. discover existing capabilities/evidence before creating duplicate systems;
 5. create/select the structured state authority and evidence root;
 6. create the Authority Registry and Interview Ledger;
@@ -76,10 +76,10 @@ Persist a non-secret record containing:
 4. apply idempotent state-store migrations only after bounded approval/policy authority;
 5. review source/config delta and local-feature conflicts;
 6. preserve canonical state and local overrides;
-7. merge under the user's policy;
+7. apply the audited source delta under the user's policy; a private template copy may not share a Git merge base with upstream;
 8. verify remote source commit and any state migration readback.
 
-Never reset a deployment to upstream or overwrite personal state/features silently.
+Never assume template history is a fork, force unrelated histories together, reset a deployment to upstream, or overwrite personal state/features silently.
 
 ## Public release model
 

@@ -1,6 +1,6 @@
 # Capability and Existing-Evidence Discovery
 
-First boot should discover what is already available before asking a user to rebuild their life manually or connect redundant services. Mutable LyfeOS state lives in the selected canonical structured authority, normally Google Sheets; Drive retains selected evidence/documents; Git versions behavior/config/schema/features.
+First boot should discover what is already available before asking a user to rebuild their life manually or connect redundant services. Mutable Personal Ops Planner state lives in the selected canonical structured authority, normally Google Sheets; Drive retains selected evidence/documents; Git versions behavior/config/schema/features.
 
 ## Discovery order
 

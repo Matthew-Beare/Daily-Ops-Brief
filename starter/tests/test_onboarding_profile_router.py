@@ -109,7 +109,7 @@ class OnboardingProfileRouterTests(unittest.TestCase):
 
     def test_retired_profile_recommends_but_never_activates_health_reminders(self) -> None:
         result = router.resolve({"roles": ["retired"]})
-        self.assertEqual(3, result["schema_version"])
+        self.assertEqual(4, result["schema_version"])
         for service in ("appointment_reminders", "medication_reminders"):
             self.assertIn(service, result["recommended_services"])
             self.assertEqual("unresolved", result["service_catalog"][service]["activation"])
@@ -118,6 +118,25 @@ class OnboardingProfileRouterTests(unittest.TestCase):
             "disabled_until_explicit_opt_in",
             result["reminder_templates"]["medications"]["caregiver_sharing"],
         )
+
+    def test_household_routines_are_explicit_and_do_not_fan_out_schedulers(self) -> None:
+        result = router.resolve({
+            "roles": ["household_manager"],
+            "household_routines_enabled": True,
+        })
+        self.assertIn("household_routines", result["recommended_services"])
+        self.assertEqual(
+            "enabled",
+            result["service_catalog"]["household_routines"]["activation"],
+        )
+        reminder = result["reminder_templates"]["household_routines"]
+        self.assertIn("washer_to_dryer", reminder["examples"])
+        self.assertIn("dry_cleaning_or_repair_pickup", reminder["examples"])
+        self.assertEqual(
+            "consolidated_brief_or_calendar_projection_no_per_chore_automations",
+            reminder["delivery"],
+        )
+        self.assertEqual("prohibited", reminder["ownership_inference"])
 
     def test_parent_is_first_class_and_composes_with_work(self) -> None:
         result = router.resolve({

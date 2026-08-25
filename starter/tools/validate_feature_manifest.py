@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate portable LyfeOS feature manifests without third-party packages."""
+"""Validate portable Personal Ops Planner feature manifests without third-party packages."""
 
 from __future__ import annotations
 

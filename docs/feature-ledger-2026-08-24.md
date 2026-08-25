@@ -1,4 +1,4 @@
-# LyfeOS / Daily Ops Brief feature ledger — 2026-08-24 forensic audit
+# Personal Ops Planner / Daily Ops Brief feature ledger — 2026-08-24 forensic audit
 
 This ledger aggregates feature evidence from the available project-conversation set, current direct instructions, continuity/search evidence, the audited legacy `main` baseline, open GitHub backlog, and the rejected universal-onboarding experiment. It deliberately separates a user requirement from an assistant proposal and from an implementation claim. “Current status” records this repaired clean-history candidate where stated; live scheduler and provider gates remain independent of code release.
 
@@ -17,6 +17,7 @@ Implementation states are independent: **executable**, **skill workflow**, **con
 
 | Conversation | Feature evidence recovered |
 | --- | --- |
+| 2026-08-25 — Foodie onboarding failure | Default onboarding must be browser-only for non-technical users; it must create a private personal repository through GitHub's template UI, distinguish ChatGPT read access from Codex write access, and never fall back to Command Prompt. Meal planning is a current requirement. Laundry stages and clothing/other drop-off pickup reminders must be explicit household-routine choices. |
 | 2026-08-21 — Action required for FL5 tire availability | Cancellation/replacement must update the canonical purchase record rather than create contradictory duplicates; vehicle/asset fitment must remain correct; absolutely no automatic email; user approval may be requested. |
 | 2026-08-15 — Platform Failure Explanation | Work-credit exhaustion and stalled runs are operational failure evidence; long work needs resumability, phase evidence, and an honest recovery path. Model/credit purchase discussion is not a LyfeOS end-user feature. |
 | 2026-08-23 — Continue Repo Changes | Forensic release gate; test failure modes; push verified main; install into production and verify; correct active-trip and paid-mileage state from canonical evidence; include Boomer/retiree/parent and other profile modes. |
@@ -103,7 +104,7 @@ Implementation states are independent: **executable**, **skill workflow**, **con
 | Consumable/grocery par levels and under-level notification | REQUIRED | Spec-only | Support manual counts first; notifications opt-in. |
 | Scale-based par sensing | PROPOSED | Spec-only | Optional Home Assistant hardware integration; not beta-core. |
 | Grocery list/pantry/freezer flows | PROPOSED/ACCEPTED direction | Contract/spec-only | Keep separate from receipt history and par state. |
-| Recipes, meal planning, shopping linkage | PROPOSED | Contract-only manifest | Mark honestly; do not call implemented until executable and tested. |
+| Recipes, meal planning, shopping linkage | CURRENT REQUIRED | Contract-only manifest | Keep onboarding/configuration available, but do not call the planner implemented until executable behavior and tests exist. |
 
 ### E. Profiles, onboarding, family, and per-user customization
 
@@ -129,6 +130,8 @@ Implementation states are independent: **executable**, **skill workflow**, **con
 | Standalone clean starter repository | ACCEPTED release boundary | Clean-history distribution lineage created from the audited candidate tree | Keep one sanitized root history and reject imports from the contaminated legacy lineage. |
 | Self-improving/custom skill builder from repeated friction | PROPOSED/ACCEPTED direction | Branch spec + generic starter workflow | Only create versioned private modules with declared capabilities, permissions, state, failures, and tests. |
 | Automatic instruction updates | USER ASKED; technically constrained | Partial template/process | Move durable behavior to policy-as-code; emit copy-ready instruction changes where UI cannot be mutated safely. |
+| Browser-only non-technical installation with no terminal fallback | CURRENT REQUIRED | Machine-readable browser workflow + CI contract; upstream template setting still requires live GitHub readback | Create a private repository from the web template, block on missing capability, and never substitute Command Prompt, PowerShell, local Git, GitHub CLI, Codespaces, tokens, or SSH keys. |
+| Independent ChatGPT GitHub read and Codex GitHub write gates | CURRENT REQUIRED | Machine-readable capability/readback contract with CI coverage | Never infer write access from the read-only ChatGPT GitHub app; verify the exact personal repository and remote commit readback. |
 
 ### F. Life-service modules discussed or catalogued
 
@@ -143,8 +146,9 @@ Implementation states are independent: **executable**, **skill workflow**, **con
 | Appointments/calendar/reminders | REQUIRED | Executable reminder planner + calendar/skill workflow; provider projection requires readback. |
 | Administrative health organization | PROPOSED/ACCEPTED direction | Medication-reminder safety core executable; broader service remains specification-only and must exclude diagnosis/dosing. |
 | Shopping/procurement | ACCEPTED direction | Spec-only. |
-| Recipes/meals/groceries | PROPOSED | Contract-only. |
-| Household/errands/admin/maintenance | ACCEPTED direction | Generic task system; dedicated module spec-only. |
+| Recipes/meals/groceries | CURRENT REQUIRED | Contract-only; onboarding selection and storage/projection contracts exist, executable planner remains absent. |
+| Household/errands/admin/maintenance | CURRENT REQUIRED direction | Generic task system plus machine-readable household-routine service/onboarding contract; live reminder projection remains capability-gated. |
+| Laundry stages and drop-off/pickup reminders | CURRENT REQUIRED | Machine-readable router/reminder contract with tests; live brief/Calendar delivery requires provider capability and readback. |
 | Routines/fitness/accountability | REQUIRED for user; optional stock service | Skill workflow. |
 | Education/study/deadlines/offline road preparation | REQUIRED for user; optional stock service | Skill workflow. |
 | Parent/child school coordination | CURRENT REQUIRED direction | Parent/dependent role routing implemented; dedicated service remains spec/skill-level. |
@@ -170,7 +174,7 @@ Implementation states are independent: **executable**, **skill workflow**, **con
 | Plex bridge | PROPOSED/INFRA | Not present | Optional local module. |
 | Voice queries/commands | PROPOSED/INFRA | Not present | Explicit confirmation for consequential actions. |
 | NAS/LAN/private-service bridge and VPN access | PROPOSED/INFRA | Not present | Threat model and explicit network boundary first. |
-| Family site-to-site VPN/redundancy/failover | PROPOSED | Not present | Separate infrastructure project, not beta-core LyfeOS. |
+| Family site-to-site VPN/redundancy/failover | PROPOSED | Not present | Separate infrastructure project, not beta-core Personal Ops Planner. |
 | Twice-daily incremental, daily cloud, weekly full, rotation, encryption, restore tests | REQUIRED backlog | Spec-only | Define actual data set/RPO/RTO and prove restores before claiming backup. |
 | Knowledge ingestion with relevant excerpts, timestamps, URL/title/metadata, provenance, relationships, optional full pin | REQUIRED/ACCEPTED | Executable knowledge/provenance core + skill/provider workflow | Keep raw source temporary unless pinned; test retrieval/provenance and verify retained Drive objects by readback. |
 | Drive organization by domain and searchable metadata | ACCEPTED personal behavior | Skill workflow | User-specific layout stays private/configurable. |

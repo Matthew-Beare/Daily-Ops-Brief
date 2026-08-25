@@ -1,4 +1,4 @@
-# LyfeOS hierarchical feature catalog
+# Personal Ops Planner hierarchical feature catalog
 
 Generated from `docs/feature-ledger-2026-08-24.md`. Edit the forensic ledger, then run `python3 scripts/feature_catalog.py --write`. CI rejects drift. Delivery status and verification are separate: repository tests do not prove a live connector or scheduled firing.
 
@@ -74,7 +74,7 @@ Generated from `docs/feature-ledger-2026-08-24.md`. Edit the forensic ledger, th
 | `d-13` | Consumable/grocery par levels and under-level notification | REQUIRED | `specification` | `documented` |
 | `d-14` | Scale-based par sensing | PROPOSED | `specification` | `documented` |
 | `d-15` | Grocery list/pantry/freezer flows | PROPOSED/ACCEPTED direction | `specification` | `documented` |
-| `d-16` | Recipes, meal planning, shopping linkage | PROPOSED | `contract` | `documented` |
+| `d-16` | Recipes, meal planning, shopping linkage | CURRENT REQUIRED | `contract` | `documented` |
 
 ## E. Profiles, onboarding, family, and per-user customization
 
@@ -100,6 +100,8 @@ Generated from `docs/feature-ledger-2026-08-24.md`. Edit the forensic ledger, th
 | `e-18` | Standalone clean starter repository | ACCEPTED release boundary | `mixed` | `ci_evidence` |
 | `e-19` | Self-improving/custom skill builder from repeated friction | PROPOSED/ACCEPTED direction | `mixed` | `documented` |
 | `e-20` | Automatic instruction updates | USER ASKED; technically constrained | `mixed` | `documented` |
+| `e-21` | Browser-only non-technical installation with no terminal fallback | CURRENT REQUIRED | `documented` | `ci_evidence` |
+| `e-22` | Independent ChatGPT GitHub read and Codex GitHub write gates | CURRENT REQUIRED | `documented` | `ci_evidence` |
 
 ## F. Life-service modules discussed or catalogued
 
@@ -114,18 +116,19 @@ Generated from `docs/feature-ledger-2026-08-24.md`. Edit the forensic ledger, th
 | `f-07` | Appointments/calendar/reminders | REQUIRED | `executable` | `ci_evidence` |
 | `f-08` | Administrative health organization | PROPOSED/ACCEPTED direction | `executable` | `ci_evidence` |
 | `f-09` | Shopping/procurement | ACCEPTED direction | `specification` | `documented` |
-| `f-10` | Recipes/meals/groceries | PROPOSED | `contract` | `documented` |
-| `f-11` | Household/errands/admin/maintenance | ACCEPTED direction | `specification` | `documented` |
-| `f-12` | Routines/fitness/accountability | REQUIRED for user; optional stock service | `workflow` | `documented` |
-| `f-13` | Education/study/deadlines/offline road preparation | REQUIRED for user; optional stock service | `workflow` | `documented` |
-| `f-14` | Parent/child school coordination | CURRENT REQUIRED direction | `documented` | `documented` |
-| `f-15` | Travel/vacation/outdoor planning | ACCEPTED direction | `workflow` | `documented` |
-| `f-16` | Work-trip/route/paid-work tracking | REQUIRED | `executable` | `ci_evidence` |
-| `f-17` | Assets/maintenance/warranties/manuals | ACCEPTED | `workflow` | `documented` |
-| `f-18` | Personal knowledge/reference library | ACCEPTED | `workflow` | `documented` |
-| `f-19` | Backup/disaster recovery | REQUIRED backlog | `specification` | `documented` |
-| `f-20` | Custom skill/automation builder | PROPOSED/ACCEPTED direction | `documented` | `documented` |
-| `f-21` | Activity trackers/wearable data | PROPOSED | `not_present` | `documented` |
+| `f-10` | Recipes/meals/groceries | CURRENT REQUIRED | `contract` | `documented` |
+| `f-11` | Household/errands/admin/maintenance | CURRENT REQUIRED direction | `documented` | `documented` |
+| `f-12` | Laundry stages and drop-off/pickup reminders | CURRENT REQUIRED | `documented` | `ci_evidence` |
+| `f-13` | Routines/fitness/accountability | REQUIRED for user; optional stock service | `workflow` | `documented` |
+| `f-14` | Education/study/deadlines/offline road preparation | REQUIRED for user; optional stock service | `workflow` | `documented` |
+| `f-15` | Parent/child school coordination | CURRENT REQUIRED direction | `documented` | `documented` |
+| `f-16` | Travel/vacation/outdoor planning | ACCEPTED direction | `workflow` | `documented` |
+| `f-17` | Work-trip/route/paid-work tracking | REQUIRED | `executable` | `ci_evidence` |
+| `f-18` | Assets/maintenance/warranties/manuals | ACCEPTED | `workflow` | `documented` |
+| `f-19` | Personal knowledge/reference library | ACCEPTED | `workflow` | `documented` |
+| `f-20` | Backup/disaster recovery | REQUIRED backlog | `specification` | `documented` |
+| `f-21` | Custom skill/automation builder | PROPOSED/ACCEPTED direction | `documented` | `documented` |
+| `f-22` | Activity trackers/wearable data | PROPOSED | `not_present` | `documented` |
 
 ## G. Data platform, integrations, recovery, and future infrastructure
 

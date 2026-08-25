@@ -1,4 +1,4 @@
-# LyfeOS First-Boot Dependencies
+# Personal Ops Planner First-Boot Dependencies
 
 First boot verifies every selected dependency before claiming a module is installed. Missing access blocks only the dependent module. Before asking the user to connect anything, read `CAPABILITY_DISCOVERY.md` and inspect already available tools/connectors/plugins when the platform permits it. Never ask a non-technical user for passwords, access tokens, OAuth secrets, private keys, or full payment-card numbers.
 
@@ -76,9 +76,9 @@ A deployment repository may be public or private by explicit owner choice. Publi
 
 ### Upstream lifecycle
 
-1. fork/clone or seed from an exact audited public LyfeOS release/commit/tree;
-2. record upstream provenance;
-3. verify Git read/write capability;
+1. for a non-technical user, create one private repository from the audited public GitHub template using `INSTALL.md`; never substitute a local command line, Codespace, token, or SSH key;
+2. record observed upstream provenance;
+3. verify ChatGPT GitHub read and Codex GitHub write capability independently; the ordinary ChatGPT GitHub app is read-only;
 4. generate non-secret deployment config, schema/migrations, feature lock, authority references/failure domains, and policy;
 5. validate the complete feature dependency graph and referenced files;
 6. validate, commit/push, and read back the coherent first-boot source checkpoint;

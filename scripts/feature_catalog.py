@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate and validate the hierarchical machine-readable LyfeOS feature catalog."""
+"""Generate and validate the hierarchical machine-readable Personal Ops Planner feature catalog."""
 
 from __future__ import annotations
 
@@ -58,6 +58,17 @@ EVIDENCE_RULES: tuple[tuple[str, tuple[str, ...]], ...] = (
     (r"personal fork plus reviewed upstream", (
         "starter/tests/test_personal_fork_lifecycle.py",
         "starter/tests/test_feature_isolation_contracts.py",
+    )),
+    (r"browser-only non-technical installation|independent chatgpt github read", (
+        "starter/INSTALL.md",
+        "starter/install-flow.json",
+        "starter/tests/test_nontechnical_installation.py",
+    )),
+    (r"laundry stages and drop-off/pickup reminders", (
+        "starter/questions.json",
+        "starter/tools/onboarding_profile_router.py",
+        "starter/tests/test_onboarding_profile_router.py",
+        "starter/tests/test_nontechnical_installation.py",
     )),
     (r"receipt intake from email", (
         "skill/ops-brief-policy/scripts/asset_evidence.py",
@@ -242,7 +253,7 @@ def _text(value: Any) -> str:
 
 def render_markdown(catalog: dict[str, Any]) -> str:
     lines = [
-        "# LyfeOS hierarchical feature catalog",
+        "# Personal Ops Planner hierarchical feature catalog",
         "",
         "Generated from `docs/feature-ledger-2026-08-24.md`. Edit the forensic ledger, "
         "then run `python3 scripts/feature_catalog.py --write`. CI rejects drift. Delivery "

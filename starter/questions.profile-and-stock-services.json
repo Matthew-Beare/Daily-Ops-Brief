@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "extends": "questions.json",
   "instructions": "Merge these IDs into the same durable Interview Ledger as questions.json. Preference and activation questions require explicit user answers; do not infer consent from evidence.",
   "sections": [
@@ -88,6 +88,11 @@
           "required": false,
           "prompt": "If the recipe library is enabled, which accessible chats, files, File Library, Drive folders, notes, or other sources should be reconciled instead of starting over?",
           "applies_when": "recipe_library_enabled is true"
+        },
+        {
+          "id": "household_routines_enabled",
+          "required": false,
+          "prompt": "Enable household routine and pickup/drop-off tracking? If yes, keep it in canonical routine/task state with consolidated brief or Calendar projection rather than one ChatGPT Scheduled Task per chore."
         },
         {
           "id": "appointment_reminders_enabled",

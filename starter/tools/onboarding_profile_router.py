@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 ROLE_ORDER = (
     "dependent_minor",
     "working",
@@ -50,6 +50,7 @@ SERVICE_CATALOG = (
     "shopping",
     "recipes_meals",
     "household_admin",
+    "household_routines",
     "routines_fitness",
     "education",
     "family_school",
@@ -64,6 +65,7 @@ LEGACY_SERVICE_FIELDS = {
     "briefs_enabled": "briefs",
     "order_lifecycle_enabled": "orders_shipments",
     "recipe_library_enabled": "recipes_meals",
+    "household_routines_enabled": "household_routines",
 }
 ACTIVATION_STATES = {
     "enabled",
@@ -366,18 +368,20 @@ def recommended_services(roles: list[str], services: dict[str, dict[str, Any]]) 
         "self_employed": ["finance", "email_triage", "work_trips"],
         "retired": [
             "appointments_calendar", "appointment_reminders", "medication_reminders",
-            "household_admin", "travel", "knowledge",
+            "household_admin", "household_routines", "travel", "knowledge",
         ],
-        "nonworking": ["next_actions", "household_admin", "skill_builder"],
+        "nonworking": ["next_actions", "household_admin", "household_routines", "skill_builder"],
         "parent_guardian": [
-            "family_school", "household_admin", "appointments_calendar",
+            "family_school", "household_admin", "household_routines", "appointments_calendar",
             "appointment_reminders", "shopping",
         ],
         "caregiver": [
             "appointments_calendar", "appointment_reminders", "medication_reminders",
-            "household_admin", "health_organization",
+            "household_admin", "household_routines", "health_organization",
         ],
-        "household_manager": ["household_admin", "shopping", "assets", "recipes_meals"],
+        "household_manager": [
+            "household_admin", "household_routines", "shopping", "assets", "recipes_meals",
+        ],
         "student": ["education", "skill_builder", "appointments_calendar"],
         "dependent_minor": ["education", "family_school", "routines_fitness"],
         "custom": [],
@@ -456,6 +460,18 @@ def resolve(payload: dict[str, Any]) -> dict[str, Any]:
                 "dose_or_schedule_inference": "prohibited",
                 "missed_dose_advice": "prohibited",
                 "caregiver_sharing": "disabled_until_explicit_opt_in",
+            },
+            "household_routines": {
+                "activation": "requires_explicit_user_confirmation",
+                "state": "canonical_routine_or_task_authority",
+                "delivery": "consolidated_brief_or_calendar_projection_no_per_chore_automations",
+                "examples": [
+                    "laundry_start",
+                    "washer_to_dryer",
+                    "fold_and_put_away",
+                    "dry_cleaning_or_repair_pickup",
+                ],
+                "ownership_inference": "prohibited",
             },
         },
         "age_or_ability_inference": "prohibited",

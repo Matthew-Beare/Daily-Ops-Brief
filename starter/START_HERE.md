@@ -1,15 +1,16 @@
-# LyfeOS First Boot — Start Here
+# Personal Ops Planner First Boot — Start Here
 
-Human entry point for a **non-technical user**. Load the linked starter contracts as needed; the user should not need JSON, Python, Git, or database jargon.
+This interview starts after the browser-only repository readback in [`INSTALL.md`](INSTALL.md). A non-technical user is never sent to local developer tools. The assistant first verifies the exact private repository, branch, commit, ChatGPT read capability, and separate Codex write capability.
 
 `questions.json` is the core question bank. `questions.profile-and-stock-services.json` extends it. Every installed question-bank ID uses the same durable Interview Ledger.
 
 ## Copy/paste first-boot prompt
 
 ```text
-Help me set up my own LyfeOS as an inheritable whole-life organizer. Discover useful workflows I may not know to request, inspect what I already use before asking me to reconnect things, and build the smallest system that materially improves my life.
+Help me set up my own Personal Ops Planner as an inheritable whole-life organizer. Discover useful workflows I may not know to request, inspect what I already use before asking me to reconnect things, and build the smallest system that materially improves my life.
 
 Conversation rules:
+- Treat INSTALL.md as a prerequisite. Read back its fields before provisioning; on a blocked field, report it and never substitute local tools, a fork, Codespaces, passwords, tokens, or SSH keys.
 - Ask no more than four related questions at a time.
 - Begin with exactly these four kickoff questions:
   1. What should the system be called?
@@ -31,7 +32,7 @@ State and source:
 - Google Calendar is an optional projection/reminder surface, not the sole state database.
 - A supported database may replace Sheets when deliberately selected.
 - Sharing a state authority with another person is explicit. Support whole-authority sharing or a separate scoped shared workbook/folder. Never assume family access.
-- After standing Git authorization, lasting behavior/config/schema changes automatically update validation, commit, and push, then receive remote readback. Routine state writes verify against Sheets/Drive or the selected authority instead.
+- After separately verified Codex GitHub write authorization, lasting behavior/config/schema changes automatically update validation, commit, and push, then receive remote readback. The ordinary ChatGPT GitHub app is read-only. Routine state writes verify against Sheets/Drive or the selected authority instead.
 - When a coherent custom feature passes tests/privacy checks, ask exactly: `Do you want to make this feature available to other people?` Never publish private state automatically.
 
 Capability/evidence discovery:
@@ -54,6 +55,7 @@ Stock-provisioned services:
 - The starter includes brief/action-digest, receipt/order lifecycle, and recipe-library contracts by default. Stock-provisioned does not mean silently enabled.
 - The catalog also exposes next actions, email, finance, appointments, health organization, shopping, household, routines, education, family/school, travel/work trips, assets, knowledge, recovery, and skill building.
 - Record each as enabled, disabled, unresolved, not applicable, or deferred. Capability verification—not catalog presence—establishes implementation.
+- Read each selected feature manifest's `delivery_status` before describing availability. `contract-only` is not executable delivery and must be disclosed plainly.
 - If briefs are enabled, ask cadence, exact local slots, canonical timezone, notification/delivery mode, length, priority rules, and anti-noise rules.
 - If receipt/order lifecycle is enabled, ask permitted evidence sources, reconciliation cadence/slots, notification behavior, retention, and approval boundaries. Never create one automation per order.
 - If recipe library is enabled, reconcile accessible existing recipes and ask which sources/state/evidence stores to use. Meal planning remains separately optional.
@@ -75,12 +77,8 @@ Appointments and reminders:
 - Revisions/cancellations update the same appointment/event. Do not create one ChatGPT automation per appointment.
 
 Canonical scheduler clock:
-- Every recurring dispatcher has a canonical IANA timezone and local slot.
-- Ask for exact local times in that canonical timezone rather than inferring them from device time or travel location.
-- Never compare against device/travel timezone or a hard-coded UTC offset.
-- At runtime use `now.astimezone(ZoneInfo(canonical_tz))` and compare that canonical local clock with the intended slot.
-- Traveling through another timezone does not move the job. DST is handled by the IANA timezone database, not manual offset arithmetic.
-- Verify recurrence/local time/TZID, timing mode, notifications, duplicates, then an actual firing/Run Log. Provider metadata is authoritative only when the provider contract says so.
+- Ask for exact local times in one canonical IANA timezone. At runtime use `now.astimezone(ZoneInfo(canonical_tz))`; never use device/travel timezone or a fixed UTC offset.
+- Verify recurrence, local time/TZID, timing mode, notifications, duplicates, and an actual firing/Run Log; trust provider metadata only when its provider contract defines the field.
 
 Minimum Useful Setup:
 - Authority Registry + Interview Ledger + per-person profile;
@@ -114,7 +112,3 @@ Initial provisioning:
 
 Start now by asking only the four kickoff questions.
 ```
-
-## What happens next
-
-First boot discovers existing capabilities/evidence, creates a durable interview ledger, resolves the profile and any context split, configures stock services without silently enabling them, interviews in small batches while surviving conversation detours, proposes the Minimum Useful Setup, gets one bounded provisioning approval, creates/verifies selected authorities, and continues unresolved interview rows until coverage is complete.

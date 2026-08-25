@@ -1,6 +1,6 @@
-# LyfeOS / Daily Ops Brief
+# Personal Ops Planner / Daily Ops Brief
 
-LyfeOS is a version-controlled personal-operations framework for briefs, persistent state, receipts/orders, planning/accountability, work/context, meal planning, appointments/calendar reconciliation, assets/knowledge, travel/hobbies, and evidence-backed automation.
+Personal Ops Planner is a version-controlled personal-operations framework for briefs, persistent state, receipts/orders, planning/accountability, work/context, meal planning, appointments/calendar reconciliation, assets/knowledge, travel/hobbies, and evidence-backed automation.
 
 This repository is **intentionally public**. It is the stable upstream plus a public reference deployment. Mutable operational state does not belong in portable Git source.
 
@@ -20,18 +20,20 @@ See `starter/STATE_AUTHORITY_MODEL.md`. `starter/GIT_STATE_MODEL.md` is retained
 
 ## Start here as a new user
 
-Use [`starter/START_HERE.md`](starter/START_HERE.md). The normal lifecycle is:
+Use [`starter/INSTALL.md`](starter/INSTALL.md). It is the browser-only path for a non-technical user and must be completed before [`starter/START_HERE.md`](starter/START_HERE.md). The normal lifecycle is:
 
-1. inherit a pinned public LyfeOS release/commit/tree into a user-controlled Git repository;
-2. run adaptive first boot;
-3. inspect existing capabilities/evidence before asking the user to recreate information;
-4. create/select the structured state authority and Drive evidence root;
-5. create an `Authority Registry` and durable `Interview Ledger`;
-6. generate schemas/migrations/configuration/feature lock/policy in Git;
-7. verify state-authority writes and Git source checkpoint independently;
-8. continue unresolved interview items across future conversations instead of assuming one perfect setup chat;
-9. evolve custom behavior on feature branches;
-10. when a feature becomes reusable, ask whether the user wants to contribute a sanitized portable version upstream.
+1. use GitHub's web template flow once to create a private user-controlled repository from the audited public starter;
+2. connect that exact repository to the read-only ChatGPT GitHub app and separately to write-capable Codex;
+3. verify repository owner, visibility, default branch, commit, read access, and write access without a local command line;
+4. run adaptive first boot;
+5. inspect existing capabilities/evidence before asking the user to recreate information;
+6. create/select the structured state authority and Drive evidence root;
+7. create an `Authority Registry` and durable `Interview Ledger`;
+8. generate schemas/migrations/configuration/feature lock/policy in Git;
+9. verify state-authority writes and Git source checkpoint independently;
+10. continue unresolved interview items across future conversations instead of assuming one perfect setup chat;
+11. evolve custom behavior on feature branches;
+12. when a feature becomes reusable, ask whether the user wants to contribute a sanitized portable version upstream.
 
 **Do not inherit the reference deployment's Google IDs, schedules, aliases, vehicles, tasks, receipts, or mutable state.**
 
@@ -41,15 +43,15 @@ The interview is tracked in canonical state, not merely remembered in chat. Each
 
 `Unresolved` · `Asked` · `Answered` · `Resolved from evidence` · `Not applicable` · `Deferred`
 
-Setup is complete only when every applicable question is resolved. A user may change topics freely: LyfeOS handles the immediate request, records any incidental answers, then resumes the next useful open interview item later. Evidence can resolve factual questions; preferences/permissions cannot be silently inferred.
+Setup is complete only when every applicable question is resolved. A user may change topics freely: Personal Ops Planner handles the immediate request, records any incidental answers, then resumes the next useful open interview item later. Evidence can resolve factual questions; preferences/permissions cannot be silently inferred.
 
 See `starter/INTERVIEW_LEDGER.md`.
 
 ## Inherit → customize → improve → share
 
 ```text
-public LyfeOS upstream
-        ↓ inherit
+public Personal Ops Planner template
+        ↓ browser template copy
 user Git source lineage + selected state authorities
         ↓ personal customization
 feature/* + optional experimental integration
@@ -62,7 +64,7 @@ public upstream PR
 
 Sharing a **feature** is different from sharing **state**. A deployment may explicitly share a whole Google authority or a scoped shared workbook/folder with another person. That is recorded and verified separately from public Git contribution.
 
-## What LyfeOS can organize
+## What Personal Ops Planner can organize
 
 The adaptive interview can surface domains the user may not know to request, including:
 
@@ -104,7 +106,7 @@ Supported organizational labels can include cardiology, endocrinology, audiology
 
 Reminder profiles may include multiple reminders such as day-before, a configured morning-of local clock time, and one hour before. Calendar owns event-specific reminders rather than spawning one ChatGPT Scheduled Task per appointment.
 
-Medication reminders are independent and default off. An active regimen schedule must be explicitly confirmed from owner, prescription-label, pharmacy, or clinician evidence. LyfeOS does not infer dose/timing, advise on missed doses, or share with a caregiver without explicit scope and recipient approval.
+Medication reminders are independent and default off. An active regimen schedule must be explicitly confirmed from owner, prescription-label, pharmacy, or clinician evidence. Personal Ops Planner does not infer dose/timing, advise on missed doses, or share with a caregiver without explicit scope and recipient approval.
 
 ## Receipt-linked assets and technical knowledge
 
@@ -144,6 +146,8 @@ Use the fewest authorities necessary:
 - `docs/feature-catalog.json` and `docs/feature-catalog.md` — generated hierarchical catalog; CI rejects drift and requires code/test evidence paths for integrated claims
 - `docs/code-inventory.json` — one bounded responsibility, separation rationale, and direct test suite for every production Python file; unlisted code fails CI
 - `docs/beta-hardening-audit-2026-08-24.md` — root cause, failure matrix, code justification, and release blockers
+- `docs/onboarding-hardening-audit-2026-08-25.md` — Foodie failure root cause, browser-only repair, capability gates, and remaining live template gate
+- `docs/BRANDING.md` — public working name, per-user naming, and legacy-identifier migration boundary
 
 ## Validate
 

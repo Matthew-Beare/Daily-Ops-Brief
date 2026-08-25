@@ -1,5 +1,5 @@
 {
-  "version": 7,
+  "version": 8,
   "instructions": "Create and maintain the Interview Ledger described in INTERVIEW_LEDGER.md. Ask only unresolved applicable questions after the four-question kickoff. Ask no more than four related questions at a time. Factual evidence may resolve a question; preference, consent, sharing, and destructive-action questions require the user. If the conversation detours, answer the immediate request and later resume the next useful unresolved question. Mutable life state uses the selected canonical structured authority, normally Google Sheets plus Google Drive evidence; Git versions behavior/config/schema/features rather than routine personal records.",
   "sections": [
     {
@@ -13,8 +13,8 @@
         {"id":"slot_names","required":false,"prompt":"Do AM/PM labels fit your sleep schedule, or should recurring slots have custom names?"},
         {"id":"timezone_travel_rule","required":true,"prompt":"Confirm that travel/device timezone must never silently replace the canonical scheduling timezone."},
         {"id":"canonical_clock_guard","required":true,"prompt":"Should every scheduled runtime convert the current instant into the canonical IANA timezone and verify that canonical local clock against the intended slot instead of trusting device time or a static UTC offset?"},
-        {"id":"repository_visibility","required":true,"prompt":"Should your LyfeOS source repository be public or private? Mutable personal state will remain in selected state/evidence authorities rather than portable Git source."},
-        {"id":"upstream_provenance","required":true,"prompt":"Should setup pin and record the exact public LyfeOS release/commit/tree your deployment descends from?"},
+        {"id":"repository_visibility","required":true,"prompt":"Confirm the observed Personal Ops Planner repository visibility. The non-technical installer defaults to private; any different visibility requires an explicit owner decision. Mutable personal state remains outside portable Git source."},
+        {"id":"upstream_provenance","required":true,"prompt":"Should setup pin and record the exact public Personal Ops Planner release/commit/tree your deployment descends from?"},
         {"id":"git_state_commit_policy","required":true,"prompt":"After standing Git authorization, may lasting behavior/config/schema/feature changes validate, commit and push automatically while routine mutable state stays in the canonical state authority?"}
       ]
     },
@@ -27,7 +27,7 @@
         {"id":"existing_store","required":false,"prompt":"Does an existing Sheet, database, Drive folder, or app already contain state/evidence that should be reused instead of replaced?"},
         {"id":"authority_registry","required":true,"prompt":"Should setup create an Authority Registry recording each data class, provider resource, owner, scope and last verification?"},
         {"id":"interview_ledger","required":true,"prompt":"Should setup create a durable Interview Ledger so onboarding can survive topic changes and future conversations?"},
-        {"id":"interview_resume_policy","required":true,"prompt":"When onboarding is incomplete and you ask about something else, should LyfeOS answer that first and then resume with the next useful unresolved interview question when reasonable?"},
+        {"id":"interview_resume_policy","required":true,"prompt":"When onboarding is incomplete and you ask about something else, should Personal Ops Planner answer that first and then resume with the next useful unresolved interview question when reasonable?"},
         {"id":"shared_authority","required":false,"prompt":"Do any life domains need to be shared with another person through either a whole shared workbook/folder or a separate scoped shared authority?"},
         {"id":"shared_authority_scope","required":false,"prompt":"Which exact data should be shared, with whom, and read-only or read/write?","applies_when":"shared_authority is true"},
         {"id":"history_rule","required":true,"prompt":"Which completed/removed/event history should be retained instead of overwritten or deleted?"},
@@ -143,6 +143,9 @@
       "title":"Household, projects, and administration",
       "questions":[
         {"id":"recurring_responsibilities","required":false,"prompt":"Which recurring household, administrative, maintenance, or personal responsibilities are easy to forget?"},
+        {"id":"household_routine_help","required":false,"prompt":"Do you want reminders or accountability for recurring household routines such as laundry, cleaning, bins, mail, or putting things away?"},
+        {"id":"laundry_workflow","required":false,"prompt":"For laundry, which stages actually need help—start, move washer to dryer, hang/dry, fold, put away—and what timing, owner, completion evidence, and miss/reschedule rule should apply?","applies_when":"household_routine_help is true or recurring_responsibilities includes laundry"},
+        {"id":"dropoff_pickup_reminders","required":false,"prompt":"Do you want due-date or next-errand reminders to pick up clothes or other items from dry-cleaning, tailoring, repair, storage, or another drop-off service? Location-aware reminders are offered only when an approved capability exists.","applies_when":"household_routine_help is true or recurring_responsibilities is not empty"},
         {"id":"errand_grouping","required":false,"prompt":"Would errands benefit from grouping by location, context, person, or next trip?"},
         {"id":"active_projects","required":false,"prompt":"Which active projects should have milestones and next actions rather than living as vague backlog items?"},
         {"id":"project_context","required":false,"prompt":"Which projects are home-only, away-friendly, device-dependent, or equipment-dependent?","applies_when":"active_projects is not empty"},
@@ -160,11 +163,11 @@
         {"id":"medical_event_tracking","required":false,"prompt":"Do you want medical appointment dates/reminders organized, without diagnosis or treatment inference?"},
         {"id":"appointment_email_auto_update","required":false,"prompt":"Should approved classes of appointment email automatically reconcile into canonical appointment state and a linked Calendar event?","applies_when":"appointments_renewals is true or medical_event_tracking is true"},
         {"id":"appointment_evidence_classes","required":false,"prompt":"Which senders/domains or appointment classes may be reconciled automatically?","applies_when":"appointment_email_auto_update is true"},
-        {"id":"appointment_provider_type_research","required":false,"prompt":"If an appointment identifies a provider but not the provider type, may LyfeOS research official/reliable public sources to label the appointment as cardiology, endocrinology, audiology, primary care, dental, or another supported specialty?","applies_when":"appointments_renewals is true or medical_event_tracking is true"},
+        {"id":"appointment_provider_type_research","required":false,"prompt":"If an appointment identifies a provider but not the provider type, may Personal Ops Planner research official/reliable public sources to label the appointment as cardiology, endocrinology, audiology, primary care, dental, or another supported specialty?","applies_when":"appointments_renewals is true or medical_event_tracking is true"},
         {"id":"appointment_reminder_day_before","required":false,"prompt":"Do you want a day-before reminder by default, and should it vary by person or appointment class?","applies_when":"appointments_renewals is true or medical_event_tracking is true"},
         {"id":"appointment_reminder_morning_of","required":false,"prompt":"Do you want a morning-of reminder? If yes, what local clock time should count as morning, and what should happen for appointments earlier than that?","applies_when":"appointments_renewals is true or medical_event_tracking is true"},
         {"id":"appointment_reminder_relative","required":false,"prompt":"Do you want a relative reminder such as 60 minutes before, and should the interval vary by person or appointment class?","applies_when":"appointments_renewals is true or medical_event_tracking is true"},
-        {"id":"medication_reminders","required":false,"prompt":"Do you want medication reminders? This is separate from appointments and defaults off; LyfeOS never infers dose or timing."},
+        {"id":"medication_reminders","required":false,"prompt":"Do you want medication reminders? This is separate from appointments and defaults off; Personal Ops Planner never infers dose or timing."},
         {"id":"medication_schedule_evidence","required":false,"prompt":"Which explicit owner, prescription-label, pharmacy, or clinician evidence may establish each medication schedule, and who must confirm it?","applies_when":"medication_reminders is true"},
         {"id":"medication_sensitive_details","required":false,"prompt":"How much medication detail may appear in reminder text and on lock-screen/provider notifications?","applies_when":"medication_reminders is true"},
         {"id":"caregiver_reminder_sharing","required":false,"prompt":"Should any appointment or medication reminders be shared with an exact caregiver identity? Default is no, and this does not grant broader health access.","applies_when":"medication_reminders is true or medical_event_tracking is true"},
@@ -183,7 +186,7 @@
         {"id":"assets","required":false,"prompt":"Which vehicles, tools, electronics, appliances, equipment, or other assets need searchable identity, receipts, warranty, or maintenance records?"},
         {"id":"asset_identifier_capture","required":false,"prompt":"Should receipt, product, barcode, model/serial-label, and Gmail evidence enrich namespaced UPC/GTIN/SKU/part/model/serial identifiers for those assets?","applies_when":"assets is not empty or receipt_tracking is true"},
         {"id":"manuals","required":false,"prompt":"Should manuals, service documents, datasheets, and references be retained and linked to assets/models/parts?"},
-        {"id":"manual_discovery","required":false,"prompt":"When an exact asset or part is identified, may LyfeOS search authoritative manufacturer/OEM sources for its manual, retain the file in Drive, and link it to the asset?","applies_when":"manuals is true"},
+        {"id":"manual_discovery","required":false,"prompt":"When an exact asset or part is identified, may Personal Ops Planner search authoritative manufacturer/OEM sources for its manual, retain the file in Drive, and link it to the asset?","applies_when":"manuals is true"},
         {"id":"technical_specifications","required":false,"prompt":"Which authoritative specifications—such as torque, tire pressure, capacities, alignment, dimensions, or load limits—should be indexed with exact applicability and page/section provenance?","applies_when":"assets is not empty or manuals is true"},
         {"id":"knowledge_search","required":false,"prompt":"What facts, procedures, specs, or documents do you repeatedly need to find again?"},
         {"id":"document_retention","required":false,"prompt":"Which documents need durable retention, searchable metadata, or expiration/renewal tracking?"},
@@ -227,7 +230,7 @@
         {"id":"destructive_actions","required":true,"prompt":"Which deletes, archives, sends, invites, shares, or overwrites require confirmation?"},
         {"id":"failure_policy","required":true,"prompt":"What should happen if a required connector, scheduler, or state authority is unavailable?"},
         {"id":"rollback","required":true,"prompt":"Which scheduled-task or non-atomic mutations require snapshot, readback, or rollback?"},
-        {"id":"success_metrics","required":false,"prompt":"How will you judge whether LyfeOS is saving time, improving consistency, and catching the right things?"}
+        {"id":"success_metrics","required":false,"prompt":"How will you judge whether Personal Ops Planner is saving time, improving consistency, and catching the right things?"}
       ]
     }
   ]

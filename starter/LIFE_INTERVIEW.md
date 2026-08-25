@@ -1,4 +1,4 @@
-# LyfeOS Adaptive Whole-Life Interview
+# Personal Ops Planner Adaptive Whole-Life Interview
 
 Use this after the four kickoff questions in `START_HERE.md`. Its purpose is comprehensive discovery without requiring one uninterrupted setup conversation.
 
@@ -28,7 +28,7 @@ Ask which pattern best describes the user now: working, retired, studying, careg
 - what repeatedly gets forgotten, delayed, misplaced, or done at the last minute;
 - recurring decisions that could use a stable rule or next action;
 - information scattered across email, calendar, notes, photos, documents, apps, chats, or memory;
-- what would feel materially easier if LyfeOS worked well six months from now.
+- what would feel materially easier if Personal Ops Planner worked well six months from now.
 
 If retired or not working, do not force job/context machinery. Explore appointments, household/admin, family responsibilities, volunteering, routines, documents, hobbies, travel, projects, and selected health-event organization when useful.
 
@@ -46,7 +46,7 @@ Before designing replacements, inspect what already exists:
 
 Use `CAPABILITY_DISCOVERY.md`. Do not claim arbitrary old ChatGPT conversations are globally searchable. If prior-chat information is inaccessible, provide an ingestion path.
 
-When useful existing data is reachable, dedupe and reconcile approved facts into the selected canonical state authority with provenance. Do not create a second hidden LyfeOS database.
+When useful existing data is reachable, dedupe and reconcile approved facts into the selected canonical state authority with provenance. Do not create a second hidden Personal Ops Planner database.
 
 ## 3. Work and context-mode gate
 

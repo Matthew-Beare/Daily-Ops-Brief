@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "audience": "nontechnical-browser-only",
+  "entry_document": "INSTALL.md",
+  "upstream": "Matthew-Beare/Daily-Ops-Brief",
+  "copy_method": "github-template",
+  "default_personal_visibility": "private",
+  "first_repository_creation": {
+    "actor": "user",
+    "surface": "github-web",
+    "reason": "current assistant repository tools can update an authorized repository but cannot create the user's first repository",
+    "include_all_branches": false
+  },
+  "capability_gates": [
+    {
+      "id": "github-account",
+      "pass_evidence": ["signed-in personal account", "verified email"],
+      "blocked_action": "open GitHub sign-up and complete it in the browser"
+    },
+    {
+      "id": "personal-repository",
+      "pass_evidence": ["observed owner/name", "private visibility", "observed default branch", "observed head commit"],
+      "blocked_action": "use the upstream GitHub template to create one private repository"
+    },
+    {
+      "id": "chatgpt-github-read",
+      "pass_evidence": ["exact personal repository readable through the ChatGPT GitHub app"],
+      "blocked_action": "configure the exact repository under ChatGPT Settings > Apps > GitHub"
+    },
+    {
+      "id": "codex-github-write",
+      "pass_evidence": ["exact personal repository authorized in Codex", "remote write and readback succeed during bounded provisioning"],
+      "blocked_action": "connect or authorize the repository in Codex; do not substitute the read-only ChatGPT GitHub app"
+    }
+  ],
+  "assistant_readback_fields": [
+    "repository",
+    "visibility",
+    "default_branch",
+    "starter_commit",
+    "chatgpt_read",
+    "codex_write",
+    "local_command_line_required"
+  ],
+  "nontechnical_forbidden_actions": [
+    "open-command-prompt",
+    "open-powershell",
+    "open-terminal",
+    "install-git",
+    "install-github-cli",
+    "git-clone",
+    "use-codespace-as-installer",
+    "request-password",
+    "request-one-time-code",
+    "request-token",
+    "request-ssh-key",
+    "claim-read-access-proves-write-access",
+    "claim-success-before-remote-readback"
+  ],
+  "blocked_states": {
+    "template_missing": "Starter blocked — upstream is not enabled as a GitHub template.",
+    "read_missing": "Source setup blocked — the exact personal repository is not readable through the ChatGPT GitHub app.",
+    "write_missing": "Source setup blocked — ChatGPT can read the repository, but no verified Codex GitHub write capability is available.",
+    "organization_approval": "Source setup blocked — the GitHub organization administrator must approve repository access."
+  },
+  "selected_workflow_discovery": {
+    "meal_planning_question_id": "meal_planning_help",
+    "household_routine_question_ids": [
+      "household_routine_help",
+      "laundry_workflow",
+      "dropoff_pickup_reminders"
+    ]
+  }
+}
