@@ -22,7 +22,8 @@ class FailureDomainArchitectureTests(unittest.TestCase):
         self.assertIn("Core Ops authority", state)
         self.assertIn("Commerce authority", state)
         self.assertIn("Mileage/Pay authority", state)
-        self.assertIn("provider-wide outage", state.lower())
+        self.assertIn("a missing **required** capability blocks that module only", state)
+        self.assertIn("unrelated modules with healthy independent authorities may continue", state)
         self.assertIn("Recovery snapshots", state)
         self.assertIn("never a second writable master", state)
 
