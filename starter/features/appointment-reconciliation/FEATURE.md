@@ -31,7 +31,7 @@ For each new candidate:
 1. search the durable provider/person directory by source binding, known alias and contact identifiers;
 2. reuse an existing verified entity UUID/category without repeating public research;
 3. only when unresolved and research is permitted/available, search the provider/clinic/person name plus location when known;
-4. prefer official organization/provider pages or another reliable professional directory;
+4. prefer **official clinic/provider pages**, health-system directories, or another reliable professional directory;
 5. record the evidence URL/source and confidence;
 6. if evidence conflicts or remains unclear, ask instead of guessing.
 
@@ -63,7 +63,7 @@ Spoken delivery requires:
 
 Privacy default is generic speech, for example “You have an appointment in one hour.” A user may explicitly allow title-level speech, for example “Cardiology appointment in one hour.”
 
-A native Android client owns Text-to-Speech and audio routing. The server does not claim direct control of a Bluetooth hearing aid/speaker route. Visual reminders remain available if spoken delivery is unavailable.
+The voice is generated **on the Android device by its selected Text-to-Speech engine**. M.I.R.R.O.R. supplies the canonical reminder time and speech text; Android synthesizes the audio locally. Android then routes media/TTS audio through the device's currently supported output path, including a connected hearing aid or Bluetooth device when Android has selected that route. The server never pretends it can seize or force a specific Bluetooth route. Visual reminders remain available if spoken delivery is unavailable.
 
 ## Reconciliation transaction
 
