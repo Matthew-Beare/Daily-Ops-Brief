@@ -7,5 +7,13 @@
   "display": "standalone",
   "background_color": "#111111",
   "theme_color": "#111111",
-  "categories": ["utilities", "productivity"]
+  "categories": ["utilities", "productivity"],
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
 }
