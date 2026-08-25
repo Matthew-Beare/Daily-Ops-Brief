@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Build feature dependency maps and plan user-in-the-loop upgrades.
+"""Maintain feature ownership/dependencies and plan user-in-the-loop upgrades.
 
-The durable rule is deliberately conservative: local behavior is preserved by
-Default.  This module may propose changes, but it never applies them.
+The durable rule is conservative: local behavior is preserved by default.
+This module may register metadata and produce proposals, but it never applies an
+upstream behavior change or deletes a local feature.
 """
 
 from __future__ import annotations
@@ -10,7 +11,6 @@ from __future__ import annotations
 import argparse
 import json
 import re
-from copy import deepcopy
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -62,8 +62,7 @@ def _load_lock(starter_root: Path) -> dict[str, Any]:
     value = _read_json(path)
     if not isinstance(value, dict) or value.get("schema_version") != 1:
         raise ReconciliationError(f"{LOCK_NAME} must use schema_version 1")
-    features = value.get("features")
-    if not isinstance(features, dict):
+    if not isinstance(value.get("features"), dict):
         raise ReconciliationError(f"{LOCK_NAME}.features must be an object")
     return value
 
@@ -99,6 +98,9 @@ def _validate_lock(lock: dict[str, Any], manifests: dict[str, dict[str, Any]]) -
         local_revision = row.get("local_revision")
         if not isinstance(local_revision, int) or isinstance(local_revision, bool) or local_revision < 0:
             raise ReconciliationError(f"{feature_id}.local_revision must be a nonnegative integer")
+        for field in ("upstream_feature_id", "upstream_base_version", "upstream_base_revision"):
+            if field not in row or not (row[field] is None or isinstance(row[field], str)):
+                raise ReconciliationError(f"{feature_id}.{field} must be string or null")
         paths = row.get("owned_paths")
         if not isinstance(paths, list) or not paths or any(
             not isinstance(item, str) or not item.strip() for item in paths
@@ -114,6 +116,44 @@ def _validate_lock(lock: dict[str, Any], manifests: dict[str, dict[str, Any]]) -
                     f"owned path {pattern!r} is claimed by both {previous} and {feature_id}"
                 )
             owned_patterns[pattern] = feature_id
+
+
+def register_feature(starter_root: Path, feature_id: str, owner: str) -> dict[str, Any]:
+    """Register one manifest and refresh the dependency map without changing ownership silently."""
+    if not ID_RE.fullmatch(feature_id):
+        raise ReconciliationError("feature id must be lowercase hyphen-case")
+    if owner not in OWNERS:
+        raise ReconciliationError(f"owner must be one of: {', '.join(sorted(OWNERS))}")
+    manifests = _load_manifests(starter_root)
+    if feature_id not in manifests:
+        raise ReconciliationError(f"feature manifest does not exist: {feature_id}")
+    lock = _load_lock(starter_root)
+    existing = lock["features"].get(feature_id)
+    manifest = manifests[feature_id]
+    if existing is not None:
+        if existing.get("owner") != owner:
+            raise ReconciliationError(
+                f"refusing to change {feature_id} ownership from {existing.get('owner')} to {owner}"
+            )
+        existing["installed_version"] = manifest.get("version")
+        if owner == "mirror" and existing.get("upstream_feature_id") is None:
+            existing["upstream_feature_id"] = feature_id
+    else:
+        upstream = owner == "mirror"
+        lock["features"][feature_id] = {
+            "owner": owner,
+            "origin": owner,
+            "installed_version": manifest.get("version"),
+            "upstream_feature_id": feature_id if upstream else None,
+            "upstream_base_version": manifest.get("version") if upstream else None,
+            "upstream_base_revision": "template" if upstream else None,
+            "local_revision": 0,
+            "owned_paths": [f"starter/features/{feature_id}/**"],
+            "conflict_policy": "preserve-local-and-ask",
+            "rollback_policy": "checkpoint-before-change",
+        }
+    _write_json(starter_root / LOCK_NAME, lock)
+    return sync_dependency_map(starter_root, check=False)
 
 
 def build_dependency_map(starter_root: Path) -> dict[str, Any]:
@@ -135,15 +175,9 @@ def build_dependency_map(starter_root: Path) -> dict[str, Any]:
             dependency_id = dependency.get("id")
             version_range = dependency.get("version_range")
             if isinstance(dependency_id, str) and isinstance(version_range, str):
-                feature_dependencies.append(
-                    {"id": dependency_id, "version_range": version_range}
-                )
+                feature_dependencies.append({"id": dependency_id, "version_range": version_range})
                 edges.append(
-                    {
-                        "from": feature_id,
-                        "to": dependency_id,
-                        "kind": "feature-required",
-                    }
+                    {"from": feature_id, "to": dependency_id, "kind": "feature-required"}
                 )
 
         required = sorted(set(runtime.get("required_capabilities", [])))
@@ -313,7 +347,10 @@ def find_consolidation_candidates(
                         "requires_user_decision": True,
                     }
                 )
-    return sorted(results, key=lambda row: (-row["overlap_score"], row["local_feature"], row["upstream_feature"]))
+    return sorted(
+        results,
+        key=lambda row: (-row["overlap_score"], row["local_feature"], row["upstream_feature"]),
+    )
 
 
 def _dependency_signature(feature: dict[str, Any]) -> dict[str, Any]:
@@ -321,6 +358,15 @@ def _dependency_signature(feature: dict[str, Any]) -> dict[str, Any]:
         "feature_dependencies": feature.get("feature_dependencies", []),
         "required_capabilities": feature.get("required_capabilities", []),
         "optional_capabilities": feature.get("optional_capabilities", []),
+    }
+
+
+def _readiness_fields(readiness: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "missing_required": readiness.get("missing_required", []),
+        "missing_optional": readiness.get("missing_optional", []),
+        "missing_required_help": readiness.get("missing_required_help", []),
+        "missing_optional_help": readiness.get("missing_optional_help", []),
     }
 
 
@@ -343,19 +389,26 @@ def plan_upgrade(
         old = current_features.get(feature_id)
         new = candidate_features.get(feature_id)
         original = base_features.get(feature_id)
+        readiness = capability_audit["features"].get(feature_id, {})
+        blocked = readiness.get("status") == "blocked"
 
         if old is None and new is not None:
             changes.append(
                 {
                     "feature": feature_id,
-                    "kind": "new-upstream-feature",
+                    "kind": "dependency-blocked" if blocked else "new-upstream-feature",
                     "current_version": None,
                     "candidate_version": new.get("version"),
                     "default_action": "keep-current",
-                    "offered_action": "install",
+                    "offered_action": "connect-required-dependency" if blocked else "install",
                     "requires_user_decision": True,
                     "rollback_checkpoint_required": True,
-                    "reason": "A new feature is available; it is not installed automatically.",
+                    "reason": (
+                        "The proposed feature needs a capability that is not currently available."
+                        if blocked
+                        else "A new feature is available; it is not installed automatically."
+                    ),
+                    **_readiness_fields(readiness),
                 }
             )
             continue
@@ -372,6 +425,10 @@ def plan_upgrade(
                     "requires_user_decision": True,
                     "rollback_checkpoint_required": True,
                     "reason": "Your existing feature stays in place unless you approve a safe replacement or removal.",
+                    "missing_required": [],
+                    "missing_optional": [],
+                    "missing_required_help": [],
+                    "missing_optional_help": [],
                 }
             )
             continue
@@ -388,8 +445,6 @@ def plan_upgrade(
         if not changed:
             continue
 
-        readiness = capability_audit["features"].get(feature_id, {})
-        blocked = readiness.get("status") == "blocked"
         if locally_owned or locally_modified:
             kind = "local-feature-overlap"
             offered = "compare-and-reconcile"
@@ -414,9 +469,8 @@ def plan_upgrade(
                 "offered_action": offered,
                 "requires_user_decision": True,
                 "rollback_checkpoint_required": True,
-                "missing_required": readiness.get("missing_required", []),
-                "missing_optional": readiness.get("missing_optional", []),
                 "reason": reason,
+                **_readiness_fields(readiness),
             }
         )
 
@@ -456,12 +510,12 @@ def render_boomer(plan: dict[str, Any]) -> str:
                 f"Feature: {feature}",
                 f"What you have now: {current}.",
                 f"What the new release offers: {candidate}.",
-                f"What MIRA recommends by default: keep what you have until you choose otherwise.",
+                "What MIRA recommends by default: keep what you have until you choose otherwise.",
                 f"Why you are being asked: {change.get('reason', 'The behavior may change.')}",
             ]
         )
-        missing_required = change.get("missing_required", [])
-        missing_optional = change.get("missing_optional", [])
+        missing_required = change.get("missing_required_help") or change.get("missing_required", [])
+        missing_optional = change.get("missing_optional_help") or change.get("missing_optional", [])
         if missing_required:
             lines.append(
                 "This cannot be enabled yet because a required connection or capability is missing: "
@@ -507,7 +561,14 @@ def main() -> int:
     sync.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
     sync.add_argument("--check", action="store_true")
 
-    capability = sub.add_parser("capability-audit", help="check required and optional runtime dependencies")
+    register = sub.add_parser("register", help="register a new/changed feature and refresh the map")
+    register.add_argument("feature_id")
+    register.add_argument("--owner", choices=sorted(OWNERS), required=True)
+    register.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
+
+    capability = sub.add_parser(
+        "capability-audit", help="check required and optional runtime dependencies"
+    )
     capability.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
     capability.add_argument("--capabilities", required=True, type=Path)
     capability.add_argument("--boomer", action="store_true")
@@ -522,11 +583,18 @@ def main() -> int:
     args = parser.parse_args()
     try:
         if args.command == "sync":
-            result = sync_dependency_map(args.root, check=args.check)
+            sync_dependency_map(args.root, check=args.check)
             if args.check:
                 print("Feature dependency map is current.")
             else:
                 print(f"Wrote {args.root / MAP_NAME}")
+            return 0
+
+        if args.command == "register":
+            register_feature(args.root, args.feature_id, args.owner)
+            print(
+                f"Registered {args.feature_id} as {args.owner}; refreshed {args.root / MAP_NAME}."
+            )
             return 0
 
         if args.command == "capability-audit":
@@ -543,6 +611,8 @@ def main() -> int:
                             "reason": "A required or optional connection is unavailable.",
                             "missing_required": row["missing_required"],
                             "missing_optional": row["missing_optional"],
+                            "missing_required_help": row["missing_required_help"],
+                            "missing_optional_help": row["missing_optional_help"],
                         }
                         for feature_id, row in result["features"].items()
                         if row["status"] != "ready"
