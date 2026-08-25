@@ -82,6 +82,12 @@
       "tests": ["starter/tests/test_behavior_dependency_check.py"]
     },
     {
+      "path": "starter/tools/integration_dependency_router.py",
+      "responsibility": "Convert verified connected integrations into behavior dependency readiness, bounded missing-dependency guidance, and explicit-goal workflow recommendations without enabling or connecting anything automatically.",
+      "why_separate": "Integration discovery and user-facing remediation bridge live runtime capabilities to the behavior graph, while the dependency checker itself remains provider-neutral and non-mutating.",
+      "tests": ["starter/tests/test_integration_dependency_router.py"]
+    },
+    {
       "path": "starter/life-planner/scripts/brief_schedule.py",
       "responsibility": "Validate deployment-owned arbitrary brief slots and compare live scheduler readback to the exact version-controlled user configuration without product-default times.",
       "why_separate": "Recurring timing is durable deployment configuration and scheduler projection, distinct from provider-state bootstrap and brief content rendering.",
