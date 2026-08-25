@@ -48,7 +48,7 @@ Support multiple reminder rules globally, per person, and/or per appointment cla
 - 60 minutes before;
 - other user-selected relative intervals.
 
-The canonical reminder planner remains provider-neutral and timezone-aware. Calendar, native notification and spoken notification are projections of the same canonical reminder intent rather than separate reminder records.
+The canonical reminder planner remains provider-neutral and uses the configured canonical **IANA timezone**. Calendar, native notification and spoken notification are projections of the same canonical reminder intent rather than separate reminder records.
 
 ## Spoken delivery
 
