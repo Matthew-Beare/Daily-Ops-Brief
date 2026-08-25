@@ -25,6 +25,8 @@ If the answer is **no**, stop at the private, versioned implementation.
 
 If the answer is **yes**, continue through the portability gate below. A yes authorizes preparation for a public contribution, not publication of private data and not an automatic merge.
 
+**Publication authority is separate from source-write authority.** Standing permission to version or push a private deployment never grants permission to publish a feature, open a public pull request, expose private state, or merge upstream.
+
 ## Source and state surfaces
 
 | Surface | Contents | Rule |
