@@ -62,10 +62,12 @@
   "android": {
     "target_capabilities": [
       "notification_channel",
+      "spoken_notification",
       "text_to_speech",
       "background_delivery_within_android_limits",
       "bluetooth_audio_routing_as_supported_by_device_and_android"
     ],
+    "voice_generation": "Use the Android device's selected Text-to-Speech engine locally. The reminder service supplies speech text and timing; the device synthesizes the audio.",
     "verification_rule": "Mark spoken_notification healthy only after an actual device test/readback or equivalent observed delivery evidence."
   },
   "safety": {
