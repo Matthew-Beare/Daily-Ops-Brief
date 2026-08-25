@@ -49,11 +49,11 @@
     {
       "id": "spoken-reminder-support",
       "title": "Spoken appointment reminders on a verified device",
-      "required_capabilities": ["spoken_notification"],
+      "required_capabilities": ["notification_delivery"],
       "goal_tags": ["appointments", "reminders", "accessibility", "hearing", "schedule"],
       "behavior_ids": ["b-02", "b-03", "f-07"],
-      "why": "Project the same canonical appointment reminder to a native client that can perform Text-to-Speech/audio delivery. Spoken detail remains user-selected and the client must verify delivery capability first.",
-      "prompt": "Your connected {integrations} may be able to speak appointment reminders for {goal}. Nothing changes automatically. Do you want help testing and enabling that delivery path?"
+      "why": "A supported notification integration may also expose a device-specific spoken-notification sub-capability. MIRA tests that sub-capability before enabling Text-to-Speech delivery; ordinary visual notification capability alone is not claimed to prove audio delivery.",
+      "prompt": "Your connected {integrations} may support spoken appointment reminders for {goal}. Nothing changes automatically. Do you want help testing whether spoken delivery actually works on your device?"
     },
     {
       "id": "evidence-archive-support",
@@ -106,10 +106,10 @@
       "id": "self-hosted-runtime-support",
       "title": "Self-hosted M.I.R.R.O.R. runtime",
       "required_capabilities": ["api_service", "sql_service"],
-      "optional_capabilities": ["object_storage", "vpn_connectivity", "local_model"],
+      "optional_capabilities": ["object_storage", "vpn_connectivity"],
       "goal_tags": ["self hosting", "privacy", "homelab", "server", "local ai", "cloud independence"],
       "behavior_ids": ["g-06", "g-07", "g-09", "g-14", "g-15", "g-16"],
-      "why": "Move the same provider-neutral behavior contracts behind an authenticated service/API with SQL/object-storage adapters and optional local model execution.",
+      "why": "Move the same provider-neutral behavior contracts behind an authenticated service/API with SQL/object-storage adapters. Local-model inference is an optional separate runtime capability, not a prerequisite for self-hosting.",
       "prompt": "Your connected {integrations} can support a more self-hosted setup for {goal}. Do you want help planning the migration without changing your current workflows yet?"
     }
   ]
