@@ -22,7 +22,7 @@ Non-technical users start with [`starter/QUICK_START.md`](starter/QUICK_START.md
 
 Git or another approved managed source stores versioned behavior: policy, schemas, migrations, tests, onboarding, non-secret configuration, and reusable feature code. Mutable operational state does not live only in chat or Git. It lives in the selected canonical state authority, with retained evidence in the selected evidence store when needed.
 
-Personal Google currently uses Google Sheets and Google Drive plus optional Gmail/Calendar capabilities when verified. Microsoft 365, Apple/manual portability, Claude, Gemini, and institutional runtimes have no assumed feature parity and must be capability-checked.
+Personal Google currently uses Google Sheets and Google Drive plus optional Gmail/Calendar capabilities when verified. The reference deployment already follows this external-authority model; new users inherit portable behavior, not its private accounts, IDs, schedules, or state. Microsoft 365, Apple/manual portability, Claude, Gemini, and institutional runtimes have no assumed feature parity and must be capability-checked.
 
 The repository contains no mutable operational state, credentials, live authority IDs, private receipt bodies, medical records, or personal exports in the portable source.
 
