@@ -112,6 +112,20 @@
         "classify_scan_type",
         "submit_scan_event"
       ]
+    },
+    "rfid": {
+      "required_operations": [
+        "normalize_reader_observation",
+        "preserve_tag_protocol_reader_and_zone_provenance",
+        "dedupe_repeated_presence_observations",
+        "submit_presence_observation",
+        "promote_to_location_event_only_when_policy_and_readback_allow"
+      ],
+      "candidate_adapters": [
+        "android_nfc",
+        "linux_or_desktop_usb_serial_hid_reader",
+        "network_uhf_epc_gen2_reader"
+      ]
     }
   },
   "client_surfaces": [
