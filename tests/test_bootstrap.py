@@ -27,6 +27,9 @@ class BootstrapTests(unittest.TestCase):
         self.assertIn("GOOGLE_SHEETS_DEFAULT_OR_SUPPORTED_DATABASE", rendered)
         self.assertIn("REQUIRED_IN_STRUCTURED_STATE_STORE", rendered)
         self.assertIn("IANA_TIMEZONE_CONVERSION_NEVER_DEVICE_TIME_OR_STATIC_OFFSET", rendered)
+        self.assertIn("OBSERVED_RUNTIME_AND_DEPLOYMENT", rendered)
+        self.assertIn("PERSONAL_BROWSER_ENTERPRISE_MANAGED_OR_PORTABLE_MANUAL", rendered)
+        self.assertIn("SELECT_PERSONAL_ORGANIZATION_GIT_OR_MANAGED_SOURCE", rendered)
 
     def test_missing_key_fails(self) -> None:
         with self.assertRaisesRegex(ValueError, "missing configuration keys"):

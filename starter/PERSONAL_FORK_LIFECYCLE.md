@@ -6,8 +6,8 @@ Personal Ops Planner is designed to be inherited, personalized, versioned, and o
 
 ```text
 public upstream GitHub template
-        ↓ private browser-created template copy
-user-owned Personal Ops Planner source repository
+        ↓ personal template copy OR approved organization/managed release
+user-owned, organization-owned, or managed Personal Ops Planner source
         ↓ first-boot source/config checkpoint
 feature/fix branches + optional experimental integration
         ↓ tested personal release
@@ -17,17 +17,19 @@ public upstream PR
 
 The user's Git repository is the durable source of truth for **behavior and structure**: policy, schemas, migrations, module selection, authority references, non-secret configuration, tests, feature code, onboarding, provenance, and recovery instructions.
 
-Mutable personal operational state lives in canonical authorities described in `STATE_AUTHORITY_MODEL.md`, normally Google Sheets plus Google Drive evidence for the starter.
+Mutable personal operational state lives in canonical authorities described in `STATE_AUTHORITY_MODEL.md`, normally Google Sheets plus Google Drive evidence for the personal starter or Microsoft Lists/Excel plus OneDrive/SharePoint in an approved Microsoft 365 lane.
 
 Despite this file's historical name, the non-technical default is a GitHub **template copy**, not a Git fork or local clone. Complete `INSTALL.md`: the user creates the first private repository once on GitHub's website, the ChatGPT GitHub app receives read access, and Codex separately receives write access. No command line is part of default onboarding.
+
+That is the personal default, not a corporate bypass. `ENTERPRISE_PILOT.md` also permits approved GitHub Enterprise, GitLab, Azure Repos, or managed central source. In the managed lane the end user does not need a Git account; lasting personal policy changes enter the approved change process. Claude and other AI runtimes use the same source contract only after their exact read/write/readback capabilities are observed.
 
 ## First boot
 
 After the browser setup and repository capability readback in `INSTALL.md`, then capability discovery and bounded provisioning approval:
 
 1. resolve the exact upstream tag/commit/tree used;
-2. verify the user-owned repository is private and record visibility/provenance;
-3. verify ChatGPT read and Codex write capabilities independently;
+2. verify the selected personal, organization, or managed source mode and record visibility/provenance;
+3. verify source read, source write and remote readback independently when user-level source mutations are allowed;
 4. create/select the structured state authority and evidence root;
 5. create and verify the `Authority Registry` and `Interview Ledger`;
 6. write non-secret deployment configuration, selected feature IDs/versions, schemas/migrations, and policy;
@@ -37,7 +39,7 @@ After the browser setup and repository capability readback in `INSTALL.md`, then
 10. read back the remote source commit;
 11. read back canonical state/evidence writes before calling initialization complete.
 
-Credentials, OAuth tokens, passwords, raw authentication material, full payment credentials, mutable Sheet exports, and private Drive evidence do not belong in portable Git source.
+Credentials, OAuth tokens, passwords, raw authentication material, full payment credentials, mutable Sheet/List/Excel exports, and private Drive/OneDrive/SharePoint evidence do not belong in portable Git source.
 
 ## Continuous state
 
@@ -101,4 +103,4 @@ Never assume template history is a fork, force unrelated histories together, res
 
 ## Failure isolation
 
-A Git failure blocks only the durable source mutation that depends on it. A Sheets/Drive/selected-state failure blocks only the state-changing module that depends on that authority. Preserve and read back known-good state, continue unrelated healthy modules, and never fall back to chat memory or a shadow database.
+A Git/managed-source failure blocks only the durable source mutation that depends on it. A Sheets/Lists/Excel/Drive/OneDrive/SharePoint selected-state failure blocks only the state-changing module that depends on that authority. Preserve and read back known-good state, continue unrelated healthy modules, and never fall back to chat memory, a personal account workaround, or a shadow database.

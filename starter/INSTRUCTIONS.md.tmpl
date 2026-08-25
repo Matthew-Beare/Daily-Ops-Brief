@@ -4,6 +4,11 @@ Use `${{SKILL_NAME}}` for scheduled/manual ops runs and clear commands that chan
 
 ## Authority
 
+- Deployment lane: `{{DEPLOYMENT_LANE}}`
+- AI runtime/deployment: `{{AI_RUNTIME}}`
+- Data classification: `{{DATA_CLASSIFICATION}}`
+- Organization approval: `{{ORGANIZATION_APPROVAL}}`
+- Observed provider capability profile: `{{PROVIDER_CAPABILITY_PROFILE}}`
 - Canonical timezone: `{{TIMEZONE}}`
 - Canonical clock policy: `{{CANONICAL_CLOCK_POLICY}}`
 - Structured mutable state: `{{STATE_STORE}}`
@@ -12,12 +17,13 @@ Use `${{SKILL_NAME}}` for scheduled/manual ops runs and clear commands that chan
 - Recovery snapshot policy: `{{RECOVERY_SNAPSHOT_POLICY}}`
 - Drive/evidence root: `{{DRIVE_ROOT}}`
 - Policy/source repository: `{{GITHUB_REPO}}`
+- Source-control mode: `{{SOURCE_CONTROL_MODE}}`
 - Repository visibility: {{REPOSITORY_VISIBILITY}}
 - Automatic durable source versioning: {{AUTO_VERSIONING}}
 - Merge/publication policy: {{MERGE_POLICY}}
 - Email: `{{EMAIL_PROVIDER}}`; calendar: `{{CALENDAR_PROVIDER}}`
 
-Mutable live state belongs in its canonical structured authority, not prompts, memory, or routine Git files. Retained documents/evidence belong in the configured evidence authority. Git is the durable source of truth for policy, configuration, schemas, migrations, feature code, tests, onboarding, authority references, provenance, and recovery. If an authority is unavailable, report `{{ESCALATION_STYLE}}`; never substitute remembered/chat-local state.
+Mutable live state belongs in its canonical structured authority, not prompts, memory, or routine Git files. Retained documents/evidence belong in the configured evidence authority. Personal/organization Git or managed central source is the durable source of truth for policy, configuration, schemas, migrations, feature code, tests, onboarding, authority references, provenance, and recovery. If an authority is unavailable, report `{{ESCALATION_STYLE}}`; never substitute remembered/chat-local state.
 
 ## Interview continuity
 
@@ -31,6 +37,8 @@ Mutable live state belongs in its canonical structured authority, not prompts, m
 ## Personal Git lineage and portability
 
 - Preserve the exact public Personal Ops Planner upstream release/commit/tree as provenance.
+- The source lane may be personal Git, approved organization Git, or managed central source. Do not create a personal repository to bypass organization policy.
+- ChatGPT, Claude, Microsoft/VA AI environments, Gemini and other runtimes have no assumed feature parity. Provider names never prove actions, scheduling, data approval, or readback.
 - First boot produces and remotely verifies one coherent non-secret Git checkpoint containing deployment configuration, schema/migrations, enabled feature versions, policy, and authority references.
 - After standing Git authorization, lasting policy/config/schema/feature/workflow changes automatically update validation, commit, push, and verify remote source. Do not ask repeatedly whether to push.
 - Routine tasks, appointments, recipes, meal history, shopping rows, routines, and other mutable life records write to canonical state authorities, not Git.
@@ -50,6 +58,8 @@ Mutable live state belongs in its canonical structured authority, not prompts, m
 - Direct cross-module writes default to none. Any deliberate cross-module mutation must be declared, use stable IDs, and receive readback at both authority boundaries.
 - Google Sheets is the starter default structured provider; another supported database can replace it when deliberately selected.
 - Google Drive is the normal retained-file/evidence surface when selected modules need it.
+- Microsoft Lists/Excel and OneDrive/SharePoint are supported candidates only after exact tenant read/write/readback verification.
+- Apple/iCloud uses deliberate import/export unless a specific approved adapter proves otherwise; do not claim general iCloud Drive automation.
 - A provider-wide outage may affect several authority resources hosted by that provider; do not manufacture shadow state. Continue only modules whose own authorities/invariants remain healthy.
 - Recovery snapshots/provider version history are non-authoritative recovery material, never a second writable master and never silently promoted.
 - Sharing a state authority with another person is explicit and separate from public feature sharing. Support whole-authority sharing or a scoped shared workbook/folder. Explain what becomes visible and verify provider access after sharing.

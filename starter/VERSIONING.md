@@ -4,8 +4,8 @@
 
 - This repository is the public Personal Ops Planner upstream and reference implementation.
 - `starter/` is the portable onboarding/distribution boundary.
-- A user's Git repository preserves source lineage: policy, non-secret configuration, schemas, migrations, enabled features, tests, onboarding, authority references, and custom feature work.
-- Mutable operational state lives in selected canonical authorities, defaulting to Google Sheets for structured state and Google Drive for retained evidence/documents.
+- A personal, organization, or managed Git repository preserves source lineage: policy, non-secret configuration, schemas, migrations, enabled features, tests, onboarding, authority references, and custom feature work.
+- Mutable operational state lives in selected canonical authorities, defaulting to Google Sheets/Google Drive for personal deployments or approved Microsoft Lists/Excel and OneDrive/SharePoint candidates in Microsoft 365 deployments.
 - Git is not the routine recipe/appointment/task/routine/meal-history database.
 
 Read `STATE_AUTHORITY_MODEL.md`, `INTERVIEW_LEDGER.md`, and `PERSONAL_FORK_LIFECYCLE.md`.
@@ -13,13 +13,14 @@ Read `STATE_AUTHORITY_MODEL.md`, `INTERVIEW_LEDGER.md`, and `PERSONAL_FORK_LIFEC
 ## Normal inheritance path
 
 1. complete the browser-only `INSTALL.md` flow: create one private repository from the audited public GitHub template;
+   or select approved organization Git/managed central source under `ENTERPRISE_PILOT.md`;
 2. record observed upstream provenance and independently verify ChatGPT read plus Codex write capability;
 3. run `START_HERE.md`; non-technical onboarding never falls back to Command Prompt, local Git, Codespaces, tokens, or SSH keys;
 4. discover existing capabilities/evidence before creating duplicate systems;
 5. create/select the structured state authority and evidence root;
 6. create the Authority Registry and Interview Ledger;
 7. generate the user's non-secret deployment configuration, schema/migrations, selected features, and policy;
-8. validate, commit/push, and verify the first coherent Git source checkpoint;
+8. validate, commit/push, and verify the first coherent Git source checkpoint, or verify the pinned managed release and approved change route;
 9. verify canonical state authority writes/readback;
 10. only then enable scheduled/provider writes whose gates pass.
 

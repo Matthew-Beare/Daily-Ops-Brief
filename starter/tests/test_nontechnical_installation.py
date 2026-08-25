@@ -32,8 +32,9 @@ class NontechnicalInstallationTests(unittest.TestCase):
         flow = self.flow()
         self.assertEqual("github-template", flow["copy_method"])
         self.assertEqual("private", flow["default_personal_visibility"])
-        self.assertEqual("user", flow["first_repository_creation"]["actor"])
+        self.assertEqual("user", flow["first_repository_creation"]["default_actor"])
         self.assertEqual("github-web", flow["first_repository_creation"]["surface"])
+        self.assertIn("repository-creation action", flow["first_repository_creation"]["assistant_creation_allowed_when"])
         self.assertFalse(flow["first_repository_creation"]["include_all_branches"])
         self.assertIn("template_missing", flow["blocked_states"])
         self.assertIn("/generate", self.text("INSTALL.md"))
@@ -57,7 +58,34 @@ class NontechnicalInstallationTests(unittest.TestCase):
             "chatgpt_read",
             "codex_write",
             "local_command_line_required",
+            "deployment_lane",
+            "ai_runtime",
+            "data_classification",
+            "source_mode",
+            "structured_state_provider",
+            "evidence_provider",
+            "organization_approval",
+            "organization_approval_reference",
         }.issubset(fields))
+
+    def test_enterprise_and_alternative_ai_lanes_are_browser_only_and_capability_gated(self) -> None:
+        flow = self.flow()
+        self.assertTrue({"personal_browser", "enterprise_managed", "portable_manual"}.issubset(
+            flow["deployment_lanes"]
+        ))
+        install = self.text("INSTALL.md")
+        for phrase in (
+            "Claude",
+            "Microsoft/VA AI",
+            "managed central source",
+            "Do not create a personal GitHub",
+            "provider_capability_router.py",
+        ):
+            self.assertIn(phrase, install)
+        self.assertIn("claim-ai-runtime-feature-parity", flow["nontechnical_forbidden_actions"])
+        self.assertIn("put-regulated-sensitive-data-in-unapproved-runtime", flow["nontechnical_forbidden_actions"])
+        approval_gate = next(row for row in flow["capability_gates"] if row["id"] == "runtime-and-data-approval")
+        self.assertIn("approval-evidence reference", " ".join(approval_gate["pass_evidence"]))
 
     def test_meals_laundry_and_pickups_are_discoverable(self) -> None:
         questions = json.loads(self.text("questions.json"))

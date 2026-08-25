@@ -1,18 +1,20 @@
 # Generic Personal Ops Planner First-Boot Starter
 
-This reusable onboarding kit builds a new user's Personal Ops Planner without copying the reference deployment's mutable state. The non-technical human entry point is [`INSTALL.md`](INSTALL.md); [`START_HERE.md`](START_HERE.md) begins only after repository capability verification.
+This reusable onboarding kit builds a new user's Personal Ops Planner without copying the reference deployment's mutable state. The non-technical human entry point is [`INSTALL.md`](INSTALL.md); [`START_HERE.md`](START_HERE.md) begins only after deployment-lane capability verification.
 
 ## Public distribution boundary
 
-`starter/` is the portable surface of the public upstream. The default path uses GitHub's browser template flow to create a private user-owned repository from the audited default branch. Local Git is developer-only and never a non-technical fallback. Git carries portable behavior, schemas, migrations, configuration, tests, onboarding, and feature lineage. Mutable personal records stay in selected state/evidence authorities.
+`starter/` is the portable surface of the public upstream. The personal default uses GitHub's browser template flow to create a private user-owned repository from the audited default branch. Enterprise users may use approved organization Git or managed central source without personal Git accounts. Local Git is developer-only and never a non-technical fallback. Git carries portable behavior, schemas, migrations, configuration, tests, onboarding, and feature lineage. Mutable personal records stay in selected state/evidence authorities.
 
-The default starter authority stack is:
+The supported starter candidates are:
 
-1. Google Sheets for structured mutable state;
-2. Google Drive for retained evidence/documents when useful;
-3. Git for source/version lineage;
-4. Google Calendar as an optional projection/reminder surface;
+1. Google Sheets or Microsoft Lists/Excel for structured mutable state;
+2. Google Drive or OneDrive/SharePoint for retained evidence/documents when useful;
+3. personal/organization Git or managed central source for source/version lineage;
+4. Google Calendar or Outlook Calendar as an optional projection/reminder surface;
 5. other integrations only when selected modules need them.
+
+Apple/iCloud is supported through browser/mobile use and manual import/export; no general automated iCloud Drive adapter is claimed. ChatGPT, Claude, Microsoft/VA AI environments, Gemini and other runtimes use the portable core only after exact capabilities are observed. Read `PLATFORM_PORTABILITY.md` and `ENTERPRISE_PILOT.md`.
 
 A supported database may replace Sheets when deliberately selected. Read `STATE_AUTHORITY_MODEL.md`.
 
@@ -45,7 +47,7 @@ Accounts, exact schedules, taxonomy, authority IDs, repository visibility, and s
 
 ## First-boot workflow
 
-1. Complete `INSTALL.md`: create the private repository with GitHub's web template, configure the read-only ChatGPT GitHub app, separately authorize Codex, and verify read/write capabilities.
+1. Complete `INSTALL.md`: select personal, enterprise-managed, or portable-manual lane; verify the exact AI runtime, data classification, source, state and evidence capabilities. Personal ChatGPT/Codex users use the GitHub template/read/write path.
 2. Record the observed upstream commit/provenance; never infer it from a local copy.
 3. Ask only the four kickoff questions in `START_HERE.md`.
 4. Discover existing capabilities/evidence before creating duplicate systems.
@@ -55,7 +57,7 @@ Accounts, exact schedules, taxonomy, authority IDs, repository visibility, and s
 8. Recommend a Minimum Useful Setup and adjacent capabilities the user may not know to request.
 9. Verify only dependencies required by selected modules; optional connector failures are module-scoped.
 10. Obtain bounded provisioning approval and create/verify state/evidence resources.
-11. Generate/validate/commit/push the user's source configuration, schemas/migrations, feature lock, and policy.
+11. Generate/validate/commit/push the user's source configuration, schemas/migrations, feature lock, and policy, or route it through the approved managed-source change process.
 12. Continue unresolved Interview Ledger items across later conversations until coverage is complete.
 13. Never treat green CI as proof of live scheduler/provider behavior without required readback/observed execution.
 
@@ -90,6 +92,8 @@ When a coherent personal feature passes tests/privacy/source checks, ask exactly
 
 - Never inherit another user's timezone, schedule, accounts, assets, receipts, authority IDs, or mutable records.
 - Never route a non-technical onboarding user to Command Prompt, PowerShell, Terminal, local Git, GitHub CLI, Codespaces, tokens, or SSH keys.
+- Never create a personal account or external connector to bypass organization policy.
+- Never infer AI-runtime feature parity or regulated-data approval from a product name.
 - Never treat the read-only ChatGPT GitHub app as proof of Codex write capability.
 - Never claim arbitrary old ChatGPT conversations are globally searchable.
 - Never create one automation per order, appointment, routine, or assignment when Calendar/consolidated dispatch can handle it.
@@ -97,4 +101,4 @@ When a coherent personal feature passes tests/privacy/source checks, ask exactly
 - Automatic Git push does not imply merge/release/publication/force-push authority.
 - Completion comes from the user or reliable connected evidence, never silence.
 
-See `STATE_AUTHORITY_MODEL.md`, `INTERVIEW_LEDGER.md`, `VERSIONING.md`, `PERSONAL_FORK_LIFECYCLE.md`, `CAPABILITY_DISCOVERY.md`, and `DEPENDENCIES.md`.
+See `STATE_AUTHORITY_MODEL.md`, `INTERVIEW_LEDGER.md`, `VERSIONING.md`, `PERSONAL_FORK_LIFECYCLE.md`, `CAPABILITY_DISCOVERY.md`, `PLATFORM_PORTABILITY.md`, `ENTERPRISE_PILOT.md`, and `DEPENDENCIES.md`.

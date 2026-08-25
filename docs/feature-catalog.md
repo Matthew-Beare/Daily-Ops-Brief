@@ -102,6 +102,8 @@ Generated from `docs/feature-ledger-2026-08-24.md`. Edit the forensic ledger, th
 | `e-20` | Automatic instruction updates | USER ASKED; technically constrained | `mixed` | `documented` |
 | `e-21` | Browser-only non-technical installation with no terminal fallback | CURRENT REQUIRED | `documented` | `ci_evidence` |
 | `e-22` | Independent ChatGPT GitHub read and Codex GitHub write gates | CURRENT REQUIRED | `documented` | `ci_evidence` |
+| `e-23` | Provider-neutral AI runtime capability routing | CURRENT REQUIRED | `executable` | `ci_evidence` |
+| `e-24` | Personal Git, organization Git, managed-central source, and explicit no-Git lanes | CURRENT REQUIRED | `executable` | `ci_evidence` |
 
 ## F. Life-service modules discussed or catalogued
 
@@ -135,18 +137,21 @@ Generated from `docs/feature-ledger-2026-08-24.md`. Edit the forensic ledger, th
 | ID | Feature | Decision | Delivery | Verification |
 |---|---|---|---|---|
 | `g-01` | Sheets/Drive as current mutable authority with Git for policy/schema/tests | REQUIRED current architecture | `live_external` | `live_readback_required` |
-| `g-02` | Eventual PostgreSQL/private SQL canonical service | USER DIRECTION / INFRA | `infrastructure` | `documented` |
-| `g-03` | Policy/data API | PROPOSED/INFRA | `infrastructure` | `documented` |
-| `g-04` | Grafana/observability dashboards | PROPOSED/INFRA | `infrastructure` | `documented` |
-| `g-05` | Object storage/NAS for evidence and attachments | PROPOSED/INFRA | `infrastructure` | `documented` |
-| `g-06` | Companion/mobile app with scanning and queries | USER DIRECTION / INFRA | `not_present` | `documented` |
-| `g-07` | Home Assistant bridge | PROPOSED/INFRA | `not_present` | `documented` |
-| `g-08` | Plex bridge | PROPOSED/INFRA | `not_present` | `documented` |
-| `g-09` | Voice queries/commands | PROPOSED/INFRA | `not_present` | `documented` |
-| `g-10` | NAS/LAN/private-service bridge and VPN access | PROPOSED/INFRA | `not_present` | `documented` |
-| `g-11` | Family site-to-site VPN/redundancy/failover | PROPOSED | `not_present` | `documented` |
-| `g-12` | Twice-daily incremental, daily cloud, weekly full, rotation, encryption, restore tests | REQUIRED backlog | `specification` | `documented` |
-| `g-13` | Knowledge ingestion with relevant excerpts, timestamps, URL/title/metadata, provenance, relationships, optional full pin | REQUIRED/ACCEPTED | `executable` | `ci_evidence` |
-| `g-14` | Drive organization by domain and searchable metadata | ACCEPTED personal behavior | `workflow` | `documented` |
-| `g-15` | Hierarchical machine-readable feature catalog with CI drift enforcement | CURRENT REQUIRED | `executable` | `ci_evidence` |
-| `g-16` | Machine-enforced production-code inventory and anti-bloat ownership gate | CURRENT REQUIRED | `executable` | `ci_evidence` |
+| `g-02` | Google Workspace and Microsoft 365 state/evidence portability | CURRENT REQUIRED | `executable` | `ci_evidence` |
+| `g-03` | Apple/iCloud and portable-file manual bridge | CURRENT REQUIRED portability boundary | `contract` | `ci_evidence` |
+| `g-04` | Locked-down and regulated enterprise/VA pilot lane | CURRENT REQUIRED | `executable` | `ci_evidence` |
+| `g-05` | Eventual PostgreSQL/private SQL canonical service | USER DIRECTION / INFRA | `infrastructure` | `documented` |
+| `g-06` | Policy/data API | PROPOSED/INFRA | `infrastructure` | `documented` |
+| `g-07` | Grafana/observability dashboards | PROPOSED/INFRA | `infrastructure` | `documented` |
+| `g-08` | Object storage/NAS for evidence and attachments | PROPOSED/INFRA | `infrastructure` | `documented` |
+| `g-09` | Companion/mobile app with scanning and queries | USER DIRECTION / INFRA | `not_present` | `documented` |
+| `g-10` | Home Assistant bridge | PROPOSED/INFRA | `not_present` | `documented` |
+| `g-11` | Plex bridge | PROPOSED/INFRA | `not_present` | `documented` |
+| `g-12` | Voice queries/commands | PROPOSED/INFRA | `not_present` | `documented` |
+| `g-13` | NAS/LAN/private-service bridge and VPN access | PROPOSED/INFRA | `not_present` | `documented` |
+| `g-14` | Family site-to-site VPN/redundancy/failover | PROPOSED | `not_present` | `documented` |
+| `g-15` | Twice-daily incremental, daily cloud, weekly full, rotation, encryption, restore tests | REQUIRED backlog | `specification` | `documented` |
+| `g-16` | Knowledge ingestion with relevant excerpts, timestamps, URL/title/metadata, provenance, relationships, optional full pin | REQUIRED/ACCEPTED | `executable` | `ci_evidence` |
+| `g-17` | Drive organization by domain and searchable metadata | ACCEPTED personal behavior | `workflow` | `documented` |
+| `g-18` | Hierarchical machine-readable feature catalog with CI drift enforcement | CURRENT REQUIRED | `executable` | `ci_evidence` |
+| `g-19` | Machine-enforced production-code inventory and anti-bloat ownership gate | CURRENT REQUIRED | `executable` | `ci_evidence` |

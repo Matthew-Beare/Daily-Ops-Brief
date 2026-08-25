@@ -1,12 +1,18 @@
 {
-  "version": 8,
-  "instructions": "Create and maintain the Interview Ledger described in INTERVIEW_LEDGER.md. Ask only unresolved applicable questions after the four-question kickoff. Ask no more than four related questions at a time. Factual evidence may resolve a question; preference, consent, sharing, and destructive-action questions require the user. If the conversation detours, answer the immediate request and later resume the next useful unresolved question. Mutable life state uses the selected canonical structured authority, normally Google Sheets plus Google Drive evidence; Git versions behavior/config/schema/features rather than routine personal records.",
+  "version": 9,
+  "instructions": "Create and maintain the Interview Ledger described in INTERVIEW_LEDGER.md. Ask only unresolved applicable questions after the four-question kickoff. Ask no more than four related questions at a time. Factual evidence may resolve a question; preference, consent, sharing, and destructive-action questions require the user. If the conversation detours, answer the immediate request and later resume the next useful unresolved question. Mutable life state uses one selected canonical structured authority, such as Google Sheets or Microsoft Lists/Excel, plus an optional evidence store such as Google Drive or OneDrive/SharePoint. Apple/iCloud and portable files use deliberate import/export unless a verified adapter proves more. Personal or organization Git, or managed central source, versions behavior/config/schema/features rather than routine personal records. Runtime/provider names never prove capabilities, data approval, writes, scheduling, or readback.",
   "sections": [
     {
       "id": "identity_time",
       "title": "Identity, time, and source lineage",
       "questions": [
         {"id":"system_name","required":true,"prompt":"What should this personal-ops system be called?"},
+        {"id":"deployment_lane","required":true,"prompt":"Which deployment lane applies: personal browser, enterprise-managed, or portable manual? Do not create a personal account to bypass workplace policy."},
+        {"id":"ai_runtime","required":true,"prompt":"Which exact AI runtime and deployment will operate the system: ChatGPT/Codex, Claude, an organization-approved Microsoft/VA AI, Gemini, or another runtime? Record the workspace or tenant when applicable."},
+        {"id":"data_classification","required":true,"prompt":"Which data classes may this deployment handle: public, personal, non-sensitive work, or regulated-sensitive?"},
+        {"id":"organization_approval","required":true,"prompt":"Is the exact AI runtime, storage, purpose, identity, connector and action set organization-approved for those data classes? Record approval evidence or not applicable; a reachable website is not approval."},
+        {"id":"source_control_mode","required":true,"prompt":"Which durable source mode applies: personal Git, approved organization Git, managed central source, or no-Git portable mode?"},
+        {"id":"provider_capability_readback","required":true,"prompt":"For every selected runtime, source, state, evidence, calendar and scheduler capability, what exact read, bounded write, readback and observed-firing evidence is available? Provider names and connection buttons are not proof."},
         {"id":"canonical_timezone","required":true,"prompt":"Which IANA timezone is permanently authoritative for scheduled routines even while you travel?"},
         {"id":"day_boundary","required":false,"prompt":"Does your operational day use a non-midnight boundary because of night work or another schedule?"},
         {"id":"brief_slots","required":false,"prompt":"Which recurring briefs or updates do you want, if any, and at what exact local times?"},
@@ -22,9 +28,9 @@
       "id":"state_authorities",
       "title":"State, evidence, sharing, and interview continuity",
       "questions":[
-        {"id":"canonical_store","required":true,"prompt":"Which structured store should be canonical for mutable tasks, plans, appointments, routines and progress? Google Sheets is the starter default; a supported database may replace it."},
-        {"id":"drive_evidence","required":false,"prompt":"Should Google Drive hold retained documents/images/receipts/manuals/recipe bodies or other bulky evidence for selected modules?"},
-        {"id":"existing_store","required":false,"prompt":"Does an existing Sheet, database, Drive folder, or app already contain state/evidence that should be reused instead of replaced?"},
+        {"id":"canonical_store","required":true,"prompt":"Which structured store should be canonical for mutable tasks, plans, appointments, routines and progress: Google Sheets, Microsoft Lists/Excel, or another verified provider?"},
+        {"id":"drive_evidence","required":false,"prompt":"Should Google Drive, OneDrive/SharePoint, or another verified evidence store hold retained documents/images/receipts/manuals/recipe bodies? Apple/iCloud and portable files remain manual unless an exact adapter is proven."},
+        {"id":"existing_store","required":false,"prompt":"Does an existing Sheet, List, Excel table, database, Drive/OneDrive/SharePoint folder, iCloud export, or app already contain state/evidence that should be reused instead of replaced?"},
         {"id":"authority_registry","required":true,"prompt":"Should setup create an Authority Registry recording each data class, provider resource, owner, scope and last verification?"},
         {"id":"interview_ledger","required":true,"prompt":"Should setup create a durable Interview Ledger so onboarding can survive topic changes and future conversations?"},
         {"id":"interview_resume_policy","required":true,"prompt":"When onboarding is incomplete and you ask about something else, should Personal Ops Planner answer that first and then resume with the next useful unresolved interview question when reasonable?"},
@@ -214,9 +220,9 @@
       "title":"Apps, safety, scheduling, and recovery",
       "questions":[
         {"id":"email","required":false,"prompt":"Which email account supplies actionable messages, appointments, shipments, receipts, school, or other selected evidence?"},
-        {"id":"calendar","required":false,"prompt":"Which Calendar account is available for selected projections/reminders?"},
-        {"id":"drive","required":false,"prompt":"Which Drive/cloud storage should hold retained evidence and documents?"},
-        {"id":"github","required":true,"prompt":"Which Git repository should store durable source/version lineage?"},
+        {"id":"calendar","required":false,"prompt":"Which approved calendar provider/account is available for selected projections/reminders, and are read/write/readback actions verified?"},
+        {"id":"drive","required":false,"prompt":"Which verified evidence store should hold retained evidence/documents: Google Drive, OneDrive/SharePoint, another approved provider, or deliberate manual import/export?"},
+        {"id":"github","required":true,"prompt":"Which personal/organization Git repository or managed central release should store durable source/version lineage? Use no-Git only as an explicit degraded portable mode."},
         {"id":"financial_accounts","required":false,"prompt":"Are account-level finance connections wanted for selected money modules?"},
         {"id":"task_apps","required":false,"prompt":"Which existing task apps or automations must be inspected before creating duplicates?"},
         {"id":"scheduled_tasks","required":false,"prompt":"Will Scheduled Tasks be used for recurring briefs/check-ins/condition watches?"},

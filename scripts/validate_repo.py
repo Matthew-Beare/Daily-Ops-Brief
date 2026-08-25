@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate coherent LyfeOS public-release, starter, and reference contracts."""
+"""Validate coherent Personal Ops Planner public-release, starter, and reference contracts."""
 
 from __future__ import annotations
 
@@ -19,15 +19,19 @@ REQUIRED = (
     "docs/data-platform-grafana.md", "docs/feature-audit-2026-08-22.md",
     "docs/feature-ledger-2026-08-24.md", "docs/feature-catalog.json",
     "docs/feature-catalog.md", "docs/beta-hardening-audit-2026-08-24.md",
+    "docs/platform-portability-audit-2026-08-25.md",
     "docs/household-financial-reconciliation.md", "docs/lyfeos-data-model.md",
     "docs/asset-evidence-schema.md",
     "docs/code-inventory.json",
     "starter/README.md", "starter/START_HERE.md", "starter/LIFE_INTERVIEW.md",
     "starter/MODULE_CATALOG.md", "starter/DEPENDENCIES.md", "starter/VERSIONING.md",
     "starter/PERSONAL_FORK_LIFECYCLE.md", "starter/CAPABILITY_DISCOVERY.md",
+    "starter/PLATFORM_PORTABILITY.md", "starter/ENTERPRISE_PILOT.md",
     "starter/STATE_AUTHORITY_MODEL.md", "starter/INTERVIEW_LEDGER.md",
     "starter/GIT_STATE_MODEL.md", "starter/SHARED_FEATURE_WORKFLOW.md",
     "starter/config.example.json", "starter/questions.json", "starter/INSTRUCTIONS.md.tmpl",
+    "starter/install-flow.json", "starter/platform-capabilities.json",
+    "starter/tools/provider_capability_router.py", "starter/tests/test_platform_portability.py",
     "starter/features/meal-planning/feature.json", "starter/features/meal-planning/FEATURE.md",
     "starter/features/appointment-reconciliation/feature.json", "starter/features/appointment-reconciliation/FEATURE.md",
     "skill/ops-brief-policy/SKILL.md",
@@ -131,6 +135,7 @@ def validate(root: Path) -> list[str]:
     feature_ledger = text("docs/feature-ledger-2026-08-24.md")
     feature_catalog = load_json("docs/feature-catalog.json")
     beta_audit = text("docs/beta-hardening-audit-2026-08-24.md")
+    portability_audit = text("docs/platform-portability-audit-2026-08-25.md")
     household = text("docs/household-financial-reconciliation.md")
     asset_schema = text("docs/asset-evidence-schema.md")
     compatibility = text("policy/ops-brief-policy.yaml")
@@ -143,6 +148,11 @@ def validate(root: Path) -> list[str]:
     versioning = text("starter/VERSIONING.md")
     lifecycle = text("starter/PERSONAL_FORK_LIFECYCLE.md")
     discovery = text("starter/CAPABILITY_DISCOVERY.md")
+    portability = text("starter/PLATFORM_PORTABILITY.md")
+    enterprise = text("starter/ENTERPRISE_PILOT.md")
+    capability_router = text("starter/tools/provider_capability_router.py")
+    platform_manifest = load_json("starter/platform-capabilities.json")
+    install_flow = load_json("starter/install-flow.json")
     state_model = text("starter/STATE_AUTHORITY_MODEL.md")
     interview_ledger = text("starter/INTERVIEW_LEDGER.md")
     git_state_redirect = text("starter/GIT_STATE_MODEL.md")
@@ -205,6 +215,30 @@ def validate(root: Path) -> list[str]:
     require(all_terms(generic, "structured mutable state", "interview ledger", "google sheets", "google drive", "iana timezone"), "starter template lacks external-state/interview/canonical-time contract", errors)
     require("{{REPOSITORY_VISIBILITY}}" in generic, "starter template lacks REPOSITORY_VISIBILITY", errors)
 
+    # Provider-neutral personal, enterprise, and regulated deployment contracts.
+    capability_ids = set(platform_manifest.get("capability_ids", [])) if isinstance(platform_manifest, dict) else set()
+    require(platform_manifest.get("schema_version") == 1, "platform capability manifest schema is invalid", errors)
+    require(platform_manifest.get("claim_policy", {}).get("organization_approval_evidence_required_for_regulated_sensitive_data") is True, "platform manifest permits unsubstantiated regulated-data approval", errors)
+    require({
+        "source_read", "source_write", "source_remote_readback", "managed_release_read",
+        "structured_state_read", "structured_state_write", "structured_state_readback",
+        "evidence_read", "evidence_write", "evidence_readback", "email_read",
+        "calendar_read", "calendar_write", "calendar_readback", "scheduled_dispatch",
+        "canonical_clock_gate", "observed_scheduled_firing",
+    } <= capability_ids, "platform capability manifest lacks required read/write/readback gates", errors)
+    runtime_ids = {row.get("id") for row in platform_manifest.get("ai_runtimes", []) if isinstance(row, dict)}
+    storage_ids = {row.get("id") for row in platform_manifest.get("storage_backends", []) if isinstance(row, dict)}
+    source_ids = {row.get("id") for row in platform_manifest.get("source_backends", []) if isinstance(row, dict)}
+    require({"chatgpt", "claude", "microsoft-copilot-or-approved-organizational-ai", "google-gemini"} <= runtime_ids, "platform manifest lacks supported AI runtime candidates", errors)
+    require({"google-workspace", "microsoft-365", "apple-icloud", "portable-files"} <= storage_ids, "platform manifest lacks storage portability candidates", errors)
+    require({"github-personal", "github-enterprise", "gitlab", "azure-repos", "managed-central-source"} <= source_ids, "platform manifest lacks source-control portability candidates", errors)
+    require(all_terms(portability, "no feature parity", "ChatGPT", "Claude", "Microsoft 365", "OneDrive", "SharePoint", "Apple/iCloud", "managed central source", "provider readback"), "platform portability contract is incomplete", errors)
+    require(all_terms(enterprise, "Do not create a personal cloud account", "regulated-sensitive", "synthetic or public data", "read → bounded write → readback", "VA-specific deployment gate", "observed firing"), "enterprise/VA pilot contract is incomplete", errors)
+    require(all_terms(capability_router, "organization_approved_for_data", "organization_approval_reference", "unsupported capabilities", "structured_state_readback", "calendar_readback", "observed_scheduled_firing", "managed-source-write-readback-unavailable", 'decision = "blocked"'), "provider capability router lacks fail-closed readiness gates", errors)
+    require(isinstance(install_flow, dict) and install_flow.get("version") == 2, "browser install-flow schema is stale", errors)
+    require(set(install_flow.get("deployment_lanes", {})) == {"personal_browser", "enterprise_managed", "portable_manual"}, "browser install flow lacks exact deployment lanes", errors)
+    require(all(field in install_flow.get("assistant_readback_fields", []) for field in ("deployment_lane", "ai_runtime", "data_classification", "source_mode", "organization_approval", "organization_approval_reference")), "browser install flow lacks provider/approval readback", errors)
+
     config = load_json("starter/config.example.json")
     require(isinstance(config, dict) and all(isinstance(k, str) and k.isupper() for k in config), "starter config keys must be uppercase", errors)
     require(config.get("TIMEZONE") == "REQUIRED_IANA_TIMEZONE", "starter config ships a production timezone", errors)
@@ -212,6 +246,10 @@ def validate(root: Path) -> list[str]:
     require(config.get("AUTHORITY_REGISTRY") == "REQUIRED_IN_STRUCTURED_STATE_STORE", "starter config lacks Authority Registry", errors)
     require(config.get("INTERVIEW_LEDGER") == "REQUIRED_IN_STRUCTURED_STATE_STORE", "starter config lacks Interview Ledger", errors)
     require(config.get("CANONICAL_CLOCK_POLICY") == "IANA_TIMEZONE_CONVERSION_NEVER_DEVICE_TIME_OR_STATIC_OFFSET", "starter config lacks canonical-clock policy", errors)
+    require(config.get("DEPLOYMENT_LANE") == "PERSONAL_BROWSER_ENTERPRISE_MANAGED_OR_PORTABLE_MANUAL", "starter config lacks deployment-lane selection", errors)
+    require(config.get("AI_RUNTIME") == "OBSERVED_RUNTIME_AND_DEPLOYMENT", "starter config lacks observed AI runtime", errors)
+    require(config.get("SOURCE_CONTROL_MODE") == "USER_GIT_ORGANIZATION_GIT_MANAGED_CENTRAL_OR_NONE", "starter config lacks portable source modes", errors)
+    require(config.get("GITHUB_REPO") == "SELECT_PERSONAL_ORGANIZATION_GIT_OR_MANAGED_SOURCE", "starter config hardcodes personal GitHub", errors)
     require("PRIVATE_GIT_REPOSITORY/state" not in json.dumps(config), "starter config still uses Git as mutable state store", errors)
     require("02:45" not in json.dumps(config) and "14:45" not in json.dumps(config), "starter config ships reference schedule times", errors)
     template_tokens = set(re.findall(r"\{\{([A-Z0-9_]+)\}\}", generic))
@@ -240,6 +278,8 @@ def validate(root: Path) -> list[str]:
         "appointment_reminder_relative", "medication_reminders",
         "medication_schedule_evidence", "caregiver_reminder_sharing",
         "asset_identifier_capture", "manual_discovery", "technical_specifications",
+        "deployment_lane", "ai_runtime", "data_classification", "organization_approval",
+        "source_control_mode", "provider_capability_readback",
     ):
         require(qid in ids, f"starter questionnaire lacks field: {qid}", errors)
 
@@ -336,6 +376,7 @@ def validate(root: Path) -> list[str]:
     require(all_terms(importer, "normalize_aliases", "--aliases", "public importer deliberately carries no employer-specific corrections"), "run-sheet importer lacks explicit private alias configuration", errors)
     require("route_pair_count" in importer and '"occurrences"' not in importer, "run-sheet importer exports occurrence rows", errors)
     require(all_terms(feature_ledger, "retired/retiree profile", "parent/guardian profile", "contract-only", "spec-only", "conversation-audit limitations"), "forensic feature ledger is incomplete", errors)
+    require(all_terms(feature_ledger, "provider-neutral ai runtime capability routing", "google workspace and microsoft 365 state/evidence portability", "apple/icloud and portable-file manual bridge", "locked-down and regulated enterprise/va pilot lane"), "forensic feature ledger lacks current portability requirements", errors)
     require(
         all_terms(
             beta_audit,
@@ -349,10 +390,11 @@ def validate(root: Path) -> list[str]:
         "beta hardening audit lacks clean-release evidence/blockers",
         errors,
     )
+    require(all_terms(portability_audit, "root cause found", "provider-neutral", "claude", "microsoft 365", "apple/icloud", "va pilot", "live microsoft/onedrive/sharepoint writes", "remain external"), "platform portability audit lacks honest implementation/external-gate status", errors)
 
     # Starter privacy contamination blocklist.
     markers = [line.strip() for line in text("privacy/starter-blocklist.txt").splitlines() if line.strip() and not line.lstrip().startswith("#")]
-    starter_surface = "\n".join((start, interview, catalog, deps, starter_readme, versioning, lifecycle, discovery, state_model, interview_ledger, shared, generic, json.dumps(questions)))
+    starter_surface = "\n".join((start, interview, catalog, deps, starter_readme, versioning, lifecycle, discovery, portability, enterprise, state_model, interview_ledger, shared, generic, json.dumps(questions), json.dumps(platform_manifest), json.dumps(install_flow)))
     for marker in markers:
         require(marker not in starter_surface, f"portable starter leaks reference marker: {marker}", errors)
 

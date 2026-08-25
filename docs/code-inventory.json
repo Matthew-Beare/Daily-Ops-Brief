@@ -52,6 +52,12 @@
       "tests": ["starter/tests/test_onboarding_profile_router.py"]
     },
     {
+      "path": "starter/tools/provider_capability_router.py",
+      "responsibility": "Resolve portable onboarding readiness from observed runtime, source, state, evidence, scheduling, and organizational approval capabilities.",
+      "why_separate": "Provider capability and regulated-data gates are deployment concerns independent from life-profile and service routing.",
+      "tests": ["starter/tests/test_platform_portability.py"]
+    },
+    {
       "path": "starter/tools/validate_feature_manifest.py",
       "responsibility": "Validate portable feature manifests, schemas, file boundaries, dependencies, and honest delivery claims.",
       "why_separate": "Shared-feature isolation is a portable-source release boundary.",

@@ -1,6 +1,6 @@
 # Personal Ops Planner First Boot — Start Here
 
-This interview starts after the browser-only repository readback in [`INSTALL.md`](INSTALL.md). A non-technical user is never sent to local developer tools. The assistant first verifies the exact private repository, branch, commit, ChatGPT read capability, and separate Codex write capability.
+This interview starts after the browser-only deployment-lane readback in [`INSTALL.md`](INSTALL.md). A non-technical user is never sent to local developer tools. Personal users verify repository read/write; enterprise users verify approved runtime, data, source, state and evidence capabilities in [`ENTERPRISE_PILOT.md`](ENTERPRISE_PILOT.md).
 
 `questions.json` is the core question bank. `questions.profile-and-stock-services.json` extends it. Every installed question-bank ID uses the same durable Interview Ledger.
 
@@ -10,7 +10,7 @@ This interview starts after the browser-only repository readback in [`INSTALL.md
 Help me set up my own Personal Ops Planner as an inheritable whole-life organizer. Discover useful workflows I may not know to request, inspect what I already use before asking me to reconnect things, and build the smallest system that materially improves my life.
 
 Conversation rules:
-- Treat INSTALL.md as a prerequisite. Read back its fields before provisioning; on a blocked field, report it and never substitute local tools, a fork, Codespaces, passwords, tokens, or SSH keys.
+- Treat INSTALL.md as a prerequisite. Read back its lane fields before provisioning; never substitute local tools, a fork, Codespaces, credentials, personal accounts, or unapproved services.
 - Ask no more than four related questions at a time.
 - Begin with exactly these four kickoff questions:
   1. What should the system be called?
@@ -25,18 +25,19 @@ Conversation rules:
 - A preference/permission question is never inferred from evidence.
 
 State and source:
-- Git is my versioned source lineage for code, policy, schemas, migrations, non-secret configuration, features, tests, onboarding, and recovery.
-- Mutable life state uses the selected canonical state authority. The starter default is Google Sheets for structured state and Google Drive for retained evidence/documents.
+- Personal/organization Git or managed central source is my versioned lineage for code, policy, schemas, migrations, non-secret configuration, features, tests, onboarding, and recovery.
+- Mutable life state uses the selected canonical state authority. Personal defaults are Google Sheets/Google Drive; approved Microsoft 365 candidates are Lists/Excel and OneDrive/SharePoint. Apple/iCloud is manual import/export unless a verified adapter proves otherwise.
 - First boot creates an Authority Registry and Interview Ledger in the structured state authority.
 - Do not put routine mutable recipes, appointments, routines, meal history, shopping rows, receipts, aliases, or medical-event scheduling into Git just to version them.
 - Google Calendar is an optional projection/reminder surface, not the sole state database.
 - A supported database may replace Sheets when deliberately selected.
 - Sharing a state authority with another person is explicit. Support whole-authority sharing or a separate scoped shared workbook/folder. Never assume family access.
-- After separately verified Codex GitHub write authorization, lasting behavior/config/schema changes automatically update validation, commit, and push, then receive remote readback. The ordinary ChatGPT GitHub app is read-only. Routine state writes verify against Sheets/Drive or the selected authority instead.
+- When standing source write is allowed, lasting behavior/config/schema changes automatically update validation, commit, and push, then receive remote readback. A read connector never proves write. Managed-source users use approved change control. Routine state writes verify against the selected authority.
 - When a coherent custom feature passes tests/privacy checks, ask exactly: `Do you want to make this feature available to other people?` Never publish private state automatically.
 
 Capability/evidence discovery:
 - Before asking me to connect an app, inspect relevant tools/connectors/plugins already available when possible.
+- Use PLATFORM_PORTABILITY.md: ChatGPT, Claude, Microsoft/VA AI, Gemini and other runtimes have no assumed feature parity. Regulated-sensitive data requires current approval evidence.
 - Reuse accessible current conversation, uploaded/File Library material, Drive/Sheets/Calendar/email, and other connected evidence rather than making me rebuild history.
 - If useful prior-chat material is inaccessible, explain an ingestion path instead of pretending it was read. A fresh conversation must recover from canonical authorities even after old chats are deleted.
 - Optional integrations fail only their dependent path.
@@ -107,7 +108,7 @@ Email/contact:
 
 Initial provisioning:
 - Show one concise dependency/resource/state summary and obtain explicit approval for the initial write bundle.
-- Create/verify the structured state authority, Drive evidence root when selected, Authority Registry, Interview Ledger, per-person profile, stock-service activation state, context routing state, and Git deployment configuration.
+- Create/verify the structured state authority, selected evidence root, Authority Registry, Interview Ledger, per-person profile, stock-service activation state, context routing state, and source deployment configuration.
 - Run applicable CI, starter privacy, and public-source audit gates before scheduled/provider writes.
 
 Start now by asking only the four kickoff questions.

@@ -6,12 +6,12 @@ Personal Ops Planner separates **portable source** from **mutable life state** a
 
 For new-user deployments the default is intentionally boring and inspectable:
 
-- **Git repository:** code, policy, schemas, migrations, feature manifests, non-secret configuration, tests, onboarding, provenance, and recovery/version history.
-- **Google Sheets or another selected database:** structured mutable operational state.
-- **Google Drive:** retained documents, images, receipts, manuals, recipe bodies or other bulky evidence that does not belong in table cells.
-- **Google Calendar:** optional projection/reminder surface. Calendar is not the sole state authority.
+- **Git or managed central repository:** code, policy, schemas, migrations, feature manifests, non-secret configuration, tests, onboarding, provenance, and recovery/version history. An enterprise user may consume this without a personal Git account.
+- **Google Sheets, Microsoft Lists/Excel, or another selected database:** structured mutable operational state.
+- **Google Drive, OneDrive/SharePoint, or another verified evidence store:** retained documents, images, receipts, manuals, recipe bodies or other bulky evidence that does not belong in table cells.
+- **Google Calendar, Outlook Calendar, or another verified calendar:** optional projection/reminder surface. Calendar is not the sole state authority.
 
-Another supported database can replace Sheets later if its adapter satisfies the same read/write/dedupe/audit contract. Do not require a second live state database merely because one is available.
+Another supported database can replace Sheets or Lists/Excel if its adapter satisfies the same read/write/dedupe/audit/readback contract. Do not require a second live state database merely because one is available.
 
 Git is never the default database for recipes, appointments, routines, meal history, shopping rows, medical-event scheduling, receipt bodies, or similar changing personal records.
 
@@ -73,7 +73,7 @@ First boot creates an `Authority Registry` in the selected core structured state
 
 Every mutable data class has exactly one canonical authority. Drive evidence can be linked from canonical rows by stable IDs/URLs without becoming a second database.
 
-## Structured state / Drive layout
+## Structured state / evidence layout
 
 A starter deployment may use tables such as:
 
@@ -96,7 +96,9 @@ A starter deployment may use tables such as:
 
 The exact enabled tables and physical workbook/database boundaries depend on selected modules and failure domains. Do not create unused databases for sport, but do not collapse unrelated high-value domains merely to save one resource.
 
-Drive may contain folders such as `Receipts`, `Manuals & Reference`, `Recipes`, `Appointments & Admin`, or another selected evidence class. Canonical rows retain the Drive file ID/link and provenance.
+Google Drive, OneDrive, or SharePoint may contain folders/libraries such as `Receipts`, `Manuals & Reference`, `Recipes`, `Appointments & Admin`, or another selected evidence class. Canonical rows retain the provider file ID/link and provenance.
+
+Apple/iCloud can participate through deliberate browser/Files-app import and export, but it is not advertised as a general automatic authority. CloudKit app containers are not equivalent to arbitrary iCloud Drive access. A manual evidence file remains manual until a verified adapter writes and reads it back.
 
 ## Integration Registry and health
 
@@ -159,7 +161,7 @@ If the canonical state authority is unavailable, stop that state-changing module
 
 ## Git lineage
 
-Each user still inherits the public Personal Ops Planner foundation and should have their own Git lineage from first boot. Git records:
+Each deployment inherits the public Personal Ops Planner foundation and has one durable source lineage from first boot. That lineage may be a user repository, an approved organization repository, or a managed central source. Git records:
 
 - exact upstream version/provenance;
 - enabled modules/features;
@@ -170,7 +172,7 @@ Each user still inherits the public Personal Ops Planner foundation and should h
 - custom feature code/policy/tests;
 - release/recovery history.
 
-After standing Git authorization, lasting behavior/config/schema changes validate, commit, push, and receive remote readback automatically. Routine mutable state changes do not create Git commits.
+After standing Git authorization, lasting behavior/config/schema changes validate, commit, push, and receive remote readback automatically. In a managed-source enterprise lane, those changes use the approved change process rather than an end-user push. Routine mutable state changes do not create Git commits.
 
 ## Portability boundary
 
@@ -178,4 +180,4 @@ When a personal feature becomes reusable, Personal Ops Planner asks exactly:
 
 `Do you want to make this feature available to other people?`
 
-A yes exports behavior/schema/migrations/tests with synthetic fixtures and configuration placeholders. It never exports the user's Sheet rows, Drive evidence, Calendar events, provider IDs that expose private state, or credentials.
+A yes exports behavior/schema/migrations/tests with synthetic fixtures and configuration placeholders. It never exports the user's Sheet/List/Excel rows, Drive/OneDrive/SharePoint evidence, Calendar events, provider IDs that expose private state, or credentials.

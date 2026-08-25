@@ -8,10 +8,11 @@ This repository is **intentionally public**. It is the stable upstream plus a pu
 
 For new-user starter deployments:
 
-- **Git** is source/version lineage: policy, schemas, migrations, non-secret configuration, enabled features, tests, onboarding, provenance, and custom feature work.
-- **Google Sheets** is the default structured mutable state authority.
-- **Google Drive** is the default retained evidence/document authority when selected modules need files.
-- **Google Calendar** is an optional projection/reminder surface.
+- **Git or managed central source** is source/version lineage: policy, schemas, migrations, non-secret configuration, enabled features, tests, onboarding, provenance, and custom feature work.
+- **Google Sheets or Microsoft Lists/Excel** are supported starter candidates for structured mutable state when the exact adapter is verified.
+- **Google Drive or OneDrive/SharePoint** are supported retained evidence/document candidates when selected modules need files and write/readback is verified.
+- **Google Calendar or Outlook Calendar** may be optional projection/reminder surfaces.
+- **Apple/iCloud** participates through browser/mobile use and deliberate import/export; general automated iCloud Drive access is not claimed.
 - Another supported database may replace Sheets when explicitly selected.
 
 The current Daily Ops reference deployment already follows this external-authority model with its configured Sheets/Drive authorities.
@@ -20,7 +21,7 @@ See `starter/STATE_AUTHORITY_MODEL.md`. `starter/GIT_STATE_MODEL.md` is retained
 
 ## Start here as a new user
 
-Use [`starter/INSTALL.md`](starter/INSTALL.md). It is the browser-only path for a non-technical user and must be completed before [`starter/START_HERE.md`](starter/START_HERE.md). The normal lifecycle is:
+Use [`starter/INSTALL.md`](starter/INSTALL.md). It is the browser-only path for a non-technical user and must be completed before [`starter/START_HERE.md`](starter/START_HERE.md). The normal personal lifecycle is:
 
 1. use GitHub's web template flow once to create a private user-controlled repository from the audited public starter;
 2. connect that exact repository to the read-only ChatGPT GitHub app and separately to write-capable Codex;
@@ -34,6 +35,8 @@ Use [`starter/INSTALL.md`](starter/INSTALL.md). It is the browser-only path for 
 10. continue unresolved interview items across future conversations instead of assuming one perfect setup chat;
 11. evolve custom behavior on feature branches;
 12. when a feature becomes reusable, ask whether the user wants to contribute a sanitized portable version upstream.
+
+Locked-down and regulated environments use [`starter/ENTERPRISE_PILOT.md`](starter/ENTERPRISE_PILOT.md). They may use approved organization Git or a managed central release so end users do not need personal Git accounts. ChatGPT, Claude, Microsoft/VA AI environments, Gemini and other runtimes share the portable policy/data core but have **no assumed feature parity**; see [`starter/PLATFORM_PORTABILITY.md`](starter/PLATFORM_PORTABILITY.md).
 
 **Do not inherit the reference deployment's Google IDs, schedules, aliases, vehicles, tasks, receipts, or mutable state.**
 
@@ -125,8 +128,8 @@ For example, the same summer PM instant displays as 2:45 Eastern, 1:45 Central, 
 Use the fewest authorities necessary:
 
 - one canonical mutable authority per data class;
-- Drive only when retained files/evidence are useful;
-- Git for durable source/versioning;
+- a verified evidence store only when retained files/evidence are useful;
+- personal/organization Git or managed central source for durable source/versioning;
 - optional integrations as module-scoped adapters;
 - one consolidated scheduler per purpose/cadence;
 - Calendar events for event-specific reminders;
@@ -137,6 +140,9 @@ Use the fewest authorities necessary:
 - `starter/` — portable onboarding/distribution boundary
 - `starter/STATE_AUTHORITY_MODEL.md` — mutable-state/evidence authority contract
 - `starter/INTERVIEW_LEDGER.md` — durable fail-forward onboarding contract
+- `starter/PLATFORM_PORTABILITY.md` — AI/storage/source portability and honest capability boundaries
+- `starter/ENTERPRISE_PILOT.md` — browser-only locked-down and regulated pilot gates
+- `starter/platform-capabilities.json` — machine-readable runtime/storage/source candidates and claim rules
 - `starter/features/` — portable feature contracts/manifests
 - `skill/ops-brief-policy/` — current reference deployment policy/runtime
 - `project/INSTRUCTIONS.md.tmpl` — reference deployment bootstrap
@@ -147,6 +153,7 @@ Use the fewest authorities necessary:
 - `docs/code-inventory.json` — one bounded responsibility, separation rationale, and direct test suite for every production Python file; unlisted code fails CI
 - `docs/beta-hardening-audit-2026-08-24.md` — root cause, failure matrix, code justification, and release blockers
 - `docs/onboarding-hardening-audit-2026-08-25.md` — Foodie failure root cause, browser-only repair, capability gates, and remaining live template gate
+- `docs/platform-portability-audit-2026-08-25.md` — Google/Microsoft/Apple/AI/enterprise portability audit and remaining live gates
 - `docs/BRANDING.md` — public working name, per-user naming, and legacy-identifier migration boundary
 
 ## Validate

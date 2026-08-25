@@ -43,6 +43,9 @@ class FeatureCatalogTests(unittest.TestCase):
             "Medication reminders",
             "Retired/retiree profile",
             "Parent/guardian profile",
+            "Provider-neutral AI runtime",
+            "Google Workspace and Microsoft 365",
+            "Locked-down and regulated enterprise/VA",
             "Hierarchical machine-readable feature catalog",
         ):
             with self.subTest(phrase=phrase):
@@ -54,6 +57,7 @@ class FeatureCatalogTests(unittest.TestCase):
         self.assertEqual("not_present", self.feature("Companion/mobile app")["delivery"])
         self.assertEqual("infrastructure", self.feature("eventual PostgreSQL")["delivery"])
         self.assertEqual("specification", self.feature("Scale-based par sensing")["delivery"])
+        self.assertEqual("contract", self.feature("Apple/iCloud and portable-file")["delivery"])
 
     def test_retired_template_is_respectful_and_does_not_infer_age_or_ability(self) -> None:
         feature = self.feature("Retired/retiree profile")

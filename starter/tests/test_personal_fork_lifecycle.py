@@ -132,9 +132,25 @@ class PersonalForkLifecycleTests(unittest.TestCase):
             "fitness_wearable",
             "medical_event_tracking",
             "appointment_email_auto_update",
+            "deployment_lane",
+            "ai_runtime",
+            "data_classification",
+            "organization_approval",
+            "source_control_mode",
+            "provider_capability_readback",
         ):
             self.assertIn(required, ids)
         self.assertGreaterEqual(questions["version"], 5)
+
+    def test_portable_authorities_and_managed_source_are_explicit(self) -> None:
+        questions = self.text("questions.json")
+        lifecycle = self.text("PERSONAL_FORK_LIFECYCLE.md")
+        state = self.text("STATE_AUTHORITY_MODEL.md")
+        for phrase in ("Claude", "Microsoft Lists/Excel", "OneDrive/SharePoint", "regulated-sensitive"):
+            self.assertIn(phrase, questions)
+        for surface in (lifecycle, state):
+            self.assertIn("managed central source", surface.lower())
+            self.assertIn("organization", surface.lower())
 
     def test_profile_context_and_stock_service_extension_is_installed(self) -> None:
         guide = self.text("START_HERE.md")

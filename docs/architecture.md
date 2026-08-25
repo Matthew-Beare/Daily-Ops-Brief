@@ -17,3 +17,19 @@ The task carries no mutable database. The dispatcher chooses the slot and invoke
 See [LyfeOS 0.0.1 Data Model](lyfeos-data-model.md) for keys, relationships, and the self-hosting boundary.
 
 The generic starter is separate from the current deployment. It may generate a new bootstrap contract, but it must not inherit the current user's identifiers or operational rows.
+
+## Portable deployment architecture
+
+The reference deployment above uses Google authorities and ChatGPT scheduling. The reusable starter does not hard-code those providers:
+
+| Portable role | Personal candidate | Microsoft/enterprise candidate | Apple/manual candidate |
+|---|---|---|---|
+| AI runtime | ChatGPT/Codex or Claude | approved Microsoft/VA AI, ChatGPT FedRAMP, Claude for Gov, or another tenant-approved runtime | any approved web runtime |
+| Source lineage | private GitHub template | GitHub Enterprise, GitLab, Azure Repos, or managed central source | pinned managed release |
+| Structured state | Google Sheets | Microsoft Lists or explicit Excel tables in OneDrive/SharePoint | CSV/JSON manual exchange |
+| Evidence | Google Drive | OneDrive or SharePoint document library | iCloud Drive/user-mediated file exchange |
+| Calendar projection | Google Calendar | Outlook Calendar | ICS manual exchange |
+
+These are candidates, not installation claims. `starter/platform-capabilities.json` and `starter/tools/provider_capability_router.py` require observed capability-level read/write/readback. A provider name never proves access, feature parity, scheduling, or organization approval.
+
+Regulated deployments use `starter/ENTERPRISE_PILOT.md`. Personal accounts and public services are never used to bypass organization policy.

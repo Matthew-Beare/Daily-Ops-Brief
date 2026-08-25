@@ -6,10 +6,11 @@ First boot verifies every selected dependency before claiming a module is instal
 
 Default new-user architecture:
 
-- **Git:** required durable source/version lineage for code/policy/schema/config/features/tests.
-- **Google Sheets or another selected database:** structured mutable state authority resources.
-- **Google Drive:** default evidence/document authority when selected modules need retained files.
-- **Google Calendar:** optional projection/reminder surface.
+- **Approved AI runtime:** ChatGPT, Claude, an organization-approved Microsoft/VA AI, Gemini, or another runtime only to the extent its observed capabilities satisfy the module contract.
+- **Git or managed central source:** required durable source/version lineage for code/policy/schema/config/features/tests; a corporate end user does not need a personal Git account when administrators own the source.
+- **Google Sheets, Microsoft Lists/Excel, or another selected database:** structured mutable state authority resources.
+- **Google Drive, OneDrive/SharePoint, or deliberate manual file exchange:** evidence/document authority when selected modules need retained files.
+- **Google Calendar, Outlook Calendar, or another verified calendar:** optional projection/reminder surface.
 - Gmail, finance, fitness/wearable, maps/weather/travel, and other integrations are optional module adapters.
 
 A supported database may replace Sheets when deliberately selected. Do not require both Sheets and another database as simultaneous writable masters for the same data class.
@@ -68,17 +69,18 @@ Health meanings:
 
 A module evaluates its own contract and health. It does not treat an unrelated module's success as proof that its dependencies work.
 
-## Git repository — required source lineage
+## Git or managed repository — required source lineage
 
 Git stores durable policy, schemas, tests, migrations, onboarding, selected-module configuration, authority references, feature manifests/runtime contracts, and portable/personal feature code. Routine mutable operational records do **not** live in Git.
 
-A deployment repository may be public or private by explicit owner choice. Public source requires the public-source audit and must not contain secrets, credentials, mutable operational exports, Gmail/receipt bodies, financial account data, medical records, school submissions, or unintended personal information.
+A deployment repository may be public or private by explicit owner choice and policy. It may be personal GitHub, approved GitHub Enterprise/GitLab/Azure Repos, or a managed central repository that users consume without their own Git accounts. Public source requires the public-source audit and must not contain secrets, credentials, mutable operational exports, message/receipt bodies, financial account data, medical records, school submissions, or unintended personal information.
 
 ### Upstream lifecycle
 
 1. for a non-technical user, create one private repository from the audited public GitHub template using `INSTALL.md`; never substitute a local command line, Codespace, token, or SSH key;
+   an enterprise user may instead use approved organization Git or a pinned managed central release under `ENTERPRISE_PILOT.md`;
 2. record observed upstream provenance;
-3. verify ChatGPT GitHub read and Codex GitHub write capability independently; the ordinary ChatGPT GitHub app is read-only;
+3. verify source read, source write and remote readback independently for the selected AI/runtime and source mode; the ordinary ChatGPT GitHub app is read-only, and a Claude/GitHub or other readable connection is not assumed writable;
 4. generate non-secret deployment config, schema/migrations, feature lock, authority references/failure domains, and policy;
 5. validate the complete feature dependency graph and referenced files;
 6. validate, commit/push, and read back the coherent first-boot source checkpoint;
@@ -88,7 +90,7 @@ Automatic Git versioning does not imply force-push, visibility change, release, 
 
 ## Structured state authorities — required per selected stateful module
 
-Default provider: Google Sheets, with one or more authority resources according to selected failure domains.
+Default personal provider: Google Sheets. Microsoft 365 deployments may use Microsoft Lists or explicit Excel tables in OneDrive/SharePoint. Another database is allowed only when its adapter satisfies the same stable-ID, read/write/dedupe/audit/readback contract.
 
 First boot creates/selects and verifies each structured authority needed by selected modules before that module begins state-changing automation. Read `STATE_AUTHORITY_MODEL.md`.
 
@@ -106,13 +108,21 @@ A recovery snapshot is optional but recommended for production state authorities
 
 Restoration requires an explicit recovery transaction, validation, and provider readback. This avoids split-brain state while still giving recoverability.
 
-## Google Drive / evidence store
+## Evidence store
 
-Default retained evidence/document store when selected modules need files. Use stable file IDs/links from canonical state rows. Do not create Drive merely because it exists if the deployment has no retained-file use case.
+Google Drive is the personal default. Microsoft 365 may use OneDrive or a SharePoint document library. Use stable provider file IDs/links from canonical state rows. Do not create an evidence store merely because it exists if the deployment has no retained-file use case.
 
 Typical classes include receipts, manuals/reference, recipe bodies/images, administrative documents, and other bulky originals.
 
-A Drive failure blocks retained-file operations that require it; it does not automatically block state-only operations whose runtime contract does not require Drive.
+An evidence-provider failure blocks retained-file operations that require it; it does not automatically block state-only operations whose runtime contract does not require retained files.
+
+Apple/iCloud supports browser or Files-app import/export in the portable manual lane. Do not claim general automated access to a user's iCloud Drive; CloudKit app-container access is not an arbitrary iCloud Drive adapter.
+
+## AI runtimes and connector parity
+
+Read `PLATFORM_PORTABILITY.md` and `platform-capabilities.json`. ChatGPT, Claude, Microsoft Copilot/VA GPT, Gemini and MCP-capable runtimes may all carry the portable core, but their tools are not interchangeable. Verify every required capability with the exact workspace/tenant identity.
+
+For `regulated-sensitive` data, the exact AI deployment, storage, purpose and connector actions require current organization approval. A reachable public service or personal account is never a fallback for blocked enterprise policy.
 
 ## Shared authorities
 

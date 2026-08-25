@@ -17,6 +17,7 @@ Implementation states are independent: **executable**, **skill workflow**, **con
 
 | Conversation | Feature evidence recovered |
 | --- | --- |
+| 2026-08-25 — cross-platform and VA service-chief portability | Personal users may create GitHub in the browser; Claude and other capable AI runtimes must be supported without assuming feature parity. Add Google Workspace, Microsoft 365/OneDrive/SharePoint, Apple/manual portability, organization Git or managed source, and a browser-only locked-down/regulated pilot lane. Never use a personal account to bypass corporate or VA policy. |
 | 2026-08-25 — Foodie onboarding failure | Default onboarding must be browser-only for non-technical users; it must create a private personal repository through GitHub's template UI, distinguish ChatGPT read access from Codex write access, and never fall back to Command Prompt. Meal planning is a current requirement. Laundry stages and clothing/other drop-off pickup reminders must be explicit household-routine choices. |
 | 2026-08-21 — Action required for FL5 tire availability | Cancellation/replacement must update the canonical purchase record rather than create contradictory duplicates; vehicle/asset fitment must remain correct; absolutely no automatic email; user approval may be requested. |
 | 2026-08-15 — Platform Failure Explanation | Work-credit exhaustion and stalled runs are operational failure evidence; long work needs resumability, phase evidence, and an honest recovery path. Model/credit purchase discussion is not a LyfeOS end-user feature. |
@@ -132,6 +133,8 @@ Implementation states are independent: **executable**, **skill workflow**, **con
 | Automatic instruction updates | USER ASKED; technically constrained | Partial template/process | Move durable behavior to policy-as-code; emit copy-ready instruction changes where UI cannot be mutated safely. |
 | Browser-only non-technical installation with no terminal fallback | CURRENT REQUIRED | Machine-readable browser workflow + CI contract; upstream template setting still requires live GitHub readback | Create a private repository from the web template, block on missing capability, and never substitute Command Prompt, PowerShell, local Git, GitHub CLI, Codespaces, tokens, or SSH keys. |
 | Independent ChatGPT GitHub read and Codex GitHub write gates | CURRENT REQUIRED | Machine-readable capability/readback contract with CI coverage | Never infer write access from the read-only ChatGPT GitHub app; verify the exact personal repository and remote commit readback. |
+| Provider-neutral AI runtime capability routing | CURRENT REQUIRED | Executable fail-closed onboarding router + machine-readable contract/tests | Support ChatGPT, Claude, approved Microsoft/VA AI, Gemini, and generic MCP-capable runtimes only from observed actions and readback; never infer feature parity from brand. |
+| Personal Git, organization Git, managed-central source, and explicit no-Git lanes | CURRENT REQUIRED | Executable capability routing + browser/managed-source contracts/tests | Personal users may create GitHub in the browser; enterprise users may use approved GitHub Enterprise/GitLab/Azure Repos or a pinned managed release without a personal account. |
 
 ### F. Life-service modules discussed or catalogued
 
@@ -165,6 +168,9 @@ Implementation states are independent: **executable**, **skill workflow**, **con
 | Feature | Decision | Current status | Required disposition |
 | --- | --- | --- | --- |
 | Sheets/Drive as current mutable authority with Git for policy/schema/tests | REQUIRED current architecture | In use | Clarify authority registry; query live authority before memory/chat. |
+| Google Workspace and Microsoft 365 state/evidence portability | CURRENT REQUIRED | Executable capability contract/router + documentation/tests; live tenant adapters remain capability- and readback-gated | Permit Sheets/Drive or Lists/Excel plus OneDrive/SharePoint only after exact identity, scope, bounded write, and provider readback. |
+| Apple/iCloud and portable-file manual bridge | CURRENT REQUIRED portability boundary | Contract-only, machine-validated manual lane | Support deliberate browser/mobile CSV/JSON/ICS/document import/export; do not advertise arbitrary automated iCloud Drive access. |
+| Locked-down and regulated enterprise/VA pilot lane | CURRENT REQUIRED | Executable fail-closed approval/capability gate + tested pilot contract; live tenant authorization remains unproven | Use synthetic/public data first, forbid personal-account workarounds, pin approved source, verify least-privilege read/write/readback, and require exact current organization approval for regulated-sensitive data. |
 | Eventual PostgreSQL/private SQL canonical service | USER DIRECTION / INFRA | Architecture docs only | Stage migration behind API/schema/tests; no pretend bridge. |
 | Policy/data API | PROPOSED/INFRA | Architecture spec | Needed before companion app/remote consumers; authenticated and scoped. |
 | Grafana/observability dashboards | PROPOSED/INFRA | Architecture doc | Operational telemetry only; not beta-core. |

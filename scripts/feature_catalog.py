@@ -64,6 +64,13 @@ EVIDENCE_RULES: tuple[tuple[str, tuple[str, ...]], ...] = (
         "starter/install-flow.json",
         "starter/tests/test_nontechnical_installation.py",
     )),
+    (r"provider-neutral ai runtime|personal git, organization git|google workspace and microsoft 365|apple/icloud and portable-file|locked-down and regulated enterprise", (
+        "starter/platform-capabilities.json",
+        "starter/tools/provider_capability_router.py",
+        "starter/tests/test_platform_portability.py",
+        "starter/PLATFORM_PORTABILITY.md",
+        "starter/ENTERPRISE_PILOT.md",
+    )),
     (r"laundry stages and drop-off/pickup reminders", (
         "starter/questions.json",
         "starter/tools/onboarding_profile_router.py",
@@ -204,7 +211,7 @@ def build(root: Path) -> dict[str, Any]:
     source = source_path.read_text(encoding="utf-8")
     return {
         "schema_version": SCHEMA_VERSION,
-        "catalog_version": "2026-08-24.1",
+        "catalog_version": "2026-08-25.1",
         "source": SOURCE_PATH.as_posix(),
         "source_sha256": hashlib.sha256(source.encode("utf-8")).hexdigest(),
         "maintenance_rule": "Update the forensic ledger, regenerate this catalog, and commit tests/evidence for every delivery claim.",

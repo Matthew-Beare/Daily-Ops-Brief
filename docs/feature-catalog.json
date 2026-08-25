@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "catalog_version": "2026-08-24.1",
+  "catalog_version": "2026-08-25.1",
   "source": "docs/feature-ledger-2026-08-24.md",
-  "source_sha256": "237aca3cb11075b156685390923dd5b5fcfc0fd5fb03fbf1ad119f7862fe8408",
+  "source_sha256": "28a6e1e5aa4cf9fbfedbadb36c7f2e2053d06b2dca59636e255cbb597c3c188d",
   "maintenance_rule": "Update the forensic ledger, regenerate this catalog, and commit tests/evidence for every delivery claim.",
   "status_warning": "CI evidence verifies repository behavior only; live provider deployment, permissions, scheduler firing, and mutable-state readback are separate gates.",
   "categories": [
@@ -955,6 +955,38 @@
             "starter/install-flow.json",
             "starter/tests/test_nontechnical_installation.py"
           ]
+        },
+        {
+          "id": "e-23",
+          "title": "Provider-neutral AI runtime capability routing",
+          "decision": "CURRENT REQUIRED",
+          "delivery": "executable",
+          "verification": "ci_evidence",
+          "current_status": "Executable fail-closed onboarding router + machine-readable contract/tests",
+          "required_disposition": "Support ChatGPT, Claude, approved Microsoft/VA AI, Gemini, and generic MCP-capable runtimes only from observed actions and readback; never infer feature parity from brand.",
+          "evidence_paths": [
+            "starter/platform-capabilities.json",
+            "starter/tools/provider_capability_router.py",
+            "starter/tests/test_platform_portability.py",
+            "starter/PLATFORM_PORTABILITY.md",
+            "starter/ENTERPRISE_PILOT.md"
+          ]
+        },
+        {
+          "id": "e-24",
+          "title": "Personal Git, organization Git, managed-central source, and explicit no-Git lanes",
+          "decision": "CURRENT REQUIRED",
+          "delivery": "executable",
+          "verification": "ci_evidence",
+          "current_status": "Executable capability routing + browser/managed-source contracts/tests",
+          "required_disposition": "Personal users may create GitHub in the browser; enterprise users may use approved GitHub Enterprise/GitLab/Azure Repos or a pinned managed release without a personal account.",
+          "evidence_paths": [
+            "starter/platform-capabilities.json",
+            "starter/tools/provider_capability_router.py",
+            "starter/tests/test_platform_portability.py",
+            "starter/PLATFORM_PORTABILITY.md",
+            "starter/ENTERPRISE_PILOT.md"
+          ]
         }
       ]
     },
@@ -1224,6 +1256,54 @@
         },
         {
           "id": "g-02",
+          "title": "Google Workspace and Microsoft 365 state/evidence portability",
+          "decision": "CURRENT REQUIRED",
+          "delivery": "executable",
+          "verification": "ci_evidence",
+          "current_status": "Executable capability contract/router + documentation/tests; live tenant adapters remain capability- and readback-gated",
+          "required_disposition": "Permit Sheets/Drive or Lists/Excel plus OneDrive/SharePoint only after exact identity, scope, bounded write, and provider readback.",
+          "evidence_paths": [
+            "starter/platform-capabilities.json",
+            "starter/tools/provider_capability_router.py",
+            "starter/tests/test_platform_portability.py",
+            "starter/PLATFORM_PORTABILITY.md",
+            "starter/ENTERPRISE_PILOT.md"
+          ]
+        },
+        {
+          "id": "g-03",
+          "title": "Apple/iCloud and portable-file manual bridge",
+          "decision": "CURRENT REQUIRED portability boundary",
+          "delivery": "contract",
+          "verification": "ci_evidence",
+          "current_status": "Contract-only, machine-validated manual lane",
+          "required_disposition": "Support deliberate browser/mobile CSV/JSON/ICS/document import/export; do not advertise arbitrary automated iCloud Drive access.",
+          "evidence_paths": [
+            "starter/platform-capabilities.json",
+            "starter/tools/provider_capability_router.py",
+            "starter/tests/test_platform_portability.py",
+            "starter/PLATFORM_PORTABILITY.md",
+            "starter/ENTERPRISE_PILOT.md"
+          ]
+        },
+        {
+          "id": "g-04",
+          "title": "Locked-down and regulated enterprise/VA pilot lane",
+          "decision": "CURRENT REQUIRED",
+          "delivery": "executable",
+          "verification": "ci_evidence",
+          "current_status": "Executable fail-closed approval/capability gate + tested pilot contract; live tenant authorization remains unproven",
+          "required_disposition": "Use synthetic/public data first, forbid personal-account workarounds, pin approved source, verify least-privilege read/write/readback, and require exact current organization approval for regulated-sensitive data.",
+          "evidence_paths": [
+            "starter/platform-capabilities.json",
+            "starter/tools/provider_capability_router.py",
+            "starter/tests/test_platform_portability.py",
+            "starter/PLATFORM_PORTABILITY.md",
+            "starter/ENTERPRISE_PILOT.md"
+          ]
+        },
+        {
+          "id": "g-05",
           "title": "Eventual PostgreSQL/private SQL canonical service",
           "decision": "USER DIRECTION / INFRA",
           "delivery": "infrastructure",
@@ -1233,7 +1313,7 @@
           "evidence_paths": []
         },
         {
-          "id": "g-03",
+          "id": "g-06",
           "title": "Policy/data API",
           "decision": "PROPOSED/INFRA",
           "delivery": "infrastructure",
@@ -1243,7 +1323,7 @@
           "evidence_paths": []
         },
         {
-          "id": "g-04",
+          "id": "g-07",
           "title": "Grafana/observability dashboards",
           "decision": "PROPOSED/INFRA",
           "delivery": "infrastructure",
@@ -1253,7 +1333,7 @@
           "evidence_paths": []
         },
         {
-          "id": "g-05",
+          "id": "g-08",
           "title": "Object storage/NAS for evidence and attachments",
           "decision": "PROPOSED/INFRA",
           "delivery": "infrastructure",
@@ -1263,7 +1343,7 @@
           "evidence_paths": []
         },
         {
-          "id": "g-06",
+          "id": "g-09",
           "title": "Companion/mobile app with scanning and queries",
           "decision": "USER DIRECTION / INFRA",
           "delivery": "not_present",
@@ -1273,7 +1353,7 @@
           "evidence_paths": []
         },
         {
-          "id": "g-07",
+          "id": "g-10",
           "title": "Home Assistant bridge",
           "decision": "PROPOSED/INFRA",
           "delivery": "not_present",
@@ -1283,7 +1363,7 @@
           "evidence_paths": []
         },
         {
-          "id": "g-08",
+          "id": "g-11",
           "title": "Plex bridge",
           "decision": "PROPOSED/INFRA",
           "delivery": "not_present",
@@ -1293,7 +1373,7 @@
           "evidence_paths": []
         },
         {
-          "id": "g-09",
+          "id": "g-12",
           "title": "Voice queries/commands",
           "decision": "PROPOSED/INFRA",
           "delivery": "not_present",
@@ -1303,7 +1383,7 @@
           "evidence_paths": []
         },
         {
-          "id": "g-10",
+          "id": "g-13",
           "title": "NAS/LAN/private-service bridge and VPN access",
           "decision": "PROPOSED/INFRA",
           "delivery": "not_present",
@@ -1313,7 +1393,7 @@
           "evidence_paths": []
         },
         {
-          "id": "g-11",
+          "id": "g-14",
           "title": "Family site-to-site VPN/redundancy/failover",
           "decision": "PROPOSED",
           "delivery": "not_present",
@@ -1323,7 +1403,7 @@
           "evidence_paths": []
         },
         {
-          "id": "g-12",
+          "id": "g-15",
           "title": "Twice-daily incremental, daily cloud, weekly full, rotation, encryption, restore tests",
           "decision": "REQUIRED backlog",
           "delivery": "specification",
@@ -1333,7 +1413,7 @@
           "evidence_paths": []
         },
         {
-          "id": "g-13",
+          "id": "g-16",
           "title": "Knowledge ingestion with relevant excerpts, timestamps, URL/title/metadata, provenance, relationships, optional full pin",
           "decision": "REQUIRED/ACCEPTED",
           "delivery": "executable",
@@ -1348,7 +1428,7 @@
           ]
         },
         {
-          "id": "g-14",
+          "id": "g-17",
           "title": "Drive organization by domain and searchable metadata",
           "decision": "ACCEPTED personal behavior",
           "delivery": "workflow",
@@ -1358,7 +1438,7 @@
           "evidence_paths": []
         },
         {
-          "id": "g-15",
+          "id": "g-18",
           "title": "Hierarchical machine-readable feature catalog with CI drift enforcement",
           "decision": "CURRENT REQUIRED",
           "delivery": "executable",
@@ -1371,7 +1451,7 @@
           ]
         },
         {
-          "id": "g-16",
+          "id": "g-19",
           "title": "Machine-enforced production-code inventory and anti-bloat ownership gate",
           "decision": "CURRENT REQUIRED",
           "delivery": "executable",
