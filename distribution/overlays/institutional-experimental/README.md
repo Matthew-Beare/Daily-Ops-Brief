@@ -18,7 +18,7 @@ Demonstrations use **generic or synthetic personas**. Sensitive runtime use is b
 
 A user or pilot team can describe a recurring workflow to MIRA in ordinary language. MIRA should inspect existing capabilities, define the behavior and data boundaries, implement on a feature branch, add tests and synthetic fixtures, and verify the private or organization-approved deployment.
 
-Reusable work is not published merely because it exists. When coherent, MIRA asks exactly: **Do you want to make this feature available to other people?** Publication requires sanitization, synthetic fixtures, declared dependencies and permissions, privacy/source tests, a visible public diff, and explicit publication approval before an upstream pull request.
+Reusable work is **private by default** within the pilot deployment or organization. It is not published merely because it exists. When coherent, MIRA asks exactly: **Do you want to make this feature available to other people?** Publication requires sanitization, synthetic fixtures, declared dependencies and permissions, privacy/source tests, a visible public diff, and explicit publication approval before an upstream pull request.
 
 See [`starter/SHARED_FEATURE_WORKFLOW.md`](starter/SHARED_FEATURE_WORKFLOW.md).
 
