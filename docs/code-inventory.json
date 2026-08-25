@@ -3,155 +3,33 @@
   "scope": "All deployed or release-gate Python outside test files",
   "rule": "Every production Python file must have one bounded responsibility and direct test evidence; unlisted code fails CI.",
   "files": [
-    {
-      "path": "scripts/audit_public_source.py",
-      "responsibility": "Reject current, untracked, symlinked, and reachable-history secrets or personal-state leakage before public release.",
-      "why_separate": "Repository publication is a distinct destructive/privacy boundary.",
-      "tests": ["tests/test_public_source_audit.py"]
-    },
-    {
-      "path": "scripts/audit_starter_privacy.py",
-      "responsibility": "Reject reference-deployment contamination inside the portable starter boundary.",
-      "why_separate": "Starter privacy has a narrower scope and blocklist than whole-repository publication.",
-      "tests": ["tests/test_starter_privacy_audit.py"]
-    },
-    {
-      "path": "scripts/bootstrap.py",
-      "responsibility": "Render project instructions atomically from validated non-secret configuration.",
-      "why_separate": "Bootstrap rendering is an install-time transaction, not runtime policy.",
-      "tests": ["tests/test_bootstrap.py"]
-    },
-    {
-      "path": "scripts/build_distribution.py",
-      "responsibility": "Build deterministic sanitised public and institutional release trees from an exact canonical source revision.",
-      "why_separate": "Release-channel projection is a publication boundary and must not be mixed with personal runtime policy or provider writes.",
-      "tests": ["tests/test_distribution_release.py"]
-    },
-    {
-      "path": "scripts/feature_catalog.py",
-      "responsibility": "Generate and validate the hierarchical JSON/Markdown catalog from the forensic feature ledger.",
-      "why_separate": "Release-status bookkeeping is a repository gate, not personal mutable state.",
-      "tests": ["tests/test_feature_catalog.py"]
-    },
-    {
-      "path": "scripts/import_run_sheet.py",
-      "responsibility": "Normalize historical route evidence into unique reusable terminal-pair knowledge without fabricated trip history.",
-      "why_separate": "One-time evidence import has different inputs and mutation authority from brief runtime.",
-      "tests": ["tests/test_import_run_sheet.py"]
-    },
-    {
-      "path": "scripts/policy_fingerprint.py",
-      "responsibility": "Compute the content-sensitive public skill fingerprint while excluding tests and the private deployment locator.",
-      "why_separate": "Deployment integrity must be independently reproducible by CI and installers.",
-      "tests": ["tests/test_policy_fingerprint.py"]
-    },
-    {
-      "path": "scripts/validate_repo.py",
-      "responsibility": "Enforce cross-file release, scheduling, authority, onboarding, policy, and schema invariants.",
-      "why_separate": "Cross-document coherence is broader than any individual module test.",
-      "tests": ["tests/test_contract.py"]
-    },
-    {
-      "path": "scripts/validate_distribution.py",
-      "responsibility": "Reject drift, wrong channel identity, forbidden canonical roots, mutable-state claims, and payload tampering in generated releases.",
-      "why_separate": "A generated distribution has a smaller trust boundary and different invariants from the full canonical repository.",
-      "tests": ["tests/test_distribution_release.py"]
-    },
-    {
-      "path": "starter/tools/onboarding_profile_router.py",
-      "responsibility": "Resolve composable roles, context recommendations, explicit service states, and respectful reminder templates.",
-      "why_separate": "Portable first boot cannot depend on the reference deployment runtime.",
-      "tests": ["starter/tests/test_onboarding_profile_router.py"]
-    },
-    {
-      "path": "starter/tools/provider_capability_router.py",
-      "responsibility": "Resolve portable onboarding readiness from observed runtime, source, state, evidence, scheduling, and organizational approval capabilities.",
-      "why_separate": "Provider capability and regulated-data gates are deployment concerns independent from life-profile and service routing.",
-      "tests": ["starter/tests/test_platform_portability.py"]
-    },
-    {
-      "path": "starter/tools/feature_reconciliation.py",
-      "responsibility": "Maintain feature ownership/lineage and dependency maps, audit required and optional capabilities, detect consolidation candidates, and produce non-mutating user-in-the-loop upgrade proposals that preserve local behavior by default.",
-      "why_separate": "Upstream reconciliation is a source-upgrade safety boundary; it must not be coupled to mutable runtime state or provider-specific onboarding.",
-      "tests": ["starter/tests/test_feature_reconciliation.py"]
-    },
-    {
-      "path": "starter/tools/behavior_dependency_check.py",
-      "responsibility": "Validate complete dependency coverage for every cataloged operational behavior and evaluate enabled behavior against observed capabilities, authorities, and behavior dependencies without mutating the deployment.",
-      "why_separate": "Runtime behavior readiness spans legacy and packaged workflows and must remain independent from upstream source reconciliation and provider-specific onboarding.",
-      "tests": ["starter/tests/test_behavior_dependency_check.py"]
-    },
-    {
-      "path": "starter/tools/integration_dependency_router.py",
-      "responsibility": "Convert verified connected integrations into behavior dependency readiness, bounded missing-dependency guidance, and explicit-goal workflow recommendations without enabling or connecting anything automatically.",
-      "why_separate": "Integration discovery and user-facing remediation bridge live runtime capabilities to the behavior graph, while the dependency checker itself remains provider-neutral and non-mutating.",
-      "tests": ["starter/tests/test_integration_dependency_router.py"]
-    },
-    {
-      "path": "starter/life-planner/scripts/brief_schedule.py",
-      "responsibility": "Validate deployment-owned arbitrary brief slots and compare live scheduler readback to the exact version-controlled user configuration without product-default times.",
-      "why_separate": "Recurring timing is durable deployment configuration and scheduler projection, distinct from provider-state bootstrap and brief content rendering.",
-      "tests": ["starter/tests/test_brief_schedule.py"]
-    },
-    {
-      "path": "starter/life-planner/scripts/google_bootstrap.py",
-      "responsibility": "Generate and verify deterministic module-scoped Personal Google workbook, folder, identity, source, Calendar, Gmail, and scheduler bootstrap evidence.",
-      "why_separate": "Live provider provisioning has a distinct fail-closed readback boundary from profile routing and generic capability selection.",
-      "tests": ["starter/tests/test_personal_google_bootstrap.py"]
-    },
-    {
-      "path": "starter/tools/validate_feature_manifest.py",
-      "responsibility": "Validate portable feature manifests, schemas, file boundaries, dependencies, and honest delivery claims.",
-      "why_separate": "Shared-feature isolation is a portable-source release boundary.",
-      "tests": ["starter/tests/test_feature_manifest.py", "starter/tests/test_feature_isolation_contracts.py"]
-    },
-    {
-      "path": "skill/ops-brief-policy/scripts/asset_evidence.py",
-      "responsibility": "Reconcile provenance, namespaced identifiers, manuals, knowledge links, specifications, lookup work, and bidirectional asset/receipt queries.",
-      "why_separate": "Evidence/knowledge/specification records have independent authorities and failure semantics from physical asset creation.",
-      "tests": ["skill/ops-brief-policy/scripts/test_asset_evidence.py"]
-    },
-    {
-      "path": "skill/ops-brief-policy/scripts/financial_resolution.py",
-      "responsibility": "Determine bounded refund/reversal follow-up deadlines in business days.",
-      "why_separate": "Deadline policy is independent from charge matching and avoids entangling financial states.",
-      "tests": ["skill/ops-brief-policy/scripts/test_financial_resolution.py"]
-    },
-    {
-      "path": "skill/ops-brief-policy/scripts/inventory_reconciliation.py",
-      "responsibility": "Create immutable assets from included receipt lines and reconcile explicit UUID relationships idempotently.",
-      "why_separate": "Physical asset identity is the source transaction before evidence/manual projections.",
-      "tests": ["skill/ops-brief-policy/scripts/test_inventory_reconciliation.py"]
-    },
-    {
-      "path": "skill/ops-brief-policy/scripts/manual_brief_smoke.py",
-      "responsibility": "Invoke the real Ops brief reducer at any wall-clock time with a uniquely namespaced manual Run ID and explicit non-scheduler evidence.",
-      "why_separate": "Manual smoke invocation is an entry and identity adapter around the sole ops_policy reducer; it must not duplicate policy logic or masquerade as scheduled execution.",
-      "tests": ["skill/ops-brief-policy/scripts/test_manual_brief_smoke.py"]
-    },
-    {
-      "path": "skill/ops-brief-policy/scripts/ops_policy.py",
-      "responsibility": "Resolve canonical-time entry, HOME/ROAD state, trips, tasks, appointments, mileage/pay, and deterministic Run Log/brief output.",
-      "why_separate": "This is the sole cohesive brief-state reducer; duplicate wrappers are prohibited.",
-      "tests": ["skill/ops-brief-policy/scripts/test_ops_policy.py", "skill/ops-brief-policy/scripts/test_ops_policy_entry.py"]
-    },
-    {
-      "path": "skill/ops-brief-policy/scripts/payment_reconciliation.py",
-      "responsibility": "Match expected charges to pending/posted debit-credit evidence using exact-cent arithmetic.",
-      "why_separate": "Settlement matching has different evidence and transitions from refund deadlines.",
-      "tests": ["skill/ops-brief-policy/scripts/test_payment_reconciliation.py"]
-    },
-    {
-      "path": "skill/ops-brief-policy/scripts/reconcile_shipments.py",
-      "responsibility": "Reduce order/carrier evidence into active package fulfillment with authority priority, cancellations, and replacements.",
-      "why_separate": "Active fulfillment is a projection, not canonical transaction/asset history.",
-      "tests": ["skill/ops-brief-policy/scripts/test_reconcile_shipments.py", "skill/ops-brief-policy/scripts/test_reconcile_shipments_ordering.py"]
-    },
-    {
-      "path": "skill/ops-brief-policy/scripts/reminder_policy.py",
-      "responsibility": "Plan deterministic appointment and evidence-confirmed medication reminders for provider projection without task fan-out.",
-      "why_separate": "Reminder timing and health-safety consent are independent from brief rendering and Calendar adapters.",
-      "tests": ["skill/ops-brief-policy/scripts/test_reminder_policy.py"]
-    }
+    {"path":"scripts/audit_public_source.py","responsibility":"Reject current, untracked, symlinked, and reachable-history secrets or personal-state leakage before public release.","why_separate":"Repository publication is a distinct destructive/privacy boundary.","tests":["tests/test_public_source_audit.py"]},
+    {"path":"scripts/audit_starter_privacy.py","responsibility":"Reject reference-deployment contamination inside the portable starter boundary.","why_separate":"Starter privacy has a narrower scope and blocklist than whole-repository publication.","tests":["tests/test_starter_privacy_audit.py"]},
+    {"path":"scripts/bootstrap.py","responsibility":"Render project instructions atomically from validated non-secret configuration.","why_separate":"Bootstrap rendering is an install-time transaction, not runtime policy.","tests":["tests/test_bootstrap.py"]},
+    {"path":"scripts/build_distribution.py","responsibility":"Build deterministic sanitised public and institutional release trees from an exact canonical source revision.","why_separate":"Release-channel projection is a publication boundary and must not be mixed with personal runtime policy or provider writes.","tests":["tests/test_distribution_release.py"]},
+    {"path":"scripts/feature_catalog.py","responsibility":"Generate and validate the hierarchical JSON/Markdown catalog from the forensic feature ledger.","why_separate":"Release-status bookkeeping is a repository gate, not personal mutable state.","tests":["tests/test_feature_catalog.py"]},
+    {"path":"scripts/import_run_sheet.py","responsibility":"Normalize historical route evidence into unique reusable terminal-pair knowledge without fabricated trip history.","why_separate":"One-time evidence import has different inputs and mutation authority from brief runtime.","tests":["tests/test_import_run_sheet.py"]},
+    {"path":"scripts/policy_fingerprint.py","responsibility":"Compute the content-sensitive public skill fingerprint while excluding tests and the private deployment locator.","why_separate":"Deployment integrity must be independently reproducible by CI and installers.","tests":["tests/test_policy_fingerprint.py"]},
+    {"path":"scripts/validate_repo.py","responsibility":"Enforce cross-file release, scheduling, authority, onboarding, policy, and schema invariants.","why_separate":"Cross-document coherence is broader than any individual module test.","tests":["tests/test_contract.py"]},
+    {"path":"scripts/validate_distribution.py","responsibility":"Reject drift, wrong channel identity, forbidden canonical roots, mutable-state claims, and payload tampering in generated releases.","why_separate":"A generated distribution has a smaller trust boundary and different invariants from the full canonical repository.","tests":["tests/test_distribution_release.py"]},
+    {"path":"starter/tools/onboarding_profile_router.py","responsibility":"Resolve composable roles, context recommendations, explicit service states, and respectful reminder templates.","why_separate":"Portable first boot cannot depend on the reference deployment runtime.","tests":["starter/tests/test_onboarding_profile_router.py"]},
+    {"path":"starter/tools/provider_capability_router.py","responsibility":"Resolve portable onboarding readiness from observed runtime, source, state, evidence, scheduling, and organizational approval capabilities.","why_separate":"Provider capability and regulated-data gates are deployment concerns independent from life-profile and service routing.","tests":["starter/tests/test_platform_portability.py"]},
+    {"path":"starter/tools/feature_reconciliation.py","responsibility":"Maintain feature ownership/lineage and dependency maps, audit required and optional capabilities, detect consolidation candidates, and produce non-mutating user-in-the-loop upgrade proposals that preserve local behavior by default.","why_separate":"Upstream reconciliation is a source-upgrade safety boundary; it must not be coupled to mutable runtime state or provider-specific onboarding.","tests":["starter/tests/test_feature_reconciliation.py"]},
+    {"path":"starter/tools/behavior_dependency_check.py","responsibility":"Validate complete dependency coverage for every cataloged operational behavior and evaluate enabled behavior against observed capabilities, authorities, and behavior dependencies without mutating the deployment.","why_separate":"Runtime behavior readiness spans legacy and packaged workflows and must remain independent from upstream source reconciliation and provider-specific onboarding.","tests":["starter/tests/test_behavior_dependency_check.py"]},
+    {"path":"starter/tools/integration_dependency_router.py","responsibility":"Convert verified connected integrations into behavior dependency readiness, bounded missing-dependency guidance, and explicit-goal workflow recommendations without enabling or connecting anything automatically.","why_separate":"Integration discovery and user-facing remediation bridge live runtime capabilities to the behavior graph, while the dependency checker itself remains provider-neutral and non-mutating.","tests":["starter/tests/test_integration_dependency_router.py"]},
+    {"path":"starter/tools/appointment_identity.py","responsibility":"Resolve appointment provider identity from durable aliases/source bindings, cache supported enrichment once, and apply owner corrections without repeated research or unsupported specialty inference.","why_separate":"Provider/person identity enrichment is a durable evidence-reconciliation problem independent from reminder timing, calendar projection, and provider-specific email ingestion.","tests":["starter/tests/test_appointment_identity.py"]},
+    {"path":"starter/tools/reminder_delivery.py","responsibility":"Project one canonical reminder into visual and optional spoken delivery intents using verified client capabilities and privacy-preserving user preferences.","why_separate":"Device notification/TTS projection is client capability logic and must remain independent from reminder timing, medical safety, and provider-specific audio routing.","tests":["starter/tests/test_reminder_delivery.py"]},
+    {"path":"starter/tools/scan_event.py","responsibility":"Normalize barcode/QR scan events, validate GTIN identifiers, bind preprinted tags idempotently, and produce deterministic asset-location movement events without directly mutating canonical inventory state.","why_separate":"Client camera decoding and product research are separate adapters; canonical tag identity and location-event semantics require deterministic provider-neutral validation.","tests":["starter/tests/test_scan_event.py"]},
+    {"path":"starter/life-planner/scripts/brief_schedule.py","responsibility":"Validate deployment-owned arbitrary brief slots and compare live scheduler readback to the exact version-controlled user configuration without product-default times.","why_separate":"Recurring timing is durable deployment configuration and scheduler projection, distinct from provider-state bootstrap and brief content rendering.","tests":["starter/tests/test_brief_schedule.py"]},
+    {"path":"starter/life-planner/scripts/google_bootstrap.py","responsibility":"Generate and verify deterministic module-scoped Personal Google workbook, folder, identity, source, Calendar, Gmail, and scheduler bootstrap evidence.","why_separate":"Live provider provisioning has a distinct fail-closed readback boundary from profile routing and generic capability selection.","tests":["starter/tests/test_personal_google_bootstrap.py"]},
+    {"path":"starter/tools/validate_feature_manifest.py","responsibility":"Validate portable feature manifests, schemas, file boundaries, dependencies, and honest delivery claims.","why_separate":"Shared-feature isolation is a portable-source release boundary.","tests":["starter/tests/test_feature_manifest.py","starter/tests/test_feature_isolation_contracts.py"]},
+    {"path":"skill/ops-brief-policy/scripts/asset_evidence.py","responsibility":"Reconcile provenance, namespaced identifiers, manuals, knowledge links, specifications, lookup work, and bidirectional asset/receipt queries.","why_separate":"Evidence/knowledge/specification records have independent authorities and failure semantics from physical asset creation.","tests":["skill/ops-brief-policy/scripts/test_asset_evidence.py"]},
+    {"path":"skill/ops-brief-policy/scripts/financial_resolution.py","responsibility":"Determine bounded refund/reversal follow-up deadlines in business days.","why_separate":"Deadline policy is independent from charge matching and avoids entangling financial states.","tests":["skill/ops-brief-policy/scripts/test_financial_resolution.py"]},
+    {"path":"skill/ops-brief-policy/scripts/inventory_reconciliation.py","responsibility":"Create immutable assets from included receipt lines and reconcile explicit UUID relationships idempotently.","why_separate":"Physical asset identity is the source transaction before evidence/manual projections.","tests":["skill/ops-brief-policy/scripts/test_inventory_reconciliation.py"]},
+    {"path":"skill/ops-brief-policy/scripts/manual_brief_smoke.py","responsibility":"Invoke the real Ops brief reducer at any wall-clock time with a uniquely namespaced manual Run ID and explicit non-scheduler evidence.","why_separate":"Manual smoke invocation is an entry and identity adapter around the sole ops_policy reducer; it must not duplicate policy logic or masquerade as scheduled execution.","tests":["skill/ops-brief-policy/scripts/test_manual_brief_smoke.py"]},
+    {"path":"skill/ops-brief-policy/scripts/ops_policy.py","responsibility":"Resolve canonical-time entry, HOME/ROAD state, trips, tasks, appointments, mileage/pay, and deterministic Run Log/brief output.","why_separate":"This is the sole cohesive brief-state reducer; duplicate wrappers are prohibited.","tests":["skill/ops-brief-policy/scripts/test_ops_policy.py","skill/ops-brief-policy/scripts/test_ops_policy_entry.py"]},
+    {"path":"skill/ops-brief-policy/scripts/payment_reconciliation.py","responsibility":"Match expected charges to pending/posted debit-credit evidence using exact-cent arithmetic.","why_separate":"Settlement matching has different evidence and transitions from refund deadlines.","tests":["skill/ops-brief-policy/scripts/test_payment_reconciliation.py"]},
+    {"path":"skill/ops-brief-policy/scripts/reconcile_shipments.py","responsibility":"Reduce order/carrier evidence into active package fulfillment with authority priority, cancellations, and replacements.","why_separate":"Active fulfillment is a projection, not canonical transaction/asset history.","tests":["skill/ops-brief-policy/scripts/test_reconcile_shipments.py","skill/ops-brief-policy/scripts/test_reconcile_shipments_ordering.py"]},
+    {"path":"skill/ops-brief-policy/scripts/reminder_policy.py","responsibility":"Plan deterministic appointment and evidence-confirmed medication reminders for provider/native-client projection without task fan-out.","why_separate":"Reminder timing, delivery intent and health-safety consent are independent from brief rendering and Calendar/device adapters.","tests":["skill/ops-brief-policy/scripts/test_reminder_policy.py"]}
   ]
 }

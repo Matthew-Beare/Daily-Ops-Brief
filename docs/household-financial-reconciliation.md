@@ -1,81 +1,77 @@
 # Household Financial Reconciliation Extension
 
-This extends LyfeOS without changing the one-transaction/one-Receipt-ID invariant.
+This extends M.I.R.R.O.R. without changing the one-transaction/one-Receipt-ID invariant and explicitly prevents account-settlement activity from being counted as spending twice.
 
-## New canonical mutable tables
+## Economic event rule
+
+A merchant purchase and the later movement of money used to settle that purchase are different events.
+
+- A card purchase may count as merchant spend once when supported by transaction/receipt evidence.
+- A checking-account payment to that credit card is a transfer/liability settlement, **not a second purchase**.
+- A credit-card payment observed on both sides of the transfer remains one settlement relationship, not two expenses.
+- Merchant refunds reduce merchant spend according to refund semantics and are not income.
+- Reimbursements from another person/organization are separate from merchant refunds.
+- Transfers between owned accounts do not become income or spending merely because they appear as debit/credit transaction rows.
+- Loan/debt principal payments, interest/fees, payroll/income, cash withdrawals, and merchant purchases retain distinct event classes.
+
+A financial adapter must preserve account identity, provider transaction identity, pending/posted status, transfer/linkage evidence when available, amount/sign semantics, and reconciliation confidence. Ambiguous rows remain unresolved and visible rather than being silently discarded or counted twice.
+
+## Canonical mutable tables/entities
 
 ### People & Assets
 
-Stores people/entities, aliases, relationship, household financial scope, and optional asset rows. It is the canonical mutable identity/asset layer for household members and outside beneficiaries. External assets are allowed and remain distinguishable from household-owned assets.
-
-Every person and physical asset uses one immutable collision-resistant RFC 4122 `Entity UUID` as canonical cross-database identity. Friendly IDs, display names, Asset IDs, tool IDs and aliases are human-facing attributes and must never replace, recycle, or mutate the UUID.
-
-Suggested columns:
-
-`Entity UUID`, `Friendly Entity ID`, `Display Name`, `Entity Type`, `Relationship`, `Aliases`, `Financial Scope`, `Friendly Asset ID`, `Asset Type`, `Asset Label`, `Year`, `Make`, `Model`, `Notes`, `Updated ET`, `Quantity`, `Tracking Mode`, `Lifecycle Status`, `Source Authority`, `Source Record ID`, `Receipt ID`, `Receipt Line ID`, `Evidence Link`, `Schema Version`.
-
-When a person and an asset are modeled as distinct physical/logical entities, each receives its own Entity UUID and the ownership/beneficiary relationship links them. Do not stuff two independently addressable objects under one reused UUID merely because one row layout is convenient.
-
-### Asset Relationships
-
-Stores explicit graph edges between asset/person UUIDs. Suggested columns:
-
-`Relationship UUID`, `From Entity UUID`, `Relationship Type`, `To Entity UUID`, `Status`, `Source Authority`, `Source Record ID`, `Receipt ID`, `Receipt Line ID`, `Evidence Link`, `Notes`, `Effective From ET`, `Effective To ET`, `Updated ET`, `Schema Version`.
-
-Set/lot inventory uses one UUID plus quantity unless serial-level tracking is useful. `assigned_to` records allocation or intended fitment and never implies `installed_on`. A receipt-created asset must link the exact Receipt ID and exact receipt-line coordinate; excluded/cancelled lines do not create owned assets.
+Stores people/entities, aliases, relationship, household financial scope, and optional asset rows. Every person and physical asset uses one immutable RFC 4122 `Entity UUID` as canonical cross-database identity. Friendly IDs, display names and aliases are human-facing attributes and never replace or recycle the UUID.
 
 ### Reimbursements
 
-Stores expected/received money back from an outside beneficiary or other reimbursing party. This table is independent of merchant refund events.
+Stores expected/received money back from an outside beneficiary or other reimbursing party. This remains independent of merchant refund events.
 
-Suggested columns:
-
-`Reimbursement ID`, `Receipt ID`, `Beneficiary Entity UUID`, `Beneficiary / Cost Owner`, `Related Asset UUID(s)`, `Purchase Amount Allocated`, `Amount Expected Back`, `Amount Received`, `Status`, `Payment Evidence / Account Ref`, `Expected / Received Date`, `Net Household Cost`, `Source`, `Notes`, `Updated ET`.
+Suggested fields include `Reimbursement ID`, `Receipt ID`, `Beneficiary Entity UUID`, allocated purchase amount, amount expected, amount received, status, payment evidence/account reference, dates, net household cost, provenance and audit timestamps.
 
 ### Payment Reconciliation
 
 Tracks the merchant charge expected from the latest authoritative order/revision evidence until settlement is matched.
 
-Suggested columns:
+Suggested fields include `Payment Case ID`, `Receipt ID`, vendor/order identity, expected charge, evidence, account hint, status, observed posted/pending amount, difference, timestamps, source and notes.
 
-`Payment Case ID`, `Receipt ID`, `Vendor`, `Order Number`, `Expected Charge`, `Expected Evidence`, `Card Last Four / Account Hint`, `Status`, `Observed Posted Amount`, `Observed Pending Amount`, `Difference`, `First Expected ET`, `Last Checked ET`, `Resolved ET`, `Source`, `Notes`.
+### Account Transactions
 
-## Relationships
+A future SQL-backed implementation should persist source account transactions separately from normalized economic events. Suggested fields include:
 
-- `Orders - Database.Receipt ID` -> one merchant transaction.
-- `Expense Ledger.Receipt ID` -> one or more cost allocations whose included rows reconcile to the merchant transaction total.
-- `Reimbursements.Receipt ID` -> zero or more non-merchant paybacks reducing net household cost without mutating gross merchant spend.
-- `Payment Reconciliation.Receipt ID` -> one or more settlement cases when a merchant legitimately settles separately; normally one case per current merchant order financial outcome.
-- `People & Assets` supplies immutable beneficiary/asset UUIDs plus friendly aliases referenced by allocations/reimbursements.
-- `Asset Relationships` supplies explicit UUID-to-UUID ownership/assignment/installation edges. Free-text fitment notes remain searchable context but are not the relationship authority.
+`Account Transaction UUID`, provider transaction ID, Account UUID, posted/pending status, observed amount, currency, merchant/description, provider category, transaction timestamp, transfer linkage/reference, raw evidence reference, normalization status, normalized event UUID, confidence and timestamps.
+
+The normalized event may be a merchant purchase, transfer, liability settlement, fee/interest, refund, reimbursement, income, cash movement, or unresolved class. Source rows are never destroyed merely because normalization changes.
+
+## Reconciliation relationships
+
+- `Receipt ID` represents one merchant transaction/purchase outcome.
+- Expense allocations reconcile to that supported merchant total.
+- Reimbursements link to the Receipt ID but reduce net household cost separately.
+- Payment cases reconcile the expected merchant amount with actual account settlement evidence.
+- Source account transaction rows link to normalized economic events without becoming the economic event themselves.
+- Transfer pairs/linkages may bind two account transaction rows to one transfer/settlement event.
+- Assets/beneficiaries use immutable UUIDs.
 
 ## Financial views
 
 Expose separate measures instead of collapsing unlike concepts:
 
-- Gross Merchant Spend: supported vendor purchases after merchant cancellations/refunds are applied exactly once.
-- Reimbursements Received: verified money returned by outside beneficiaries, not merchant refunds.
-- Net Household Cost: Gross Merchant Spend attributable to the household minus verified outside reimbursements.
-- Expected Unsettled Charges: supported merchant totals still awaiting account settlement.
-- Merchant Charge Variance: posted charge minus latest supported expected merchant charge.
-- Unmatched Account Charges: material account debits not yet linked to a supported Receipt ID/payment case.
+- **Gross Merchant Spend** — supported purchases, with merchant cancellations/refunds applied exactly once.
+- **Net Household Cost** — household-attributable merchant spend minus verified outside reimbursements.
+- **Account Cash Flow** — actual cash movement by account without pretending transfers are spending/income.
+- **Debt/Liability Settlement** — principal/card payments separately from merchant spend; interest and fees remain their own expense classes.
+- **Expected Unsettled Charges** — supported merchant totals still awaiting settlement.
+- **Merchant Charge Variance** — posted merchant charge minus latest supported expected charge.
+- **Unmatched Account Activity** — account rows not yet safely linked/classified.
+
+## Deduplication keys
+
+Use the strongest available provider identity first. Fallback correlation may consider account UUID, amount, timestamp window, merchant, source evidence, receipt/order number and transfer linkage. A fuzzy match is never promoted to a hard duplicate without sufficient confidence/evidence.
+
+One source transaction may enrich an existing Receipt ID/payment case. It must not create a second Receipt ID merely because both receipt/email evidence and card-account evidence exist.
 
 ## PostgreSQL path
 
-Future relational tables map naturally to:
+Future relational tables map naturally to `parties`, `party_aliases`, `assets`, `transactions`, `transaction_items`, `expense_allocations`, `reimbursement_obligations`, `reimbursement_events`, `payment_cases`, `account_transactions`, `normalized_financial_events`, `transfer_links`, `payment_observations`, `order_events`, and `evidence_objects`.
 
-- `parties`
-- `party_aliases`
-- `assets`
-- `asset_owners`
-- `transactions`
-- `transaction_items`
-- `expense_allocations`
-- `reimbursement_obligations`
-- `reimbursement_events`
-- `payment_cases`
-- `payment_observations`
-- `order_events`
-- `evidence_objects`
-
-Use immutable UUIDs and append-only events. The migration must preserve existing canonical Entity UUIDs exactly and must not reinterpret an outside-person reimbursement as revenue or a merchant refund.
+Use immutable UUIDs, unique provider-source identities, append-only events, database constraints and service-layer idempotency. Migration preserves existing canonical IDs and never reinterprets a reimbursement as revenue, a merchant refund as generic income, or a credit-card payment as a second purchase.

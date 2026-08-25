@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "contract_id": "mirror-client-api-v1",
+  "transport": {
+    "preferred_remote": "HTTPS_JSON",
+    "local_equivalents_allowed": ["HTTPS_JSON", "local_loopback_or_unix_socket_adapter"],
+    "database_protocol_is_not_client_api": true
+  },
+  "versioning": {
+    "path_or_header_version_required": true,
+    "backward_compatible_read_models_preferred": true,
+    "breaking_changes_require_versioned_migration": true
+  },
+  "command_envelope": {
+    "required_fields": ["command_id", "command_type", "actor_id", "submitted_at", "idempotency_key", "payload"],
+    "server_responsibilities": [
+      "authenticate",
+      "authorize",
+      "dependency_preflight",
+      "validate_schema",
+      "validate_idempotency",
+      "write_canonical_authority",
+      "readback_verify",
+      "append_audit_event"
+    ]
+  },
+  "query_surface": [
+    "system_health",
+    "dependency_health",
+    "integration_registry",
+    "tasks_and_projects",
+    "appointments_and_reminders",
+    "commerce_and_receipts",
+    "assets_inventory_locations_and_knowledge",
+    "financial_views_when_enabled",
+    "feature_versions_and_rollback_status"
+  ],
+  "capture_surface": [
+    "evidence_upload",
+    "barcode_qr_scan_event",
+    "rfid_presence_observation",
+    "owner_correction",
+    "manual_appointment_or_receipt_entry"
+  ],
+  "sync": {
+    "cursor_based_event_feed": true,
+    "client_offline_queue_requires_idempotency_keys": true,
+    "server_is_conflict_authority": true,
+    "client_clock_is_not_canonical_scheduler_clock": true
+  },
+  "security": {
+    "scoped_access_tokens": true,
+    "database_credentials_in_clients_prohibited": true,
+    "server_side_authorization": true,
+    "remote_tls_required": true,
+    "sensitive_payload_logging_disabled_by_default": true
+  }
+}
