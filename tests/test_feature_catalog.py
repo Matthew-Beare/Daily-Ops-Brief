@@ -47,6 +47,7 @@ class FeatureCatalogTests(unittest.TestCase):
             "Google Workspace and Microsoft 365",
             "Locked-down and regulated enterprise/VA",
             "Hierarchical machine-readable feature catalog",
+            "Explicit weather-in-briefs onboarding",
         ):
             with self.subTest(phrase=phrase):
                 feature = self.feature(phrase)

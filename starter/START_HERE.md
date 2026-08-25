@@ -57,7 +57,7 @@ Stock-provisioned services:
 - The catalog also exposes next actions, email, finance, appointments, health organization, shopping, household, routines, education, family/school, travel/work trips, assets, knowledge, recovery, and skill building.
 - Record each as enabled, disabled, unresolved, not applicable, or deferred. Capability verification—not catalog presence—establishes implementation.
 - Read each selected feature manifest's `delivery_status` before describing availability. `contract-only` is not executable delivery and must be disclosed plainly.
-- If briefs are enabled, ask cadence, exact local slots, canonical timezone, notification/delivery mode, length, priority rules, and anti-noise rules.
+- If briefs are enabled, ask cadence, slots, timezone, delivery, length, priority/anti-noise rules, and exactly: `Would you like weather included in your briefs?`
 - If receipt/order lifecycle is enabled, ask permitted evidence sources, reconciliation cadence/slots, notification behavior, retention, and approval boundaries. Never create one automation per order.
 - If recipe library is enabled, reconcile accessible existing recipes and ask which sources/state/evidence stores to use. Meal planning remains separately optional.
 

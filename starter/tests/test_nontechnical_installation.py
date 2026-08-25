@@ -30,7 +30,7 @@ class NontechnicalInstallationTests(unittest.TestCase):
 
     def test_template_path_creates_private_user_owned_repository(self) -> None:
         flow = self.flow()
-        self.assertEqual(3, flow["version"])
+        self.assertEqual(4, flow["version"])
         self.assertEqual("Matthew-Beare/Life-Planner-Public-Experimental", flow["upstream"])
         self.assertEqual("github-template", flow["copy_method"])
         self.assertEqual("private", flow["default_personal_visibility"])
@@ -117,6 +117,30 @@ class NontechnicalInstallationTests(unittest.TestCase):
         self.assertIn(flow["meal_planning_question_id"], ids)
         for question_id in flow["household_routine_question_ids"]:
             self.assertIn(question_id, ids)
+
+    def test_weather_in_briefs_is_an_explicit_failure_isolated_opt_in(self) -> None:
+        questions = json.loads(self.text("questions.json"))
+        rows = {
+            row["id"]: row
+            for section in questions["sections"]
+            for row in section["questions"]
+        }
+        question_id = self.flow()["selected_workflow_discovery"]["weather_brief_question_id"]
+        self.assertEqual("brief_weather_enabled", question_id)
+        self.assertEqual("Would you like weather included in your briefs?", rows[question_id]["prompt"])
+        self.assertTrue(rows[question_id]["required"])
+        for question_id in (
+            "brief_weather_slots",
+            "brief_weather_location_policy",
+            "brief_weather_details",
+            "brief_weather_units",
+            "brief_severe_weather_alerts",
+        ):
+            self.assertIn(question_id, rows)
+            self.assertIn("brief_weather_enabled is true", rows[question_id]["applies_when"])
+        dependencies = self.text("DEPENDENCIES.md")
+        self.assertIn("Missing or stale weather degrades only the weather section", dependencies)
+        self.assertIn("official alerts are distinct evidence classes", dependencies)
 
     def test_public_front_door_uses_current_working_name(self) -> None:
         surfaces = (

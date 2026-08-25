@@ -176,7 +176,9 @@ Optional evidence adapter for account-level charge/refund/cash-flow reconciliati
 
 ## Maps, weather, and travel capabilities
 
-Optional current-input adapters for hiking, outdoor, route, vacation, or trip planning. Keep planning usable without them.
+Optional current-input adapters for briefs, hiking, outdoor, route, vacation, or trip planning. Keep planning and non-weather brief sections usable without them.
+
+Weather-in-briefs is disabled until explicitly selected. Verify that the chosen adapter returns the requested location, source/provenance, units, observation or forecast valid time, and severe-alert authority when alerts are enabled. Current conditions, forecasts, and official alerts are distinct evidence classes. Missing or stale weather degrades only the weather section; it never suppresses the rest of a brief.
 
 ## Scheduled Tasks and canonical timezone integrity
 

@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "audience": "nontechnical-browser-only",
   "entry_document": "INSTALL.md",
   "portability_document": "PLATFORM_PORTABILITY.md",
@@ -122,6 +122,7 @@
     "manual_only": "Portable manual mode — import/export is available, but unattended synchronization and write automation are not installed."
   },
   "selected_workflow_discovery": {
+    "weather_brief_question_id": "brief_weather_enabled",
     "meal_planning_question_id": "meal_planning_help",
     "household_routine_question_ids": [
       "household_routine_help",

@@ -38,6 +38,8 @@ Record the accountable sponsor, intended users, exact problem, forbidden data, s
 
 Use synthetic or public data to demonstrate interview continuity, task/brief structure, policy portability, and export formats. Do not connect production mail, calendars, drives, or repositories.
 
+Use generic or synthetic personas and scenarios. Never embed real viewer identities, private disclosures, relationships, or inferred motives in fixtures, prompts, configuration, or presentation material.
+
 ### Gate 2 — approved read-only discovery
 
 With the organization-approved identity, inspect only the approved runtime, source release, storage candidate, and connector capabilities. Record `available`, `blocked`, or `unknown`; a provider name is not proof.

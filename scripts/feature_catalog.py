@@ -77,6 +77,12 @@ EVIDENCE_RULES: tuple[tuple[str, tuple[str, ...]], ...] = (
         "starter/tests/test_platform_portability.py",
         "starter/tests/test_nontechnical_installation.py",
     )),
+    (r"explicit weather-in-briefs onboarding", (
+        "starter/questions.json",
+        "starter/install-flow.json",
+        "starter/tests/test_nontechnical_installation.py",
+        "starter/DEPENDENCIES.md",
+    )),
     (r"personal-production, public-experimental, and institutional-experimental", (
         "distribution/channels.json",
         "scripts/build_distribution.py",

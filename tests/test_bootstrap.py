@@ -30,6 +30,9 @@ class BootstrapTests(unittest.TestCase):
         self.assertIn("OBSERVED_RUNTIME_AND_DEPLOYMENT", rendered)
         self.assertIn("PERSONAL_BROWSER_ENTERPRISE_MANAGED_OR_PORTABLE_MANUAL", rendered)
         self.assertIn("SELECT_PERSONAL_ORGANIZATION_GIT_OR_MANAGED_SOURCE", rendered)
+        self.assertIn("DISABLED_UNTIL_EXPLICITLY_SELECTED", rendered)
+        self.assertIn("USER_SELECTED_FIXED_MANUAL_VERIFIED_CURRENT_OR_CONTEXT", rendered)
+        self.assertIn("Would you like weather included in your briefs?", rendered)
 
     def test_missing_key_fails(self) -> None:
         with self.assertRaisesRegex(ValueError, "missing configuration keys"):

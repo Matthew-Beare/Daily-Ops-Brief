@@ -169,7 +169,7 @@ def validate(
         if term.lower() not in providers.lower():
             errors.append(f"provider onboarding lacks: {term}")
     if channel_id == "institutional-experimental":
-        for term in ("no PHI/PII", "ATO", "approved runtime", "Do **not** put PHI"):
+        for term in ("no PHI/PII", "ATO", "approved runtime", "Do **not** put PHI", "generic or synthetic personas"):
             if term.lower() not in readme.lower():
                 errors.append(f"institutional boundary lacks: {term}")
 

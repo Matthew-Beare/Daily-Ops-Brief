@@ -76,6 +76,9 @@ Mutable live state belongs in its canonical structured authority, not prompts, m
 ## Stock modules and schedules
 
 - Brief slots: {{BRIEF_SLOTS}}
+- Weather in briefs: {{WEATHER_BRIEF_SERVICE}}
+- Weather location policy: {{WEATHER_BRIEF_LOCATION}}
+- Weather detail policy: {{WEATHER_BRIEF_DETAILS}}
 - Order checks/updates: {{ORDER_UPDATE_SLOTS}}
 - Order notification mode: {{ORDER_NOTIFICATION_MODE}}
 - Recipe library: {{RECIPE_LIBRARY_MODE}}
@@ -84,6 +87,8 @@ Mutable live state belongs in its canonical structured authority, not prompts, m
 - After every schedule create/update, verify title, enabled state, recurrence/local time/TZID, timing mode, notification state, duplicate count, canonical-clock conversion, and later actual firing/Run Log.
 - Runtime schedule matching converts the current instant into `{{TIMEZONE}}` using IANA timezone rules and compares that canonical local clock to the intended slot. Device/travel timezone and static UTC offsets are never execution authority.
 - A `default_timezone` or stored/default/execution timezone field is authoritative only when the provider contract explicitly defines it as persistent task execution state.
+- Ask exactly `Would you like weather included in your briefs?`; do not infer the answer. When enabled, collect the selected slots, location policy, units, detail level, and severe-alert preference.
+- Weather is an optional, isolated brief input. Require location, forecast valid time, units, and source provenance; omit or mark only that section degraded when evidence is unavailable or stale. Never turn a forecast into an official alert.
 
 ## Work, hobbies, planning and accountability
 

@@ -10,6 +10,10 @@ For new-user starter deployments, structured mutable state uses the selected can
 Ask: **Do you want a recurring brief combining the few things that changed, need action, or should happen next across enabled life domains?**
 Collect cadence, exact local times, canonical timezone, length, priority rules, context differences, and anti-nag rules.
 
+### Weather in briefs
+Ask exactly: **Would you like weather included in your briefs?**
+Keep it disabled until the user answers. If enabled, collect the selected brief slots, location policy (fixed, manual, verified current, or context-based), units, compact/detail preference, and whether authoritative severe-weather alerts should appear independently. Every weather result needs an explicit location, source, units, and forecast valid time. Stale or unavailable weather degrades only the weather section and never blocks the rest of a brief; a forecast is never presented as an official alert.
+
 ### Next-action planner
 Ask: **Do you want Life Planner to keep a prioritized next-action queue so you can ask “what should I do next?” without rebuilding context?**
 Support deadlines, prerequisites, context/location, available time, user-provided constraints, blocked work, and minimum viable actions. Never infer completion from silence.

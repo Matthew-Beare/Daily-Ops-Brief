@@ -334,8 +334,16 @@ class LifeOSPolicyContractTests(unittest.TestCase):
             "appointment_reminder_day_before",
             "appointment_reminder_morning_of",
             "appointment_reminder_relative",
+            "brief_weather_enabled",
+            "brief_weather_slots",
+            "brief_weather_location_policy",
+            "brief_weather_details",
+            "brief_weather_units",
+            "brief_severe_weather_alerts",
         ):
             self.assertIn(required, ids)
+        weather = next(row for row in rows if row["id"] == "brief_weather_enabled")
+        self.assertEqual("Would you like weather included in your briefs?", weather["prompt"])
 
     def test_public_blocklist_does_not_republish_private_markers(self) -> None:
         blocklist = self.text("privacy/starter-blocklist.txt")

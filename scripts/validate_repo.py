@@ -212,7 +212,7 @@ def validate(root: Path) -> list[str]:
     require(all_terms(reminder_runtime, "day_before", "morning_of", "relative_minutes_before", "medication", "schedule_confirmed", "caregiver_sharing", "no_per_event_automations"), "reminder planner lacks appointment/medication safety contract", errors)
     feature_rows = [row for category in feature_catalog.get("categories", []) if isinstance(category, dict) for row in category.get("features", []) if isinstance(row, dict)] if isinstance(feature_catalog, dict) else []
     require(len(feature_rows) >= 70, "machine-readable feature catalog is incomplete", errors)
-    require(all_terms(feature_ledger, "bidirectional receipt/order", "namespaced upc/gtin", "medication reminders", "personal schedule & wellbeing", "hierarchical machine-readable feature catalog"), "forensic feature ledger lacks current integrated requirements", errors)
+    require(all_terms(feature_ledger, "bidirectional receipt/order", "namespaced upc/gtin", "medication reminders", "personal schedule & wellbeing", "hierarchical machine-readable feature catalog", "explicit weather-in-briefs onboarding"), "forensic feature ledger lacks current integrated requirements", errors)
     require(all_terms(asset_schema, "Evidence Index", "Asset Identifiers", "Knowledge Relationships", "Technical Specifications", "Asset Lookup Queue", "Asset Browser", "leading zeroes", "owned_by", "page/section"), "asset/evidence provider schema is incomplete", errors)
 
     # Canonical source, generated release channels, and starter state boundary.
@@ -220,7 +220,7 @@ def validate(root: Path) -> list[str]:
     require(all_terms(branding, "Life Planner (Personal-Production)", "Life-Planner-Personal-Production", "Life Planner (Public-Experimental)", "Life Planner (Institutional-Experimental)", "proper trademark/domain/app-store clearance"), "branding lacks channel names or clearance boundary", errors)
     require(all_terms(distribution_readme, "sole source of truth", "deterministic", "without force", "remote readback", "green CI", "Never patch a distribution repository by hand", "no PHI/PII"), "distribution promotion contract is incomplete", errors)
     require(all_terms(public_distribution_readme, "Public-Experimental", "public, sanitised", "not the canonical", "DEPLOYMENT_CHANNEL.json"), "public distribution overlay is incomplete", errors)
-    require(all_terms(institutional_distribution_readme, "Institutional-Experimental", "no PHI/PII in Git", "ATO", "approved runtime", "generated distribution"), "institutional distribution overlay is incomplete", errors)
+    require(all_terms(institutional_distribution_readme, "Institutional-Experimental", "no PHI/PII in Git", "ATO", "approved runtime", "generated distribution", "generic or synthetic personas"), "institutional distribution overlay is incomplete", errors)
     canonical_channel = distribution_config.get("canonical_source", {}) if isinstance(distribution_config, dict) else {}
     channel_rows = {
         row.get("channel_id"): row
@@ -264,9 +264,9 @@ def validate(root: Path) -> list[str]:
     require({"github-personal", "github-enterprise", "gitlab", "azure-repos", "managed-central-source"} <= source_ids, "platform manifest lacks source-control portability candidates", errors)
     require(all_terms(portability, "no feature parity", "ChatGPT", "Claude", "Microsoft 365", "OneDrive", "SharePoint", "Apple/iCloud", "managed central source", "provider readback"), "platform portability contract is incomplete", errors)
     require(all_terms(provider_onboarding, "Google Workspace lane", "Microsoft 365, OneDrive and SharePoint lane", "Apple and iCloud lane", "Claude and other AI runtimes", "Institutional and VA deployment", "Authority Registry", "read → write → readback", "No local OneDrive sync client", "no PHI/PII"), "provider-specific onboarding contract is incomplete", errors)
-    require(all_terms(enterprise, "Do not create a personal cloud account", "regulated-sensitive", "synthetic or public data", "read → bounded write → readback", "VA-specific deployment gate", "observed firing"), "enterprise/VA pilot contract is incomplete", errors)
+    require(all_terms(enterprise, "Do not create a personal cloud account", "regulated-sensitive", "synthetic or public data", "generic or synthetic personas", "read → bounded write → readback", "VA-specific deployment gate", "observed firing"), "enterprise/VA pilot contract is incomplete", errors)
     require(all_terms(capability_router, "organization_approved_for_data", "organization_approval_reference", "unsupported capabilities", "structured_state_readback", "calendar_readback", "observed_scheduled_firing", "managed-source-write-readback-unavailable", 'decision = "blocked"'), "provider capability router lacks fail-closed readiness gates", errors)
-    require(isinstance(install_flow, dict) and install_flow.get("version") == 3, "browser install-flow schema is stale", errors)
+    require(isinstance(install_flow, dict) and install_flow.get("version") == 4, "browser install-flow schema is stale", errors)
     require(install_flow.get("provider_onboarding_document") == "PROVIDER_ONBOARDING.md", "browser install flow lacks provider onboarding", errors)
     require(install_flow.get("upstream") == "Matthew-Beare/Life-Planner-Public-Experimental", "browser install flow points at the wrong public template", errors)
     require(set(install_flow.get("deployment_lanes", {})) == {"personal_browser", "enterprise_managed", "portable_manual"}, "browser install flow lacks exact deployment lanes", errors)
@@ -313,6 +313,9 @@ def validate(root: Path) -> list[str]:
         "asset_identifier_capture", "manual_discovery", "technical_specifications",
         "deployment_lane", "ai_runtime", "data_classification", "organization_approval",
         "source_control_mode", "provider_capability_readback",
+        "brief_weather_enabled", "brief_weather_slots",
+        "brief_weather_location_policy", "brief_weather_details",
+        "brief_weather_units", "brief_severe_weather_alerts",
     ):
         require(qid in ids, f"starter questionnaire lacks field: {qid}", errors)
 
@@ -324,6 +327,7 @@ def validate(root: Path) -> list[str]:
         "Awaiting Settlement", "Module Circuit Breaker Report", "Do you want me to send this email?",
         "old chats are deleted", "automatically update validation, commit, and push",
         "Interview Ledger", "Google Sheets", "Google Drive", "Do you want help with meal planning?",
+        "Would you like weather included in your briefs?",
         "ZoneInfo", "provider type", "morning-of", "one hour before",
     ):
         require(term.lower() in start.lower(), f"START_HERE lacks behavior: {term}", errors)

@@ -17,7 +17,7 @@ Implementation states are independent: **executable**, **skill workflow**, **con
 
 | Conversation | Feature evidence recovered |
 | --- | --- |
-| 2026-08-25 — cross-platform and VA service-chief portability | Personal users may create GitHub in the browser; Claude and other capable AI runtimes must be supported without assuming feature parity. Add Google Workspace, Microsoft 365/OneDrive/SharePoint, Apple/manual portability, organization Git or managed source, and a browser-only locked-down/regulated pilot lane. Never use a personal account to bypass corporate or VA policy. |
+| 2026-08-25 — cross-platform and institutional portability | Personal users may create GitHub in the browser; Claude and other capable AI runtimes must be supported without assuming feature parity. Add Google Workspace, Microsoft 365/OneDrive/SharePoint, Apple/manual portability, organization Git or managed source, and a browser-only locked-down/regulated pilot lane. Never use a personal account to bypass organizational policy. Demonstrations use only generic/synthetic personas and must not encode private third-party disclosures. |
 | 2026-08-25 — Foodie onboarding failure | Default onboarding must be browser-only for non-technical users; it must create a private personal repository through GitHub's template UI, distinguish ChatGPT read access from Codex write access, and never fall back to Command Prompt. Meal planning is a current requirement. Laundry stages and clothing/other drop-off pickup reminders must be explicit household-routine choices. |
 | 2026-08-21 — Action required for FL5 tire availability | Cancellation/replacement must update the canonical purchase record rather than create contradictory duplicates; vehicle/asset fitment must remain correct; absolutely no automatic email; user approval may be requested. |
 | 2026-08-15 — Platform Failure Explanation | Work-credit exhaustion and stalled runs are operational failure evidence; long work needs resumability, phase evidence, and an honest recovery path. Model/credit purchase discussion is not a LyfeOS end-user feature. |
@@ -163,6 +163,7 @@ Implementation states are independent: **executable**, **skill workflow**, **con
 | Backup/disaster recovery | REQUIRED backlog | Spec-only. |
 | Custom skill/automation builder | PROPOSED/ACCEPTED direction | Workflow/spec only. |
 | Activity trackers/wearable data | PROPOSED | Not present; connector/infrastructure dependent. |
+| Explicit weather-in-briefs onboarding with slot, location, units, detail, and severe-alert choices | CURRENT REQUIRED | Documented machine-readable onboarding and failure-isolated provider contract with CI coverage; live forecasts remain adapter/readback dependent. |
 
 ### G. Data platform, integrations, recovery, and future infrastructure
 

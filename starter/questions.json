@@ -1,5 +1,5 @@
 {
-  "version": 9,
+  "version": 10,
   "instructions": "Create and maintain the Interview Ledger described in INTERVIEW_LEDGER.md. Ask only unresolved applicable questions after the four-question kickoff. Ask no more than four related questions at a time. Factual evidence may resolve a question; preference, consent, sharing, and destructive-action questions require the user. If the conversation detours, answer the immediate request and later resume the next useful unresolved question. Mutable life state uses one selected canonical structured authority, such as Google Sheets or Microsoft Lists/Excel, plus an optional evidence store such as Google Drive or OneDrive/SharePoint. Apple/iCloud and portable files use deliberate import/export unless a verified adapter proves more. Personal or organization Git, or managed central source, versions behavior/config/schema/features rather than routine personal records. Runtime/provider names never prove capabilities, data approval, writes, scheduling, or readback.",
   "sections": [
     {
@@ -16,6 +16,12 @@
         {"id":"canonical_timezone","required":true,"prompt":"Which IANA timezone is permanently authoritative for scheduled routines even while you travel?"},
         {"id":"day_boundary","required":false,"prompt":"Does your operational day use a non-midnight boundary because of night work or another schedule?"},
         {"id":"brief_slots","required":false,"prompt":"Which recurring briefs or updates do you want, if any, and at what exact local times?"},
+        {"id":"brief_weather_enabled","required":true,"prompt":"Would you like weather included in your briefs?","applies_when":"brief_slots is not empty"},
+        {"id":"brief_weather_slots","required":false,"prompt":"If yes, which brief slots should include weather: morning, evening, both, or selected custom slots?","applies_when":"brief_weather_enabled is true"},
+        {"id":"brief_weather_location_policy","required":false,"prompt":"If yes, which location should each weather section use: one fixed place, a manually supplied place, a verified current location, or the active HOME/away context?","applies_when":"brief_weather_enabled is true"},
+        {"id":"brief_weather_details","required":false,"prompt":"Which weather details are useful: current conditions, high/low, precipitation, wind, severe alerts, or a compact summary?","applies_when":"brief_weather_enabled is true"},
+        {"id":"brief_weather_units","required":false,"prompt":"Which weather units do you prefer: US customary, metric, or provider/local defaults?","applies_when":"brief_weather_enabled is true"},
+        {"id":"brief_severe_weather_alerts","required":false,"prompt":"Should authoritative severe-weather alerts appear even when the normal forecast is omitted from that brief?","applies_when":"brief_weather_enabled is true"},
         {"id":"slot_names","required":false,"prompt":"Do AM/PM labels fit your sleep schedule, or should recurring slots have custom names?"},
         {"id":"timezone_travel_rule","required":true,"prompt":"Confirm that travel/device timezone must never silently replace the canonical scheduling timezone."},
         {"id":"canonical_clock_guard","required":true,"prompt":"Should every scheduled runtime convert the current instant into the canonical IANA timezone and verify that canonical local clock against the intended slot instead of trusting device time or a static UTC offset?"},

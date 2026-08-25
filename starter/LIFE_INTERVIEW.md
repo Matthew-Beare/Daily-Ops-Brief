@@ -217,6 +217,8 @@ When customization creates a coherent reusable feature, ask exactly: `Do you wan
 
 Ask what deserves interruption versus digest, preferred length, priority model, what stays visible until done, what disappears after acknowledgement, which sections vary by context, and degraded-module wording.
 
+For every enabled brief service, ask exactly: **Would you like weather included in your briefs?** Do not infer this preference. If yes, resolve selected slots, fixed/manual/verified-current/context location policy, units, detail level, and severe-alert behavior. Require an explicit location, source, units, and forecast valid time; stale or unavailable weather degrades only that section.
+
 Every brief should answer some combination of what changed, what needs action, what is next, and **what to do next**.
 
 ## 17. Final synthesis before provisioning

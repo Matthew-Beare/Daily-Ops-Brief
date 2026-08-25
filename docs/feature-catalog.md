@@ -132,6 +132,7 @@ Generated from `docs/feature-ledger-2026-08-24.md`. Edit the forensic ledger, th
 | `f-20` | Backup/disaster recovery | REQUIRED backlog | `specification` | `documented` |
 | `f-21` | Custom skill/automation builder | PROPOSED/ACCEPTED direction | `documented` | `documented` |
 | `f-22` | Activity trackers/wearable data | PROPOSED | `not_present` | `documented` |
+| `f-23` | Explicit weather-in-briefs onboarding with slot, location, units, detail, and severe-alert choices | CURRENT REQUIRED | `documented` | `ci_evidence` |
 
 ## G. Data platform, integrations, recovery, and future infrastructure
 

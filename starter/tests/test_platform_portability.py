@@ -255,6 +255,16 @@ class PlatformPortabilityTests(unittest.TestCase):
         ):
             self.assertIn(phrase.lower(), provider_onboarding.lower())
 
+    def test_enterprise_demo_uses_generic_synthetic_personas_only(self) -> None:
+        enterprise = self.text("ENTERPRISE_PILOT.md")
+        for phrase in (
+            "generic or synthetic personas",
+            "real viewer identities",
+            "private disclosures",
+            "inferred motives",
+        ):
+            self.assertIn(phrase, enterprise)
+
 
 if __name__ == "__main__":
     unittest.main()
