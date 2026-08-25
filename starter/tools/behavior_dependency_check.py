@@ -82,22 +82,30 @@ def _validate_profile(name: str, profile: Any) -> tuple[set[str], set[str]]:
 
 
 def _resolve_profile_reference(contracts: dict[str, Any], name: str) -> dict[str, Any]:
-    """Resolve a reusable profile or an explicit hyphenated direct capability selector."""
+    """Resolve a reusable profile or one unambiguous direct capability selector."""
 
     profiles = _mapping(contracts.get("profiles"), "profiles")
     if name in profiles:
         return _mapping(profiles[name], f"profile {name}")
 
     capability_labels = _mapping(contracts.get("capability_labels"), "capability_labels")
-    direct_capability = name.replace("-", "_")
-    if direct_capability in capability_labels:
+    selector = name.replace("-", "_")
+    candidates = [
+        capability
+        for capability in capability_labels
+        if capability == selector or capability.startswith(selector + "_")
+    ]
+    if len(candidates) == 1:
         return {
-            "required_capabilities": [direct_capability],
+            "required_capabilities": [candidates[0]],
             "optional_capabilities": [],
             "required_authorities": [],
             "optional_authorities": [],
         }
-
+    if len(candidates) > 1:
+        raise DependencyContractError(
+            f"ambiguous capability selector {name}: {', '.join(sorted(candidates))}"
+        )
     raise DependencyContractError(f"unknown dependency profile or capability selector: {name}")
 
 
