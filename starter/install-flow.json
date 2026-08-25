@@ -1,12 +1,13 @@
 {
-  "version": 2,
+  "version": 3,
   "audience": "nontechnical-browser-only",
   "entry_document": "INSTALL.md",
   "portability_document": "PLATFORM_PORTABILITY.md",
   "enterprise_document": "ENTERPRISE_PILOT.md",
   "capability_manifest": "platform-capabilities.json",
   "capability_router": "tools/provider_capability_router.py",
-  "upstream": "Matthew-Beare/Daily-Ops-Brief",
+  "provider_onboarding_document": "PROVIDER_ONBOARDING.md",
+  "upstream": "Matthew-Beare/Life-Planner-Public-Experimental",
   "copy_method": "github-template",
   "default_personal_visibility": "private",
   "deployment_lanes": {
@@ -86,6 +87,9 @@
     "source_mode",
     "structured_state_provider",
     "evidence_provider",
+    "mail_provider",
+    "calendar_provider",
+    "scheduling_provider",
     "organization_approval",
     "organization_approval_reference"
   ],

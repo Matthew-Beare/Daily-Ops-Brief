@@ -48,7 +48,7 @@ The upstream repository must have GitHub's **Template repository** setting enabl
 
 ## Naming boundary
 
-The public working name is now **Personal Ops Planner**. `Life Planner` was rejected as an automatic replacement because it is already used by current organizer products, while `LifeOS` is also actively used by multiple products. The working name is descriptive and is not represented as completed trademark clearance.
+The owner subsequently selected **Life Planner** as the working product-family name, superseding the earlier temporary naming decision. It remains a descriptive working name and is not represented as completed trademark clearance. The three explicit release-channel titles and GitHub-safe slugs are defined in `docs/BRANDING.md`.
 
 `LyfeOS Control Cycle` may remain temporarily as a reference-deployment compatibility identifier. Renaming a live scheduler/provider object requires an atomic provider migration, readback, rollback plan, and observed firing; a cosmetic source-only rename would create drift.
 

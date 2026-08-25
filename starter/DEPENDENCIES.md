@@ -1,4 +1,4 @@
-# Personal Ops Planner First-Boot Dependencies
+# Life Planner First-Boot Dependencies
 
 First boot verifies every selected dependency before claiming a module is installed. Missing access blocks only the dependent module. Before asking the user to connect anything, read `CAPABILITY_DISCOVERY.md` and inspect already available tools/connectors/plugins when the platform permits it. Never ask a non-technical user for passwords, access tokens, OAuth secrets, private keys, or full payment-card numbers.
 

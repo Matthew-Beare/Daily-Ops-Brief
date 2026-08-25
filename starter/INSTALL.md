@@ -1,4 +1,4 @@
-# Install Personal Ops Planner — Browser only, No Command Prompt
+# Install Life Planner — Browser only, No Command Prompt
 
 This is the default browser-only setup path for a non-technical user. Do **not** open Command Prompt, PowerShell, Terminal, Git Bash, or a code editor. Do **not** install Git or GitHub CLI. Do **not** copy commands, tokens, SSH keys, or passwords.
 
@@ -10,7 +10,7 @@ The personal ChatGPT/Codex lane has three separate jobs:
 
 The ordinary ChatGPT GitHub app is read-only. A read connection is useful, but it is **not** proof that Codex can commit or push.
 
-Personal Ops Planner can also run through Claude, an organization-approved Microsoft/VA AI environment, Gemini, or another capable runtime. Those runtimes do not have automatic feature parity. Read [`PLATFORM_PORTABILITY.md`](PLATFORM_PORTABILITY.md); the assistant must verify the exact runtime, connector actions, storage and readback instead of assuming them from a brand name.
+Life Planner can also run through Claude, an organization-approved Microsoft/VA AI environment, Gemini, or another capable runtime. Those runtimes do not have automatic feature parity. Read [`PROVIDER_ONBOARDING.md`](PROVIDER_ONBOARDING.md) and [`PLATFORM_PORTABILITY.md`](PLATFORM_PORTABILITY.md); the assistant must verify the exact runtime, connector actions, storage and readback instead of assuming them from a brand name.
 
 ## First — choose the deployment lane
 
@@ -59,7 +59,7 @@ Never give an assistant your GitHub password, verification code, recovery code, 
 
 The user can create this first repository entirely on GitHub's website. An assistant may create it only when the exact runtime exposes an approved repository-creation action and verifies the resulting owner, visibility, branch and commit. Default onboarding uses GitHub's browser template flow because that capability is widely available and makes the owner/visibility choice explicit.
 
-1. Open [Create your private copy](https://github.com/Matthew-Beare/Daily-Ops-Brief/generate). If GitHub instead shows the public starter, select **Use this template** and then **Create a new repository**.
+1. Open [Create your private copy](https://github.com/Matthew-Beare/Life-Planner-Public-Experimental/generate). If GitHub instead shows the public starter, select **Use this template** and then **Create a new repository**.
 2. Choose your own GitHub account as **Owner**.
 3. Give it a neutral personal name, such as `personal-organizer`.
 4. Select **Private**.
@@ -140,7 +140,18 @@ Enterprise setup blocked — use synthetic/non-sensitive data until the exact AI
 
 The first coherent personal configuration write requires the user's bounded provisioning approval. After writing, Codex must run the repository's validation and privacy gates, commit, push, read the remote commit back, and confirm CI. A failed check remains failed; it is never renamed as success.
 
-## Step 6 — Start the personal interview
+## Step 6 — Select and verify the data-provider lane
+
+Open [`PROVIDER_ONBOARDING.md`](PROVIDER_ONBOARDING.md) and choose exactly one structured-state authority plus any required evidence, mail and Calendar providers:
+
+- Google Workspace: Sheets, Drive, Gmail and Google Calendar;
+- Microsoft 365: Lists or an explicit Excel table, OneDrive/SharePoint, Outlook mail and Outlook Calendar;
+- Apple/iCloud: deliberate Files/iCloud Drive plus CSV/JSON/ICS import/export unless a specific adapter is proven; or
+- an organization-approved combination documented by the accountable sponsor.
+
+The assistant performs bounded provider read → write → readback tests with synthetic setup records. A provider badge, readable file or account login is not enough. No local sync client, command prompt or shell is required.
+
+## Step 7 — Start the personal interview
 
 Only after the lane capability readback, open [`START_HERE.md`](START_HERE.md) in the same approved runtime. Personal ChatGPT/Codex users use the project that has access to their repository. Enterprise users use the approved organization runtime and approved source/storage lane.
 

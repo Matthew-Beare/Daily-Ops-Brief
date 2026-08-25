@@ -30,6 +30,8 @@ class NontechnicalInstallationTests(unittest.TestCase):
 
     def test_template_path_creates_private_user_owned_repository(self) -> None:
         flow = self.flow()
+        self.assertEqual(3, flow["version"])
+        self.assertEqual("Matthew-Beare/Life-Planner-Public-Experimental", flow["upstream"])
         self.assertEqual("github-template", flow["copy_method"])
         self.assertEqual("private", flow["default_personal_visibility"])
         self.assertEqual("user", flow["first_repository_creation"]["default_actor"])
@@ -38,6 +40,23 @@ class NontechnicalInstallationTests(unittest.TestCase):
         self.assertFalse(flow["first_repository_creation"]["include_all_branches"])
         self.assertIn("template_missing", flow["blocked_states"])
         self.assertIn("/generate", self.text("INSTALL.md"))
+
+    def test_provider_specific_browser_onboarding_covers_non_google_lanes(self) -> None:
+        flow = self.flow()
+        self.assertEqual("PROVIDER_ONBOARDING.md", flow["provider_onboarding_document"])
+        providers = self.text("PROVIDER_ONBOARDING.md")
+        for phrase in (
+            "Google Workspace lane",
+            "Microsoft 365, OneDrive and SharePoint lane",
+            "Apple and iCloud lane",
+            "Claude and other AI runtimes",
+            "Institutional and VA deployment",
+            "No local OneDrive sync client",
+            "read → write → readback",
+        ):
+            self.assertIn(phrase, providers)
+        self.assertIn("PROVIDER_ONBOARDING.md", self.text("INSTALL.md"))
+        self.assertIn("Life-Planner-Public-Experimental/generate", self.text("INSTALL.md"))
 
     def test_read_and_write_connections_are_independent_gates(self) -> None:
         flow = self.flow()
@@ -107,10 +126,10 @@ class NontechnicalInstallationTests(unittest.TestCase):
             self.text("INSTALL.md"),
         )
         for surface in surfaces:
-            self.assertIn("Personal Ops Planner", surface)
+            self.assertIn("Life Planner", surface)
             self.assertNotIn("# LyfeOS", surface)
         branding = (ROOT.parent / "docs" / "BRANDING.md").read_text(encoding="utf-8")
-        self.assertIn("neutral working name", branding)
+        self.assertIn("owner-selected working name", branding)
         self.assertIn("compatibility identifiers", branding)
         self.assertIn("proper trademark/domain/app-store clearance", branding)
 

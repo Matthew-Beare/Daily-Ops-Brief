@@ -58,6 +58,11 @@ class PublicSourceAuditTests(unittest.TestCase):
         errors = AUDIT.scan_text("card " + number, "fixture")
         self.assertTrue(any("payment-card" in error for error in errors))
 
+    def test_luhn_like_digit_run_inside_sha256_is_not_a_card(self) -> None:
+        digest = "a" * 10 + "4111111111111111" + "b" * 38
+        self.assertEqual(64, len(digest))
+        self.assertEqual([], AUDIT.scan_text('{"sha256":"' + digest + '"}', "fixture"))
+
     def test_concrete_personal_email_is_rejected(self) -> None:
         errors = AUDIT.scan_text("forwarded by owner@personal.invalid", "fixture")
         self.assertTrue(any("personal email" in error for error in errors))

@@ -1,13 +1,13 @@
 # Personal Fork Lifecycle
 
-Personal Ops Planner is designed to be inherited, personalized, versioned, and optionally improved upstream without treating Git as the user's live database.
+Life Planner is designed to be inherited, personalized, versioned, and optionally improved upstream without treating Git as the user's live database.
 
 ## Repository lineage
 
 ```text
 public upstream GitHub template
         ↓ personal template copy OR approved organization/managed release
-user-owned, organization-owned, or managed Personal Ops Planner source
+user-owned, organization-owned, or managed Life Planner source
         ↓ first-boot source/config checkpoint
 feature/fix branches + optional experimental integration
         ↓ tested personal release
@@ -70,7 +70,7 @@ Examples:
 
 ## Portable feature candidate gate
 
-When a custom feature reaches a coherent tested checkpoint, Personal Ops Planner asks exactly:
+When a custom feature reaches a coherent tested checkpoint, Life Planner asks exactly:
 
 `Do you want to make this feature available to other people?`
 

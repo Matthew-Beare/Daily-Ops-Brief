@@ -11,16 +11,21 @@ class LifeOSPolicyContractTests(unittest.TestCase):
     def text(self, path: str) -> str:
         return (ROOT / path).read_text(encoding="utf-8")
 
-    def test_public_upstream_has_license_and_external_state_boundary(self) -> None:
+    def test_canonical_source_and_generated_public_channel_have_state_boundary(self) -> None:
         readme = self.text("README.md")
+        channels = self.text("distribution/README.md")
         license_text = self.text("LICENSE")
-        self.assertIn("intentionally public", readme)
+        self.assertIn("private repository", readme)
+        self.assertIn("sole canonical source", readme)
+        self.assertIn("Life-Planner-Public-Experimental", readme)
+        self.assertIn("Life-Planner-Institutional-Experimental", readme)
         self.assertIn("starter/START_HERE.md", readme)
         self.assertIn("Mutable operational state", readme)
         self.assertIn("Google Sheets", readme)
         self.assertIn("Google Drive", readme)
         self.assertIn("reference deployment", readme)
-        self.assertIn("public-source audit", readme)
+        self.assertIn("remote readback", channels)
+        self.assertIn("no PHI/PII", channels)
         self.assertIn("MIT License", license_text)
         self.assertIn("Permission is hereby granted", license_text)
 

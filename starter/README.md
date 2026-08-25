@@ -1,6 +1,6 @@
-# Generic Personal Ops Planner First-Boot Starter
+# Generic Life Planner First-Boot Starter
 
-This reusable onboarding kit builds a new user's Personal Ops Planner without copying the reference deployment's mutable state. The non-technical human entry point is [`INSTALL.md`](INSTALL.md); [`START_HERE.md`](START_HERE.md) begins only after deployment-lane capability verification.
+This reusable onboarding kit builds a new user's Life Planner without copying the reference deployment's mutable state. The non-technical human entry point is [`INSTALL.md`](INSTALL.md); [`START_HERE.md`](START_HERE.md) begins only after deployment-lane capability verification.
 
 ## Public distribution boundary
 
@@ -14,7 +14,7 @@ The supported starter candidates are:
 4. Google Calendar or Outlook Calendar as an optional projection/reminder surface;
 5. other integrations only when selected modules need them.
 
-Apple/iCloud is supported through browser/mobile use and manual import/export; no general automated iCloud Drive adapter is claimed. ChatGPT, Claude, Microsoft/VA AI environments, Gemini and other runtimes use the portable core only after exact capabilities are observed. Read `PLATFORM_PORTABILITY.md` and `ENTERPRISE_PILOT.md`.
+Apple/iCloud is supported through browser/mobile use and manual import/export; no general automated iCloud Drive adapter is claimed. ChatGPT, Claude, Microsoft/VA AI environments, Gemini and other runtimes use the portable core only after exact capabilities are observed. Read `PROVIDER_ONBOARDING.md`, `PLATFORM_PORTABILITY.md`, and `ENTERPRISE_PILOT.md`.
 
 A supported database may replace Sheets when deliberately selected. Read `STATE_AUTHORITY_MODEL.md`.
 
@@ -22,7 +22,7 @@ A supported database may replace Sheets when deliberately selected. Read `STATE_
 
 First boot creates an `Interview Ledger` in canonical structured state. Every question ID in `questions.json` remains tracked until it is `Answered`, `Resolved from evidence`, or `Not applicable`. `Deferred` and `Unresolved` remain open.
 
-If the user changes subjects, Personal Ops Planner answers the immediate request first, records any incidental answers, and later resumes the next useful unresolved interview item. This is defined in `INTERVIEW_LEDGER.md` and prevents a lively human conversation from quietly deleting half the setup process.
+If the user changes subjects, Life Planner answers the immediate request first, records any incidental answers, and later resumes the next useful unresolved interview item. This is defined in `INTERVIEW_LEDGER.md` and prevents a lively human conversation from quietly deleting half the setup process.
 
 ## Built-in discovery and capabilities
 
@@ -47,7 +47,7 @@ Accounts, exact schedules, taxonomy, authority IDs, repository visibility, and s
 
 ## First-boot workflow
 
-1. Complete `INSTALL.md`: select personal, enterprise-managed, or portable-manual lane; verify the exact AI runtime, data classification, source, state and evidence capabilities. Personal ChatGPT/Codex users use the GitHub template/read/write path.
+1. Complete `INSTALL.md`: select personal, enterprise-managed, or portable-manual lane; use `PROVIDER_ONBOARDING.md` to select Google, Microsoft 365/OneDrive, Apple/manual or approved equivalent resources; verify the exact AI runtime, data classification, source, state and evidence capabilities. Personal ChatGPT/Codex users use the GitHub template/read/write path.
 2. Record the observed upstream commit/provenance; never infer it from a local copy.
 3. Ask only the four kickoff questions in `START_HERE.md`.
 4. Discover existing capabilities/evidence before creating duplicate systems.
@@ -101,4 +101,4 @@ When a coherent personal feature passes tests/privacy/source checks, ask exactly
 - Automatic Git push does not imply merge/release/publication/force-push authority.
 - Completion comes from the user or reliable connected evidence, never silence.
 
-See `STATE_AUTHORITY_MODEL.md`, `INTERVIEW_LEDGER.md`, `VERSIONING.md`, `PERSONAL_FORK_LIFECYCLE.md`, `CAPABILITY_DISCOVERY.md`, `PLATFORM_PORTABILITY.md`, `ENTERPRISE_PILOT.md`, and `DEPENDENCIES.md`.
+See `STATE_AUTHORITY_MODEL.md`, `INTERVIEW_LEDGER.md`, `VERSIONING.md`, `PERSONAL_FORK_LIFECYCLE.md`, `CAPABILITY_DISCOVERY.md`, `PROVIDER_ONBOARDING.md`, `PLATFORM_PORTABILITY.md`, `ENTERPRISE_PILOT.md`, and `DEPENDENCIES.md`.

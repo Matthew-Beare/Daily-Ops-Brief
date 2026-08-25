@@ -223,6 +223,7 @@ class PlatformPortabilityTests(unittest.TestCase):
     def test_enterprise_docs_forbid_personal_account_workarounds_and_false_parity(self) -> None:
         enterprise = self.text("ENTERPRISE_PILOT.md")
         portability = self.text("PLATFORM_PORTABILITY.md")
+        provider_onboarding = self.text("PROVIDER_ONBOARDING.md")
         for phrase in (
             "Do not create a personal cloud account",
             "organization-approved",
@@ -242,6 +243,17 @@ class PlatformPortabilityTests(unittest.TestCase):
             "managed central source",
         ):
             self.assertIn(phrase.lower(), portability.lower())
+        for phrase in (
+            "Google Workspace lane",
+            "Microsoft 365, OneDrive and SharePoint lane",
+            "Apple and iCloud lane",
+            "Claude and other AI runtimes",
+            "Authority Registry",
+            "bounded read",
+            "provider record back",
+            "no PHI/PII",
+        ):
+            self.assertIn(phrase.lower(), provider_onboarding.lower())
 
 
 if __name__ == "__main__":

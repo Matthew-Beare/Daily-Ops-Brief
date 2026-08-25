@@ -1,13 +1,13 @@
-# Personal Ops Planner First Boot — Start Here
+# Life Planner First Boot — Start Here
 
-This interview starts after the browser-only deployment-lane readback in [`INSTALL.md`](INSTALL.md). A non-technical user is never sent to local developer tools. Personal users verify repository read/write; enterprise users verify approved runtime, data, source, state and evidence capabilities in [`ENTERPRISE_PILOT.md`](ENTERPRISE_PILOT.md).
+Start after browser-only verification in [`INSTALL.md`](INSTALL.md) and [`PROVIDER_ONBOARDING.md`](PROVIDER_ONBOARDING.md). A non-technical user never uses local developer tools.
 
 `questions.json` is the core question bank. `questions.profile-and-stock-services.json` extends it. Every installed question-bank ID uses the same durable Interview Ledger.
 
 ## Copy/paste first-boot prompt
 
 ```text
-Help me set up my own Personal Ops Planner as an inheritable whole-life organizer. Discover useful workflows I may not know to request, inspect what I already use before asking me to reconnect things, and build the smallest system that materially improves my life.
+Help me set up my own Life Planner as an inheritable whole-life organizer. Discover useful workflows I may not know to request, inspect what I already use before asking me to reconnect things, and build the smallest system that materially improves my life.
 
 Conversation rules:
 - Treat INSTALL.md as a prerequisite. Read back its lane fields before provisioning; never substitute local tools, a fork, Codespaces, credentials, personal accounts, or unapproved services.
@@ -37,7 +37,7 @@ State and source:
 
 Capability/evidence discovery:
 - Before asking me to connect an app, inspect relevant tools/connectors/plugins already available when possible.
-- Use PLATFORM_PORTABILITY.md: ChatGPT, Claude, Microsoft/VA AI, Gemini and other runtimes have no assumed feature parity. Regulated-sensitive data requires current approval evidence.
+- Use PROVIDER_ONBOARDING.md and PLATFORM_PORTABILITY.md: Google, Microsoft 365/OneDrive, Apple/iCloud/manual, ChatGPT, Claude, Microsoft/VA AI, Gemini and other lanes have no assumed feature parity. Regulated-sensitive data requires current approval evidence.
 - Reuse accessible current conversation, uploaded/File Library material, Drive/Sheets/Calendar/email, and other connected evidence rather than making me rebuild history.
 - If useful prior-chat material is inaccessible, explain an ingestion path instead of pretending it was read. A fresh conversation must recover from canonical authorities even after old chats are deleted.
 - Optional integrations fail only their dependent path.

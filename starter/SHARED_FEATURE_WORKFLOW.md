@@ -1,8 +1,8 @@
-# Shared Personal Ops Planner Feature Workflow
+# Shared Life Planner Feature Workflow
 
 ## Decision
 
-Personal Ops Planner is an ecosystem of personal deployments built from a stable **public upstream**. Git versions portable behavior/config/schema/tests/features. Mutable operational state stays in the deployment's selected canonical authorities, normally Sheets + Drive for the starter.
+Life Planner is an ecosystem of personal deployments built from a stable **public upstream**. Git versions portable behavior/config/schema/tests/features. Mutable operational state stays in the deployment's selected canonical authorities, normally Sheets + Drive for the starter.
 
 | Surface | Contents | Rule |
 |---|---|---|
@@ -22,7 +22,7 @@ Personal Ops Planner is an ecosystem of personal deployments built from a stable
 
 ## Personal feature lifecycle
 
-1. User identifies a problem or Personal Ops Planner discovers a useful workflow opportunity.
+1. User identifies a problem or Life Planner discovers a useful workflow opportunity.
 2. Create/modify the feature on a feature branch.
 3. Add/update policy, configuration schema, state-store schema/migrations, and tests as needed.
 4. Test against synthetic fixtures plus the deployment interfaces without copying live state into portable source.

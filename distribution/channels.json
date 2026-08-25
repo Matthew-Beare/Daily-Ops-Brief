@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "product_name": "Life Planner",
+  "canonical_source": {
+    "channel_id": "personal-production",
+    "repository": "Matthew-Beare/Life-Planner-Personal-Production",
+    "required_visibility": "private",
+    "role": "sole-source-of-truth",
+    "template_repository": false
+  },
+  "portable_paths": [
+    ".gitignore",
+    "LICENSE",
+    "docs/BRANDING.md",
+    "privacy/starter-blocklist.txt",
+    "scripts/audit_public_source.py",
+    "scripts/audit_starter_privacy.py",
+    "scripts/validate_distribution.py",
+    "starter"
+  ],
+  "forbidden_distribution_roots": [
+    "distribution",
+    "policy",
+    "project",
+    "skill",
+    "tests"
+  ],
+  "channels": [
+    {
+      "channel_id": "public-experimental",
+      "repository": "Matthew-Beare/Life-Planner-Public-Experimental",
+      "required_visibility": "public",
+      "template_repository": true,
+      "overlay": "distribution/overlays/public-experimental",
+      "allowed_runtime_data": [
+        "public",
+        "synthetic"
+      ],
+      "regulated_data_allowed_in_git": false
+    },
+    {
+      "channel_id": "institutional-experimental",
+      "repository": "Matthew-Beare/Life-Planner-Institutional-Experimental",
+      "required_visibility": "private",
+      "template_repository": false,
+      "overlay": "distribution/overlays/institutional-experimental",
+      "allowed_runtime_data": [
+        "public",
+        "synthetic",
+        "organization-approved-runtime-only"
+      ],
+      "regulated_data_allowed_in_git": false
+    }
+  ],
+  "promotion_contract": {
+    "distribution_repositories_are_sources_of_truth": false,
+    "manual_edits_to_distribution_repositories_allowed": false,
+    "source_revision_required": true,
+    "validation_required_before_publish": true,
+    "remote_readback_required": true,
+    "green_ci_required": true,
+    "force_push_allowed": false
+  }
+}

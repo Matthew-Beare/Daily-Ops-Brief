@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate and validate the hierarchical machine-readable Personal Ops Planner feature catalog."""
+"""Generate and validate the hierarchical machine-readable Life Planner feature catalog."""
 
 from __future__ import annotations
 
@@ -70,6 +70,18 @@ EVIDENCE_RULES: tuple[tuple[str, tuple[str, ...]], ...] = (
         "starter/tests/test_platform_portability.py",
         "starter/PLATFORM_PORTABILITY.md",
         "starter/ENTERPRISE_PILOT.md",
+    )),
+    (r"browser-only google, microsoft 365/onedrive, apple/icloud", (
+        "starter/PROVIDER_ONBOARDING.md",
+        "starter/INSTALL.md",
+        "starter/tests/test_platform_portability.py",
+        "starter/tests/test_nontechnical_installation.py",
+    )),
+    (r"personal-production, public-experimental, and institutional-experimental", (
+        "distribution/channels.json",
+        "scripts/build_distribution.py",
+        "scripts/validate_distribution.py",
+        "tests/test_distribution_release.py",
     )),
     (r"laundry stages and drop-off/pickup reminders", (
         "starter/questions.json",
@@ -260,7 +272,7 @@ def _text(value: Any) -> str:
 
 def render_markdown(catalog: dict[str, Any]) -> str:
     lines = [
-        "# Personal Ops Planner hierarchical feature catalog",
+        "# Life Planner hierarchical feature catalog",
         "",
         "Generated from `docs/feature-ledger-2026-08-24.md`. Edit the forensic ledger, "
         "then run `python3 scripts/feature_catalog.py --write`. CI rejects drift. Delivery "

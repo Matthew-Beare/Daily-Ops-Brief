@@ -1,8 +1,15 @@
-# Personal Ops Planner / Daily Ops Brief
+# Life Planner (Personal-Production)
 
-Personal Ops Planner is a version-controlled personal-operations framework for briefs, persistent state, receipts/orders, planning/accountability, work/context, meal planning, appointments/calendar reconciliation, assets/knowledge, travel/hobbies, and evidence-backed automation.
+Life Planner is a version-controlled personal-operations framework for briefs, persistent state, receipts/orders, planning/accountability, work/context, meal planning, appointments/calendar reconciliation, assets/knowledge, travel/hobbies, and evidence-backed automation.
 
-This repository is **intentionally public**. It is the stable upstream plus a public reference deployment. Mutable operational state does not belong in portable Git source.
+This private repository is the sole canonical source and personal-production reference deployment. It is not the public onboarding template. Mutable operational state still does not belong in Git.
+
+Two deterministic, sanitised release channels are generated from exact commits here:
+
+- [`Life-Planner-Public-Experimental`](https://github.com/Matthew-Beare/Life-Planner-Public-Experimental) — public browser template using public/synthetic portable source;
+- `Life-Planner-Institutional-Experimental` — private source-only institutional pilot channel with no PHI/PII or operational state in Git.
+
+The distribution repositories are outputs, never competing sources of truth. See [`distribution/README.md`](distribution/README.md).
 
 ## State and source architecture
 
@@ -46,14 +53,14 @@ The interview is tracked in canonical state, not merely remembered in chat. Each
 
 `Unresolved` · `Asked` · `Answered` · `Resolved from evidence` · `Not applicable` · `Deferred`
 
-Setup is complete only when every applicable question is resolved. A user may change topics freely: Personal Ops Planner handles the immediate request, records any incidental answers, then resumes the next useful open interview item later. Evidence can resolve factual questions; preferences/permissions cannot be silently inferred.
+Setup is complete only when every applicable question is resolved. A user may change topics freely: Life Planner handles the immediate request, records any incidental answers, then resumes the next useful open interview item later. Evidence can resolve factual questions; preferences/permissions cannot be silently inferred.
 
 See `starter/INTERVIEW_LEDGER.md`.
 
 ## Inherit → customize → improve → share
 
 ```text
-public Personal Ops Planner template
+public Life Planner experimental template
         ↓ browser template copy
 user Git source lineage + selected state authorities
         ↓ personal customization
@@ -67,7 +74,7 @@ public upstream PR
 
 Sharing a **feature** is different from sharing **state**. A deployment may explicitly share a whole Google authority or a scoped shared workbook/folder with another person. That is recorded and verified separately from public Git contribution.
 
-## What Personal Ops Planner can organize
+## What Life Planner can organize
 
 The adaptive interview can surface domains the user may not know to request, including:
 
@@ -109,7 +116,7 @@ Supported organizational labels can include cardiology, endocrinology, audiology
 
 Reminder profiles may include multiple reminders such as day-before, a configured morning-of local clock time, and one hour before. Calendar owns event-specific reminders rather than spawning one ChatGPT Scheduled Task per appointment.
 
-Medication reminders are independent and default off. An active regimen schedule must be explicitly confirmed from owner, prescription-label, pharmacy, or clinician evidence. Personal Ops Planner does not infer dose/timing, advise on missed doses, or share with a caregiver without explicit scope and recipient approval.
+Medication reminders are independent and default off. An active regimen schedule must be explicitly confirmed from owner, prescription-label, pharmacy, or clinician evidence. Life Planner does not infer dose/timing, advise on missed doses, or share with a caregiver without explicit scope and recipient approval.
 
 ## Receipt-linked assets and technical knowledge
 
@@ -141,12 +148,14 @@ Use the fewest authorities necessary:
 - `starter/STATE_AUTHORITY_MODEL.md` — mutable-state/evidence authority contract
 - `starter/INTERVIEW_LEDGER.md` — durable fail-forward onboarding contract
 - `starter/PLATFORM_PORTABILITY.md` — AI/storage/source portability and honest capability boundaries
+- `starter/PROVIDER_ONBOARDING.md` — browser-only Google, Microsoft 365/OneDrive, Apple/iCloud and alternative-AI setup
 - `starter/ENTERPRISE_PILOT.md` — browser-only locked-down and regulated pilot gates
 - `starter/platform-capabilities.json` — machine-readable runtime/storage/source candidates and claim rules
 - `starter/features/` — portable feature contracts/manifests
 - `skill/ops-brief-policy/` — current reference deployment policy/runtime
 - `project/INSTRUCTIONS.md.tmpl` — reference deployment bootstrap
 - `scripts/` — validation/source/privacy/bootstrap/fingerprint/import tools
+- `distribution/` — deterministic public/institutional channel definitions and overlays
 - `tests/` and `starter/tests/` — regression and portable lifecycle tests
 - `docs/feature-ledger-2026-08-24.md` — project-conversation feature inventory with requirement and implementation status kept separate
 - `docs/feature-catalog.json` and `docs/feature-catalog.md` — generated hierarchical catalog; CI rejects drift and requires code/test evidence paths for integrated claims
@@ -180,4 +189,4 @@ python3 -m unittest discover -s starter/tests -p 'test_*.py'
 - Email sending remains approval-gated.
 - CI success never substitutes for live provider readback when provider behavior matters.
 
-`main` is the stable public upstream only after repository validation, public-source audit, starter privacy audit, deterministic/runtime tests, portable feature/starter tests, and merge authority pass.
+`main` is Personal-Production only after repository validation, source/privacy audits, deterministic/runtime tests and portable feature/starter tests pass. Public and institutional releases are then built from that exact commit, independently validated, published without force, remotely read back and accepted only after green CI.

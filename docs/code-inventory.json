@@ -22,6 +22,12 @@
       "tests": ["tests/test_bootstrap.py"]
     },
     {
+      "path": "scripts/build_distribution.py",
+      "responsibility": "Build deterministic sanitised public and institutional release trees from an exact canonical source revision.",
+      "why_separate": "Release-channel projection is a publication boundary and must not be mixed with personal runtime policy or provider writes.",
+      "tests": ["tests/test_distribution_release.py"]
+    },
+    {
       "path": "scripts/feature_catalog.py",
       "responsibility": "Generate and validate the hierarchical JSON/Markdown catalog from the forensic feature ledger.",
       "why_separate": "Release-status bookkeeping is a repository gate, not personal mutable state.",
@@ -44,6 +50,12 @@
       "responsibility": "Enforce cross-file release, scheduling, authority, onboarding, policy, and schema invariants.",
       "why_separate": "Cross-document coherence is broader than any individual module test.",
       "tests": ["tests/test_contract.py"]
+    },
+    {
+      "path": "scripts/validate_distribution.py",
+      "responsibility": "Reject drift, wrong channel identity, forbidden canonical roots, mutable-state claims, and payload tampering in generated releases.",
+      "why_separate": "A generated distribution has a smaller trust boundary and different invariants from the full canonical repository.",
+      "tests": ["tests/test_distribution_release.py"]
     },
     {
       "path": "starter/tools/onboarding_profile_router.py",

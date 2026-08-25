@@ -1,4 +1,4 @@
-# Personal Ops Planner / Daily Ops Brief feature ledger — 2026-08-24 forensic audit
+# Life Planner / Daily Ops Brief feature ledger — 2026-08-24 forensic audit
 
 This ledger aggregates feature evidence from the available project-conversation set, current direct instructions, continuity/search evidence, the audited legacy `main` baseline, open GitHub backlog, and the rejected universal-onboarding experiment. It deliberately separates a user requirement from an assistant proposal and from an implementation claim. “Current status” records this repaired clean-history candidate where stated; live scheduler and provider gates remain independent of code release.
 
@@ -135,6 +135,7 @@ Implementation states are independent: **executable**, **skill workflow**, **con
 | Independent ChatGPT GitHub read and Codex GitHub write gates | CURRENT REQUIRED | Machine-readable capability/readback contract with CI coverage | Never infer write access from the read-only ChatGPT GitHub app; verify the exact personal repository and remote commit readback. |
 | Provider-neutral AI runtime capability routing | CURRENT REQUIRED | Executable fail-closed onboarding router + machine-readable contract/tests | Support ChatGPT, Claude, approved Microsoft/VA AI, Gemini, and generic MCP-capable runtimes only from observed actions and readback; never infer feature parity from brand. |
 | Personal Git, organization Git, managed-central source, and explicit no-Git lanes | CURRENT REQUIRED | Executable capability routing + browser/managed-source contracts/tests | Personal users may create GitHub in the browser; enterprise users may use approved GitHub Enterprise/GitLab/Azure Repos or a pinned managed release without a personal account. |
+| Browser-only Google, Microsoft 365/OneDrive, Apple/iCloud, and alternative-AI onboarding | CURRENT REQUIRED | Implemented provider-specific setup/readback contract with CI coverage | Keep the human out of the command line; verify exact identity, resource, permission, bounded write, readback and manual-degradation status per provider. |
 
 ### F. Life-service modules discussed or catalogued
 
@@ -171,6 +172,7 @@ Implementation states are independent: **executable**, **skill workflow**, **con
 | Google Workspace and Microsoft 365 state/evidence portability | CURRENT REQUIRED | Executable capability contract/router + documentation/tests; live tenant adapters remain capability- and readback-gated | Permit Sheets/Drive or Lists/Excel plus OneDrive/SharePoint only after exact identity, scope, bounded write, and provider readback. |
 | Apple/iCloud and portable-file manual bridge | CURRENT REQUIRED portability boundary | Contract-only, machine-validated manual lane | Support deliberate browser/mobile CSV/JSON/ICS/document import/export; do not advertise arbitrary automated iCloud Drive access. |
 | Locked-down and regulated enterprise/VA pilot lane | CURRENT REQUIRED | Executable fail-closed approval/capability gate + tested pilot contract; live tenant authorization remains unproven | Use synthetic/public data first, forbid personal-account workarounds, pin approved source, verify least-privilege read/write/readback, and require exact current organization approval for regulated-sensitive data. |
+| Personal-Production, Public-Experimental, and Institutional-Experimental release channels | CURRENT REQUIRED | Executable deterministic distribution builder/validator + CI tests; remote visibility and CI remain provider gates | Keep private Personal-Production as sole source; generate sanitised public and institutional outputs from an exact commit; never hand-edit mirrors or put PHI/PII in Git. |
 | Eventual PostgreSQL/private SQL canonical service | USER DIRECTION / INFRA | Architecture docs only | Stage migration behind API/schema/tests; no pretend bridge. |
 | Policy/data API | PROPOSED/INFRA | Architecture spec | Needed before companion app/remote consumers; authenticated and scoped. |
 | Grafana/observability dashboards | PROPOSED/INFRA | Architecture doc | Operational telemetry only; not beta-core. |
@@ -180,7 +182,7 @@ Implementation states are independent: **executable**, **skill workflow**, **con
 | Plex bridge | PROPOSED/INFRA | Not present | Optional local module. |
 | Voice queries/commands | PROPOSED/INFRA | Not present | Explicit confirmation for consequential actions. |
 | NAS/LAN/private-service bridge and VPN access | PROPOSED/INFRA | Not present | Threat model and explicit network boundary first. |
-| Family site-to-site VPN/redundancy/failover | PROPOSED | Not present | Separate infrastructure project, not beta-core Personal Ops Planner. |
+| Family site-to-site VPN/redundancy/failover | PROPOSED | Not present | Separate infrastructure project, not beta-core Life Planner. |
 | Twice-daily incremental, daily cloud, weekly full, rotation, encryption, restore tests | REQUIRED backlog | Spec-only | Define actual data set/RPO/RTO and prove restores before claiming backup. |
 | Knowledge ingestion with relevant excerpts, timestamps, URL/title/metadata, provenance, relationships, optional full pin | REQUIRED/ACCEPTED | Executable knowledge/provenance core + skill/provider workflow | Keep raw source temporary unless pinned; test retrieval/provenance and verify retained Drive objects by readback. |
 | Drive organization by domain and searchable metadata | ACCEPTED personal behavior | Skill workflow | User-specific layout stays private/configurable. |

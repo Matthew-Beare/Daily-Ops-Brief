@@ -2,7 +2,7 @@
 
 ## Outcome
 
-The public starter no longer treats ChatGPT + personal GitHub + Google Workspace as the only valid deployment. It now has a provider-neutral, browser-first capability gate for:
+The portable starter no longer treats ChatGPT + personal GitHub + Google Workspace as the only valid deployment. It now has a provider-neutral, browser-first capability gate for:
 
 - ChatGPT/Codex, Claude, approved Microsoft/VA AI, Gemini, and generic MCP-capable runtimes;
 - personal Git, organization Git, managed central source, and explicit degraded no-Git use;
@@ -33,6 +33,13 @@ Those assumptions worked for the reference deployment but break for Claude users
 - Browser onboarding supports user-created GitHub and conditionally permits assistant-created repositories only when an exact approved creation action and resulting metadata readback exist.
 - Corporate users can consume a pinned managed release without personal Git or local installation.
 - Apple/iCloud is honestly limited to deliberate import/export unless a specific adapter proves more.
+- `starter/PROVIDER_ONBOARDING.md` now gives explicit no-terminal setup and readback transactions for Google Workspace, Microsoft 365/OneDrive/SharePoint, Apple/iCloud/manual transfer, Claude and approved institutional runtimes.
+
+## Release-channel correction
+
+The full reference deployment and the portable public/regulated surfaces no longer share one repository role. `Life-Planner-Personal-Production` is the private sole source of truth. Exact commits generate sanitised `Life-Planner-Public-Experimental` and `Life-Planner-Institutional-Experimental` trees through `scripts/build_distribution.py`; `scripts/validate_distribution.py` rejects wrong channel identity, forbidden reference roots, mutable-state claims and payload drift.
+
+The institutional channel being private does not permit PHI/PII in Git. Regulated state remains in the exact approved runtime/storage only. Distribution repositories are never hand-edited or merged back as competing authorities; fixes return to Personal-Production and are promoted again after tests.
 
 ## Current external constraints
 

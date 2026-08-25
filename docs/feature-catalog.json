@@ -2,7 +2,7 @@
   "schema_version": 1,
   "catalog_version": "2026-08-25.1",
   "source": "docs/feature-ledger-2026-08-24.md",
-  "source_sha256": "28a6e1e5aa4cf9fbfedbadb36c7f2e2053d06b2dca59636e255cbb597c3c188d",
+  "source_sha256": "777de2866eae05f735541fccb365e26a53f426a714fdd9d02579f8e73768261f",
   "maintenance_rule": "Update the forensic ledger, regenerate this catalog, and commit tests/evidence for every delivery claim.",
   "status_warning": "CI evidence verifies repository behavior only; live provider deployment, permissions, scheduler firing, and mutable-state readback are separate gates.",
   "categories": [
@@ -987,6 +987,21 @@
             "starter/PLATFORM_PORTABILITY.md",
             "starter/ENTERPRISE_PILOT.md"
           ]
+        },
+        {
+          "id": "e-25",
+          "title": "Browser-only Google, Microsoft 365/OneDrive, Apple/iCloud, and alternative-AI onboarding",
+          "decision": "CURRENT REQUIRED",
+          "delivery": "documented",
+          "verification": "ci_evidence",
+          "current_status": "Implemented provider-specific setup/readback contract with CI coverage",
+          "required_disposition": "Keep the human out of the command line; verify exact identity, resource, permission, bounded write, readback and manual-degradation status per provider.",
+          "evidence_paths": [
+            "starter/PROVIDER_ONBOARDING.md",
+            "starter/INSTALL.md",
+            "starter/tests/test_platform_portability.py",
+            "starter/tests/test_nontechnical_installation.py"
+          ]
         }
       ]
     },
@@ -1304,6 +1319,21 @@
         },
         {
           "id": "g-05",
+          "title": "Personal-Production, Public-Experimental, and Institutional-Experimental release channels",
+          "decision": "CURRENT REQUIRED",
+          "delivery": "executable",
+          "verification": "ci_evidence",
+          "current_status": "Executable deterministic distribution builder/validator + CI tests; remote visibility and CI remain provider gates",
+          "required_disposition": "Keep private Personal-Production as sole source; generate sanitised public and institutional outputs from an exact commit; never hand-edit mirrors or put PHI/PII in Git.",
+          "evidence_paths": [
+            "distribution/channels.json",
+            "scripts/build_distribution.py",
+            "scripts/validate_distribution.py",
+            "tests/test_distribution_release.py"
+          ]
+        },
+        {
+          "id": "g-06",
           "title": "Eventual PostgreSQL/private SQL canonical service",
           "decision": "USER DIRECTION / INFRA",
           "delivery": "infrastructure",
@@ -1313,7 +1343,7 @@
           "evidence_paths": []
         },
         {
-          "id": "g-06",
+          "id": "g-07",
           "title": "Policy/data API",
           "decision": "PROPOSED/INFRA",
           "delivery": "infrastructure",
@@ -1323,7 +1353,7 @@
           "evidence_paths": []
         },
         {
-          "id": "g-07",
+          "id": "g-08",
           "title": "Grafana/observability dashboards",
           "decision": "PROPOSED/INFRA",
           "delivery": "infrastructure",
@@ -1333,7 +1363,7 @@
           "evidence_paths": []
         },
         {
-          "id": "g-08",
+          "id": "g-09",
           "title": "Object storage/NAS for evidence and attachments",
           "decision": "PROPOSED/INFRA",
           "delivery": "infrastructure",
@@ -1343,7 +1373,7 @@
           "evidence_paths": []
         },
         {
-          "id": "g-09",
+          "id": "g-10",
           "title": "Companion/mobile app with scanning and queries",
           "decision": "USER DIRECTION / INFRA",
           "delivery": "not_present",
@@ -1353,7 +1383,7 @@
           "evidence_paths": []
         },
         {
-          "id": "g-10",
+          "id": "g-11",
           "title": "Home Assistant bridge",
           "decision": "PROPOSED/INFRA",
           "delivery": "not_present",
@@ -1363,7 +1393,7 @@
           "evidence_paths": []
         },
         {
-          "id": "g-11",
+          "id": "g-12",
           "title": "Plex bridge",
           "decision": "PROPOSED/INFRA",
           "delivery": "not_present",
@@ -1373,7 +1403,7 @@
           "evidence_paths": []
         },
         {
-          "id": "g-12",
+          "id": "g-13",
           "title": "Voice queries/commands",
           "decision": "PROPOSED/INFRA",
           "delivery": "not_present",
@@ -1383,7 +1413,7 @@
           "evidence_paths": []
         },
         {
-          "id": "g-13",
+          "id": "g-14",
           "title": "NAS/LAN/private-service bridge and VPN access",
           "decision": "PROPOSED/INFRA",
           "delivery": "not_present",
@@ -1393,17 +1423,17 @@
           "evidence_paths": []
         },
         {
-          "id": "g-14",
+          "id": "g-15",
           "title": "Family site-to-site VPN/redundancy/failover",
           "decision": "PROPOSED",
           "delivery": "not_present",
           "verification": "documented",
           "current_status": "Not present",
-          "required_disposition": "Separate infrastructure project, not beta-core Personal Ops Planner.",
+          "required_disposition": "Separate infrastructure project, not beta-core Life Planner.",
           "evidence_paths": []
         },
         {
-          "id": "g-15",
+          "id": "g-16",
           "title": "Twice-daily incremental, daily cloud, weekly full, rotation, encryption, restore tests",
           "decision": "REQUIRED backlog",
           "delivery": "specification",
@@ -1413,7 +1443,7 @@
           "evidence_paths": []
         },
         {
-          "id": "g-16",
+          "id": "g-17",
           "title": "Knowledge ingestion with relevant excerpts, timestamps, URL/title/metadata, provenance, relationships, optional full pin",
           "decision": "REQUIRED/ACCEPTED",
           "delivery": "executable",
@@ -1428,7 +1458,7 @@
           ]
         },
         {
-          "id": "g-17",
+          "id": "g-18",
           "title": "Drive organization by domain and searchable metadata",
           "decision": "ACCEPTED personal behavior",
           "delivery": "workflow",
@@ -1438,7 +1468,7 @@
           "evidence_paths": []
         },
         {
-          "id": "g-18",
+          "id": "g-19",
           "title": "Hierarchical machine-readable feature catalog with CI drift enforcement",
           "decision": "CURRENT REQUIRED",
           "delivery": "executable",
@@ -1451,7 +1481,7 @@
           ]
         },
         {
-          "id": "g-19",
+          "id": "g-20",
           "title": "Machine-enforced production-code inventory and anti-bloat ownership gate",
           "decision": "CURRENT REQUIRED",
           "delivery": "executable",

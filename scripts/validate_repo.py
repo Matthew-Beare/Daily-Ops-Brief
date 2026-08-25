@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate coherent Personal Ops Planner public-release, starter, and reference contracts."""
+"""Validate coherent Life Planner public-release, starter, and reference contracts."""
 
 from __future__ import annotations
 
@@ -22,11 +22,17 @@ REQUIRED = (
     "docs/platform-portability-audit-2026-08-25.md",
     "docs/household-financial-reconciliation.md", "docs/lyfeos-data-model.md",
     "docs/asset-evidence-schema.md",
-    "docs/code-inventory.json",
+    "docs/code-inventory.json", "docs/BRANDING.md",
+    "distribution/README.md", "distribution/channels.json",
+    "distribution/overlays/public-experimental/README.md",
+    "distribution/overlays/public-experimental/.github/workflows/ci.yml",
+    "distribution/overlays/institutional-experimental/README.md",
+    "distribution/overlays/institutional-experimental/.github/workflows/ci.yml",
     "starter/README.md", "starter/START_HERE.md", "starter/LIFE_INTERVIEW.md",
     "starter/MODULE_CATALOG.md", "starter/DEPENDENCIES.md", "starter/VERSIONING.md",
     "starter/PERSONAL_FORK_LIFECYCLE.md", "starter/CAPABILITY_DISCOVERY.md",
-    "starter/PLATFORM_PORTABILITY.md", "starter/ENTERPRISE_PILOT.md",
+    "starter/PLATFORM_PORTABILITY.md", "starter/PROVIDER_ONBOARDING.md",
+    "starter/ENTERPRISE_PILOT.md",
     "starter/STATE_AUTHORITY_MODEL.md", "starter/INTERVIEW_LEDGER.md",
     "starter/GIT_STATE_MODEL.md", "starter/SHARED_FEATURE_WORKFLOW.md",
     "starter/config.example.json", "starter/questions.json", "starter/INSTRUCTIONS.md.tmpl",
@@ -58,6 +64,7 @@ REQUIRED = (
     "skill/ops-brief-policy/scripts/reminder_policy.py",
     "scripts/import_run_sheet.py", "scripts/audit_public_source.py",
     "scripts/audit_starter_privacy.py", "scripts/feature_catalog.py",
+    "scripts/build_distribution.py", "scripts/validate_distribution.py",
     "privacy/starter-blocklist.txt",
 )
 
@@ -136,6 +143,11 @@ def validate(root: Path) -> list[str]:
     feature_catalog = load_json("docs/feature-catalog.json")
     beta_audit = text("docs/beta-hardening-audit-2026-08-24.md")
     portability_audit = text("docs/platform-portability-audit-2026-08-25.md")
+    branding = text("docs/BRANDING.md")
+    distribution_readme = text("distribution/README.md")
+    distribution_config = load_json("distribution/channels.json")
+    public_distribution_readme = text("distribution/overlays/public-experimental/README.md")
+    institutional_distribution_readme = text("distribution/overlays/institutional-experimental/README.md")
     household = text("docs/household-financial-reconciliation.md")
     asset_schema = text("docs/asset-evidence-schema.md")
     compatibility = text("policy/ops-brief-policy.yaml")
@@ -149,6 +161,7 @@ def validate(root: Path) -> list[str]:
     lifecycle = text("starter/PERSONAL_FORK_LIFECYCLE.md")
     discovery = text("starter/CAPABILITY_DISCOVERY.md")
     portability = text("starter/PLATFORM_PORTABILITY.md")
+    provider_onboarding = text("starter/PROVIDER_ONBOARDING.md")
     enterprise = text("starter/ENTERPRISE_PILOT.md")
     capability_router = text("starter/tools/provider_capability_router.py")
     platform_manifest = load_json("starter/platform-capabilities.json")
@@ -202,8 +215,25 @@ def validate(root: Path) -> list[str]:
     require(all_terms(feature_ledger, "bidirectional receipt/order", "namespaced upc/gtin", "medication reminders", "personal schedule & wellbeing", "hierarchical machine-readable feature catalog"), "forensic feature ledger lacks current integrated requirements", errors)
     require(all_terms(asset_schema, "Evidence Index", "Asset Identifiers", "Knowledge Relationships", "Technical Specifications", "Asset Lookup Queue", "Asset Browser", "leading zeroes", "owned_by", "page/section"), "asset/evidence provider schema is incomplete", errors)
 
-    # Public upstream and starter source/state boundary.
-    require(all_terms(readme, "intentionally public", "starter/start_here.md", "google sheets", "google drive", "mutable operational state", "public-source audit"), "README lacks public-upstream/external-state boundary", errors)
+    # Canonical source, generated release channels, and starter state boundary.
+    require(all_terms(readme, "Life Planner (Personal-Production)", "private repository", "sole canonical source", "Life-Planner-Public-Experimental", "Life-Planner-Institutional-Experimental", "mutable operational state", "distribution/README.md"), "README lacks canonical-source/distribution boundary", errors)
+    require(all_terms(branding, "Life Planner (Personal-Production)", "Life-Planner-Personal-Production", "Life Planner (Public-Experimental)", "Life Planner (Institutional-Experimental)", "proper trademark/domain/app-store clearance"), "branding lacks channel names or clearance boundary", errors)
+    require(all_terms(distribution_readme, "sole source of truth", "deterministic", "without force", "remote readback", "green CI", "Never patch a distribution repository by hand", "no PHI/PII"), "distribution promotion contract is incomplete", errors)
+    require(all_terms(public_distribution_readme, "Public-Experimental", "public, sanitised", "not the canonical", "DEPLOYMENT_CHANNEL.json"), "public distribution overlay is incomplete", errors)
+    require(all_terms(institutional_distribution_readme, "Institutional-Experimental", "no PHI/PII in Git", "ATO", "approved runtime", "generated distribution"), "institutional distribution overlay is incomplete", errors)
+    canonical_channel = distribution_config.get("canonical_source", {}) if isinstance(distribution_config, dict) else {}
+    channel_rows = {
+        row.get("channel_id"): row
+        for row in distribution_config.get("channels", [])
+        if isinstance(row, dict)
+    } if isinstance(distribution_config, dict) else {}
+    promotion = distribution_config.get("promotion_contract", {}) if isinstance(distribution_config, dict) else {}
+    require(distribution_config.get("schema_version") == 1, "distribution channel schema is invalid", errors)
+    require(canonical_channel.get("repository") == "Matthew-Beare/Life-Planner-Personal-Production" and canonical_channel.get("required_visibility") == "private" and canonical_channel.get("role") == "sole-source-of-truth", "canonical Personal-Production channel is invalid", errors)
+    require(set(channel_rows) == {"public-experimental", "institutional-experimental"}, "distribution channels are incomplete", errors)
+    require(channel_rows.get("public-experimental", {}).get("repository") == "Matthew-Beare/Life-Planner-Public-Experimental" and channel_rows.get("public-experimental", {}).get("required_visibility") == "public" and channel_rows.get("public-experimental", {}).get("template_repository") is True, "public experimental channel is invalid", errors)
+    require(channel_rows.get("institutional-experimental", {}).get("repository") == "Matthew-Beare/Life-Planner-Institutional-Experimental" and channel_rows.get("institutional-experimental", {}).get("required_visibility") == "private" and channel_rows.get("institutional-experimental", {}).get("regulated_data_allowed_in_git") is False, "institutional experimental channel is invalid", errors)
+    require(promotion.get("distribution_repositories_are_sources_of_truth") is False and promotion.get("manual_edits_to_distribution_repositories_allowed") is False and promotion.get("remote_readback_required") is True and promotion.get("green_ci_required") is True and promotion.get("force_push_allowed") is False, "distribution promotion safety contract is invalid", errors)
     require(all_terms(starter_readme, "google sheets", "google drive", "interview ledger", "git", "mutable personal records"), "starter README lacks source/state/interview boundary", errors)
     require(all_terms(state_model, "google sheets", "google drive", "authority registry", "one canonical authority", "sharing state and sharing a feature are different operations"), "starter state authority model is incomplete", errors)
     require(all_terms(git_state_redirect, "git is not the default mutable personal-state database", "state_authority_model.md", "google sheets", "google drive"), "legacy Git-state document does not redirect to current authority model", errors)
@@ -233,11 +263,14 @@ def validate(root: Path) -> list[str]:
     require({"google-workspace", "microsoft-365", "apple-icloud", "portable-files"} <= storage_ids, "platform manifest lacks storage portability candidates", errors)
     require({"github-personal", "github-enterprise", "gitlab", "azure-repos", "managed-central-source"} <= source_ids, "platform manifest lacks source-control portability candidates", errors)
     require(all_terms(portability, "no feature parity", "ChatGPT", "Claude", "Microsoft 365", "OneDrive", "SharePoint", "Apple/iCloud", "managed central source", "provider readback"), "platform portability contract is incomplete", errors)
+    require(all_terms(provider_onboarding, "Google Workspace lane", "Microsoft 365, OneDrive and SharePoint lane", "Apple and iCloud lane", "Claude and other AI runtimes", "Institutional and VA deployment", "Authority Registry", "read → write → readback", "No local OneDrive sync client", "no PHI/PII"), "provider-specific onboarding contract is incomplete", errors)
     require(all_terms(enterprise, "Do not create a personal cloud account", "regulated-sensitive", "synthetic or public data", "read → bounded write → readback", "VA-specific deployment gate", "observed firing"), "enterprise/VA pilot contract is incomplete", errors)
     require(all_terms(capability_router, "organization_approved_for_data", "organization_approval_reference", "unsupported capabilities", "structured_state_readback", "calendar_readback", "observed_scheduled_firing", "managed-source-write-readback-unavailable", 'decision = "blocked"'), "provider capability router lacks fail-closed readiness gates", errors)
-    require(isinstance(install_flow, dict) and install_flow.get("version") == 2, "browser install-flow schema is stale", errors)
+    require(isinstance(install_flow, dict) and install_flow.get("version") == 3, "browser install-flow schema is stale", errors)
+    require(install_flow.get("provider_onboarding_document") == "PROVIDER_ONBOARDING.md", "browser install flow lacks provider onboarding", errors)
+    require(install_flow.get("upstream") == "Matthew-Beare/Life-Planner-Public-Experimental", "browser install flow points at the wrong public template", errors)
     require(set(install_flow.get("deployment_lanes", {})) == {"personal_browser", "enterprise_managed", "portable_manual"}, "browser install flow lacks exact deployment lanes", errors)
-    require(all(field in install_flow.get("assistant_readback_fields", []) for field in ("deployment_lane", "ai_runtime", "data_classification", "source_mode", "organization_approval", "organization_approval_reference")), "browser install flow lacks provider/approval readback", errors)
+    require(all(field in install_flow.get("assistant_readback_fields", []) for field in ("deployment_lane", "ai_runtime", "data_classification", "source_mode", "structured_state_provider", "evidence_provider", "mail_provider", "calendar_provider", "scheduling_provider", "organization_approval", "organization_approval_reference")), "browser install flow lacks provider/approval readback", errors)
 
     config = load_json("starter/config.example.json")
     require(isinstance(config, dict) and all(isinstance(k, str) and k.isupper() for k in config), "starter config keys must be uppercase", errors)
@@ -376,7 +409,7 @@ def validate(root: Path) -> list[str]:
     require(all_terms(importer, "normalize_aliases", "--aliases", "public importer deliberately carries no employer-specific corrections"), "run-sheet importer lacks explicit private alias configuration", errors)
     require("route_pair_count" in importer and '"occurrences"' not in importer, "run-sheet importer exports occurrence rows", errors)
     require(all_terms(feature_ledger, "retired/retiree profile", "parent/guardian profile", "contract-only", "spec-only", "conversation-audit limitations"), "forensic feature ledger is incomplete", errors)
-    require(all_terms(feature_ledger, "provider-neutral ai runtime capability routing", "google workspace and microsoft 365 state/evidence portability", "apple/icloud and portable-file manual bridge", "locked-down and regulated enterprise/va pilot lane"), "forensic feature ledger lacks current portability requirements", errors)
+    require(all_terms(feature_ledger, "provider-neutral ai runtime capability routing", "google workspace and microsoft 365 state/evidence portability", "apple/icloud and portable-file manual bridge", "locked-down and regulated enterprise/va pilot lane", "browser-only google, microsoft 365/onedrive, apple/icloud", "personal-production, public-experimental, and institutional-experimental"), "forensic feature ledger lacks current portability/release requirements", errors)
     require(
         all_terms(
             beta_audit,
@@ -394,7 +427,7 @@ def validate(root: Path) -> list[str]:
 
     # Starter privacy contamination blocklist.
     markers = [line.strip() for line in text("privacy/starter-blocklist.txt").splitlines() if line.strip() and not line.lstrip().startswith("#")]
-    starter_surface = "\n".join((start, interview, catalog, deps, starter_readme, versioning, lifecycle, discovery, portability, enterprise, state_model, interview_ledger, shared, generic, json.dumps(questions), json.dumps(platform_manifest), json.dumps(install_flow)))
+    starter_surface = "\n".join((start, interview, catalog, deps, starter_readme, versioning, lifecycle, discovery, portability, provider_onboarding, enterprise, state_model, interview_ledger, shared, generic, json.dumps(questions), json.dumps(platform_manifest), json.dumps(install_flow)))
     for marker in markers:
         require(marker not in starter_surface, f"portable starter leaks reference marker: {marker}", errors)
 
