@@ -35,6 +35,8 @@ This split is deliberate. Renamed or previously bootstrapped distribution reposi
 7. Perform remote readback of repository identity, visibility, `main` head, manifest, and source revision.
 8. Require each distribution's current-tree CI to be green before calling promotion complete.
 
+**Green CI is required at both the canonical-source and generated-distribution boundaries before a release is complete.**
+
 Never treat a generated distribution as an independent source of truth. Fix the canonical source and promote again.
 
 ## Data boundary
