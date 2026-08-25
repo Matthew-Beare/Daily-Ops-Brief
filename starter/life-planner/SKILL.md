@@ -24,6 +24,7 @@ If a legacy first-boot document asks what the system should be called, resolve t
 ## Route the request
 
 - Personal Google onboarding or recovery: read `references/personal-google-onboarding.md`, use `assets/personal-google-blueprint.json`, and run `scripts/google_bootstrap.py` to plan and verify the provider transaction.
+- Recurring brief schedule setup or changes: read `references/brief-schedule.md` and validate the deployment-owned schedule with `scripts/brief_schedule.py`.
 - Manual or scheduled brief/control cycle: read `references/control-cycle.md`.
 - Tasks, routines, household work, study, meal planning, profiles, goals, or next actions: read `references/planning.md`.
 - Orders, receipts, payments, shopping, inventory, assets, identifiers, manuals, or specifications: read `references/commerce-assets.md`.
@@ -60,8 +61,11 @@ A personal feature stays private by default. If the user approves sharing, sanit
 - Keep credentials, message bodies, receipts, medical records, financial records, mutable exports, and live provider IDs out of portable Git source.
 - Never send email automatically. Show recipient, subject, and complete draft, then ask `Do you want me to send this email?`.
 - Never infer medication dose/timing, health status, sharing permission, relationship authority, completion, or context mode from weak evidence.
-- Use one consolidated dispatcher for a chosen cadence. Event-specific reminders belong on one linked Calendar event, not separate automations.
-- At scheduled entry, capture the runtime clock, convert it through the deployment's IANA timezone, and verify the configured local slot.
+- The portable product has **no default brief time**. Ask the user whether they want recurring briefs and, if so, the exact local time(s), notification mode, and canonical IANA timezone.
+- Treat the user's brief schedule as non-secret durable behavior/configuration: write it to their source, validate, commit, push, remotely read back, and then reconcile the live scheduler. A later schedule change repeats that source transaction before scheduler mutation.
+- Use one logical consolidated dispatcher service for a chosen cadence. Use the fewest provider scheduler objects needed to represent the user's exact requested slots without unintended extra firings. Event-specific reminders belong on linked Calendar events, not one automation per chore.
+- At scheduled entry, capture the runtime clock, convert it through the deployment's configured IANA timezone, and verify the configured local slot. Never inherit another deployment's schedule or static UTC offset.
+- A manual brief smoke may run at any wall-clock time but must use a manual Run ID and must never count as evidence that a configured recurring slot fired.
 - A missing required authority blocks only its module. A missing optional adapter degrades only that path.
 - After two unchanged failures, an ambiguous write, a permission failure, or contradictory readback, stop that module, preserve known-good state, and report one exact next action.
 - Validate, commit, push, remotely read back, and require green CI for lasting policy/schema/test/onboarding changes when standing source-write permission exists.

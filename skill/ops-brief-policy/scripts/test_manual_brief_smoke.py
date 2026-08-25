@@ -36,21 +36,43 @@ class ManualBriefSmokeTests(unittest.TestCase):
         self.assertEqual("", fields["Effective Scheduled Instant"])
         self.assertIn("not evidence of a scheduled 02:45/14:45 firing", fields["Error / Notes"])
 
-    def test_live_manual_run_captures_runtime_clock(self) -> None:
+    def test_live_manual_run_captures_runtime_clock_and_auto_selects_current_semantics(self) -> None:
         output = manual_brief_smoke.run_manual_smoke(
             {"strict_inputs": False},
-            slot="AM",
+            slot="AUTO",
         )
         self.assertIn(output["status"], {"ok", "degraded"})
         self.assertEqual("runtime_system_clock_manual", output["manual_smoke"]["clock_source"])
+        self.assertEqual("AUTO", output["manual_smoke"]["requested_slot_semantics"])
+        self.assertIn(output["manual_smoke"]["selected_slot_semantics"], {"AM", "PM"})
+        self.assertEqual(
+            "automatic_current_eastern_half_day",
+            output["manual_smoke"]["slot_selection"],
+        )
         self.assertEqual(
             "runtime_system_clock_manual",
             output["canonical_clock_evidence"]["clock_source"],
         )
         self.assertFalse(output["canonical_clock_evidence"]["scheduled_firing_evidence"])
 
-    def test_slot_is_explicit(self) -> None:
-        with self.assertRaisesRegex(ValueError, "AM or PM"):
+    def test_auto_slot_is_deterministic_for_diagnostic_morning_and_afternoon(self) -> None:
+        morning = manual_brief_smoke.run_manual_smoke(
+            {"strict_inputs": False},
+            slot="AUTO",
+            diagnostic_now=datetime(2026, 8, 25, 12, 12, tzinfo=timezone.utc),
+        )
+        afternoon = manual_brief_smoke.run_manual_smoke(
+            {"strict_inputs": False},
+            slot="AUTO",
+            diagnostic_now=datetime(2026, 8, 25, 18, 12, tzinfo=timezone.utc),
+        )
+        self.assertEqual("AM", morning["manual_smoke"]["selected_slot_semantics"])
+        self.assertEqual("PM", afternoon["manual_smoke"]["selected_slot_semantics"])
+        self.assertIn(morning["status"], {"ok", "degraded"})
+        self.assertIn(afternoon["status"], {"ok", "degraded"})
+
+    def test_slot_must_be_auto_am_or_pm(self) -> None:
+        with self.assertRaisesRegex(ValueError, "AUTO, AM, or PM"):
             manual_brief_smoke.run_manual_smoke(
                 {"strict_inputs": False},
                 slot="NOON",

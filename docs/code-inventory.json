@@ -70,6 +70,12 @@
       "tests": ["starter/tests/test_platform_portability.py"]
     },
     {
+      "path": "starter/life-planner/scripts/brief_schedule.py",
+      "responsibility": "Validate deployment-owned arbitrary brief slots and compare live scheduler readback to the exact version-controlled user configuration without product-default times.",
+      "why_separate": "Recurring timing is durable deployment configuration and scheduler projection, distinct from provider-state bootstrap and brief content rendering.",
+      "tests": ["starter/tests/test_brief_schedule.py"]
+    },
+    {
       "path": "starter/life-planner/scripts/google_bootstrap.py",
       "responsibility": "Generate and verify deterministic module-scoped Personal Google workbook, folder, identity, source, Calendar, Gmail, and scheduler bootstrap evidence.",
       "why_separate": "Live provider provisioning has a distinct fail-closed readback boundary from profile routing and generic capability selection.",
