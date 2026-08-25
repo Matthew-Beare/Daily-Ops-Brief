@@ -1,25 +1,69 @@
-# Product naming
+# MIRA | MIRROR
 
-## Current working name
+## Brand contract
 
-**Life Planner** is the owner-selected working name for the product family and non-technical onboarding.
+**MIRROR is the reality layer. MIRA is the intelligence layer.**
 
-It is deliberately descriptive rather than presented as a cleared trademark. Before a commercial launch, perform a proper trademark/domain/app-store clearance for the final distinctive name. A web search is not legal clearance.
+**MIRA is the assistant. MIRROR is the system.**
 
-## Repository-channel names
+Default assistant name: **MIRA**. Normal prose may use **Mira**.  
+Signature line: **MIRA, MIRROR on the wall...**
 
-- Human title: **Life Planner (Personal-Production)**; GitHub slug: `Life-Planner-Personal-Production`.
-- Human title: **Life Planner (Public-Experimental)**; GitHub slug: `Life-Planner-Public-Experimental`.
-- Human title: **Life Planner (Institutional-Experimental)**; GitHub slug: `Life-Planner-Institutional-Experimental`.
+### MIRROR layer
 
-GitHub repository slugs cannot contain spaces or parentheses, so the human titles and slugs deliberately differ. Personal-Production is the private canonical source. Public-Experimental and Institutional-Experimental are generated distribution channels.
+MIRROR owns the evidence-backed model of reality:
 
-## Per-user name
+- memory;
+- integrations;
+- evidence;
+- Reality Record;
+- reconciliation; and
+- provenance.
 
-Every personal deployment asks the owner what their own system should be called. That private name belongs in mutable deployment configuration/state and does not rename or contaminate the public upstream.
+### MIRA layer
+
+MIRA owns the intelligence surface:
+
+- conversation;
+- reasoning;
+- planning;
+- recommendations; and
+- execution.
+
+MIRA must reason from MIRROR's verified reality. Inference may be proposed, but it must not silently become canonical state.
+
+## Release-channel branding
+
+The intended human-facing names are:
+
+- **MIRROR Personal-Production**;
+- **MIRROR Personal-Experimental**; and
+- **MIRROR Institutional-Experimental**.
+
+The intended branded repository slugs are:
+
+- `MIRROR-Personal-Production`;
+- `MIRROR-Personal-Experimental`; and
+- `MIRROR-Institutional-Experimental`.
+
+Every channel uses the same portable application code from the same canonical source revision. Differences are limited to visibility, deployment policy, approved runtime/provider configuration, data classification, and mutable external state. Do not maintain channel-specific feature forks.
+
+## New-user naming
+
+A new deployment does **not** ask the user to invent the product or assistant name. The defaults are MIRROR and MIRA. A user may later choose a private assistant alias, but that mutable preference does not rename upstream source or the product.
 
 ## Legacy compatibility identifiers
 
-The current reference deployment may still contain `LyfeOS Control Cycle`, `Daily Ops Brief` or `Personal Ops Planner` as an automation title, policy key, path, historical evidence label or compatibility alias. Those are compatibility identifiers, not the current product name.
+**Life Planner** is the former owner-selected working name. During bounded migration, the following may remain as compatibility identifiers in paths, package IDs, automation titles, tests, history, or generated-release metadata:
 
-Do not rename the live automation, provider resources, Drive folders, schema keys, or historical references as a cosmetic bulk edit. Migrate each live identifier only in a bounded transaction with dependency inspection, provider readback, rollback, and observed scheduled execution. Source documentation should label such identifiers as legacy when confusion is possible.
+- `life-planner`;
+- `Life Planner (Personal-Production)` / `Life-Planner-Personal-Production`;
+- `Life Planner (Public-Experimental)` / `Life-Planner-Public-Experimental`;
+- `Life Planner (Institutional-Experimental)` / `Life-Planner-Institutional-Experimental`;
+- `LyfeOS Control Cycle`;
+- `Daily Ops Brief`; and
+- `Personal Ops Planner`.
+
+Do not perform a cosmetic bulk rename of live automations, provider resources, schema keys, historical evidence, or installed package IDs. Migrate each live identifier only with dependency inspection, rollback, provider/source readback, and observed scheduled execution where relevant.
+
+Before commercial launch, perform proper trademark/domain/app-store clearance for the final public brand. A repository rename or web search is not legal clearance.

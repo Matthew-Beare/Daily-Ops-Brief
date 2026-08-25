@@ -1,9 +1,13 @@
 {
   "schema_version": 1,
   "product_name": "Life Planner",
+  "brand_product_name": "MIRROR",
+  "assistant_default_name": "MIRA",
   "canonical_source": {
     "channel_id": "personal-production",
     "repository": "Matthew-Beare/Life-Planner-Personal-Production",
+    "brand_repository": "Matthew-Beare/MIRROR-Personal-Production",
+    "display_name": "MIRROR Personal-Production",
     "required_visibility": "private",
     "role": "sole-source-of-truth",
     "template_repository": false
@@ -28,7 +32,9 @@
   "channels": [
     {
       "channel_id": "public-experimental",
+      "display_name": "MIRROR Personal-Experimental",
       "repository": "Matthew-Beare/Life-Planner-Public-Experimental",
+      "brand_repository": "Matthew-Beare/MIRROR-Personal-Experimental",
       "required_visibility": "public",
       "template_repository": true,
       "overlay": "distribution/overlays/public-experimental",
@@ -40,7 +46,9 @@
     },
     {
       "channel_id": "institutional-experimental",
+      "display_name": "MIRROR Institutional-Experimental",
       "repository": "Matthew-Beare/Life-Planner-Institutional-Experimental",
+      "brand_repository": "Matthew-Beare/MIRROR-Institutional-Experimental",
       "required_visibility": "private",
       "template_repository": false,
       "overlay": "distribution/overlays/institutional-experimental",
@@ -52,6 +60,17 @@
       "regulated_data_allowed_in_git": false
     }
   ],
+  "shared_code_contract": {
+    "same_portable_source_revision_required": true,
+    "channel_specific_feature_code_allowed": false,
+    "allowed_channel_differences": [
+      "visibility",
+      "deployment-policy",
+      "approved-runtime-provider-config",
+      "data-classification",
+      "mutable-external-state"
+    ]
+  },
   "promotion_contract": {
     "distribution_repositories_are_sources_of_truth": false,
     "manual_edits_to_distribution_repositories_allowed": false,
