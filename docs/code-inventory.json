@@ -70,6 +70,12 @@
       "tests": ["starter/tests/test_platform_portability.py"]
     },
     {
+      "path": "starter/tools/feature_reconciliation.py",
+      "responsibility": "Maintain feature ownership/lineage and dependency maps, audit required and optional capabilities, detect consolidation candidates, and produce non-mutating user-in-the-loop upgrade proposals that preserve local behavior by default.",
+      "why_separate": "Upstream reconciliation is a source-upgrade safety boundary; it must not be coupled to mutable runtime state or provider-specific onboarding.",
+      "tests": ["starter/tests/test_feature_reconciliation.py"]
+    },
+    {
       "path": "starter/life-planner/scripts/brief_schedule.py",
       "responsibility": "Validate deployment-owned arbitrary brief slots and compare live scheduler readback to the exact version-controlled user configuration without product-default times.",
       "why_separate": "Recurring timing is durable deployment configuration and scheduler projection, distinct from provider-state bootstrap and brief content rendering.",
