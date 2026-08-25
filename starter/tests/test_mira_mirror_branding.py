@@ -15,9 +15,35 @@ class MiraMirrorBrandingTests(unittest.TestCase):
 
     def test_brand_contract_is_explicit(self) -> None:
         branding = (REPO / "docs/BRANDING.md").read_text(encoding="utf-8")
-        self.assertIn("MIRROR is the reality layer. MIRA is the intelligence layer.", branding)
-        self.assertIn("MIRA is the assistant. MIRROR is the system.", branding)
-        self.assertIn("MIRA, MIRROR on the wall", branding)
+        self.assertIn("Memory, Integration, Reality, Reconciliation, Observation, and Record", branding)
+        self.assertIn("MIRROR Intelligence and Reasoning Assistant", branding)
+        self.assertIn("holds the durable reflection of reality", branding)
+        self.assertIn("Magic MIRA on the wall", branding)
+        self.assertNotIn("Signature line:", branding)
+
+    def test_public_readme_explains_brand_and_scope_up_front(self) -> None:
+        readme = (REPO / "README.md").read_text(encoding="utf-8")
+        self.assertIn("Memory, Integration, Reality, Reconciliation, Observation, and Record", readme)
+        self.assertIn("MIRROR Intelligence and Reasoning Assistant", readme)
+        self.assertIn("holds the durable reflection of reality", readme)
+        self.assertIn("Magic MIRA on the wall", readme)
+        self.assertNotIn("Signature line:", readme)
+        for term in ("assets", "finances", "calendars", "email", "orders", "appointments", "medications"):
+            self.assertIn(term, readme.lower())
+
+    def test_skill_creation_and_sharing_are_explicit(self) -> None:
+        readme = (REPO / "README.md").read_text(encoding="utf-8")
+        workflow = self.text("SHARED_FEATURE_WORKFLOW.md")
+        for text in (
+            "feature branch",
+            "synthetic fixtures",
+            "Do you want to make this feature available to other people?",
+            "upstream pull request",
+        ):
+            self.assertIn(text, readme)
+            self.assertIn(text, workflow)
+        self.assertIn("private by default", readme.lower())
+        self.assertIn("explicit publication approval", workflow)
 
     def test_default_front_door_is_boomer_safe(self) -> None:
         flow = json.loads(self.text("install-flow.json"))
@@ -31,6 +57,7 @@ class MiraMirrorBrandingTests(unittest.TestCase):
         self.assertIn("Git is version history.", guide)
         self.assertIn("GitHub is the website", guide)
         self.assertIn("No Command Prompt", guide)
+        self.assertIn("Make M.I.R.R.O.R. do something new", guide)
         self.assertNotIn("git clone ", guide.lower())
         self.assertNotIn("gh repo create", guide.lower())
 
@@ -38,18 +65,21 @@ class MiraMirrorBrandingTests(unittest.TestCase):
         skill = self.text("life-planner/SKILL.md")
         agent = self.text("life-planner/agents/openai.yaml")
         self.assertIn("name: life-planner", skill)
-        self.assertIn("MIRROR is the reality layer. MIRA is the intelligence layer.", skill)
+        self.assertIn("Memory, Integration, Reality, Reconciliation, Observation, and Record", skill)
         self.assertIn("ask the user to invent a system name: **false**", skill)
-        self.assertIn('display_name: "MIRA | MIRROR"', agent)
+        self.assertIn('display_name: "MIRA | M.I.R.R.O.R."', agent)
 
-    def test_release_channels_share_one_code_line(self) -> None:
+    def test_release_channels_share_one_code_line_and_are_public(self) -> None:
         config = json.loads((REPO / "distribution/channels.json").read_text(encoding="utf-8"))
         self.assertEqual("MIRROR", config["brand_product_name"])
         self.assertEqual("MIRA", config["assistant_default_name"])
-        self.assertEqual("Matthew-Beare/MIRROR-Personal-Production", config["canonical_source"]["brand_repository"])
+        self.assertEqual("Matthew-Beare/MIRA-Personal-Production", config["canonical_source"]["repository"])
+        self.assertEqual("public", config["canonical_source"]["required_visibility"])
         channels = {row["channel_id"]: row for row in config["channels"]}
-        self.assertEqual("Matthew-Beare/MIRROR-Personal-Experimental", channels["public-experimental"]["brand_repository"])
-        self.assertEqual("Matthew-Beare/MIRROR-Institutional-Experimental", channels["institutional-experimental"]["brand_repository"])
+        self.assertEqual("Matthew-Beare/MIRA-Public-Experimental", channels["public-experimental"]["repository"])
+        self.assertEqual("Matthew-Beare/MIRA-Institutional-Experimental", channels["institutional-experimental"]["repository"])
+        self.assertEqual("public", channels["public-experimental"]["required_visibility"])
+        self.assertEqual("public", channels["institutional-experimental"]["required_visibility"])
         shared = config["shared_code_contract"]
         self.assertTrue(shared["same_portable_source_revision_required"])
         self.assertFalse(shared["channel_specific_feature_code_allowed"])

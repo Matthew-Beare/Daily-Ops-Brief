@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate an immutable generated Life Planner distribution tree and its channel contract."""
+"""Validate an immutable generated M.I.R.R.O.R. distribution tree and its channel contract."""
 
 from __future__ import annotations
 
@@ -15,14 +15,16 @@ MANIFEST_PATH = Path("DEPLOYMENT_CHANNEL.json")
 REVISION_RE = re.compile(r"^[0-9a-f]{40}$")
 CHANNELS: dict[str, dict[str, Any]] = {
     "public-experimental": {
-        "repository": "Matthew-Beare/Life-Planner-Public-Experimental",
+        "repository": "Matthew-Beare/MIRA-Public-Experimental",
         "visibility": "public",
         "template": True,
+        "title": "M.I.R.R.O.R. Personal-Experimental",
     },
     "institutional-experimental": {
-        "repository": "Matthew-Beare/Life-Planner-Institutional-Experimental",
-        "visibility": "private",
+        "repository": "Matthew-Beare/MIRA-Institutional-Experimental",
+        "visibility": "public",
         "template": False,
+        "title": "M.I.R.R.O.R. Institutional-Experimental",
     },
 }
 REQUIRED_FILES = {
@@ -36,6 +38,8 @@ REQUIRED_FILES = {
     "scripts/audit_public_source.py",
     "scripts/audit_starter_privacy.py",
     "scripts/validate_distribution.py",
+    "starter/QUICK_START.md",
+    "starter/SHARED_FEATURE_WORKFLOW.md",
     "starter/INSTALL.md",
     "starter/PROVIDER_ONBOARDING.md",
     "starter/ENTERPRISE_PILOT.md",
@@ -114,22 +118,22 @@ def validate(
         contract = {}
     if manifest.get("schema_version") != 1:
         errors.append("manifest schema_version must equal 1")
-    if manifest.get("product_name") != "Life Planner":
-        errors.append("manifest product_name must equal Life Planner")
+    if manifest.get("product_name") != "M.I.R.R.O.R.":
+        errors.append("manifest product_name must equal M.I.R.R.O.R.")
     if manifest.get("repository") != contract.get("repository"):
         errors.append("manifest repository does not match channel")
     if manifest.get("required_visibility") != contract.get("visibility"):
         errors.append("manifest visibility does not match channel")
     if manifest.get("template_repository") is not contract.get("template"):
         errors.append("manifest template flag does not match channel")
-    if manifest.get("canonical_source_repository") != "Matthew-Beare/Life-Planner-Personal-Production":
+    if manifest.get("canonical_source_repository") != "Matthew-Beare/MIRA-Personal-Production":
         errors.append("manifest canonical source repository is incorrect")
     if not REVISION_RE.fullmatch(str(manifest.get("canonical_source_revision", ""))):
         errors.append("manifest canonical source revision is not a full lowercase commit SHA")
     if manifest.get("generated_distribution") is not True:
         errors.append("distribution must declare generated_distribution=true")
     if manifest.get("manual_edits_allowed") is not False:
-        errors.append("distribution must forbid manual edits")
+        errors.append("distribution must forbid manual drift")
     if manifest.get("contains_runtime_state") is not False:
         errors.append("distribution must declare contains_runtime_state=false")
     if manifest.get("regulated_data_allowed_in_git") is not False:
@@ -158,13 +162,9 @@ def validate(
     provider_path = root / "starter/PROVIDER_ONBOARDING.md"
     readme = readme_path.read_text(encoding="utf-8") if readme_path.is_file() else ""
     providers = provider_path.read_text(encoding="utf-8") if provider_path.is_file() else ""
-    if channel_id and f"Life Planner ({channel_id.title().replace('-', '-')})" not in readme:
-        expected_title = {
-            "public-experimental": "Life Planner (Public-Experimental)",
-            "institutional-experimental": "Life Planner (Institutional-Experimental)",
-        }.get(channel_id, "")
-        if expected_title and expected_title not in readme:
-            errors.append("channel README title is incorrect")
+    expected_title = contract.get("title")
+    if expected_title and expected_title not in readme:
+        errors.append("channel README title is incorrect")
     for term in ("Google Workspace", "Microsoft 365", "OneDrive", "Apple/iCloud", "Claude"):
         if term.lower() not in providers.lower():
             errors.append(f"provider onboarding lacks: {term}")

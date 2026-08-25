@@ -47,6 +47,8 @@ class DistributionReleaseTests(unittest.TestCase):
                     self.assertFalse((output / "project").exists())
                     self.assertFalse((output / "policy").exists())
                     self.assertTrue((output / "starter/PROVIDER_ONBOARDING.md").is_file())
+                    self.assertTrue((output / "starter/QUICK_START.md").is_file())
+                    self.assertTrue((output / "starter/SHARED_FEATURE_WORKFLOW.md").is_file())
                     self.assertTrue((output / "starter/life-planner/SKILL.md").is_file())
                     self.assertTrue((output / "starter/life-planner/scripts/google_bootstrap.py").is_file())
 
@@ -85,16 +87,19 @@ class DistributionReleaseTests(unittest.TestCase):
             (cache / "module.cpython-312.pyc").write_bytes(b"ignored cache")
             self.assertEqual([], VALIDATOR.validate(output))
 
-    def test_channel_contract_has_one_canonical_source_and_no_manual_edits(self) -> None:
+    def test_channel_contract_has_one_public_canonical_source_and_public_onboarding_repos(self) -> None:
         config = json.loads((ROOT / "distribution/channels.json").read_text(encoding="utf-8"))
         self.assertEqual("sole-source-of-truth", config["canonical_source"]["role"])
-        self.assertEqual("private", config["canonical_source"]["required_visibility"])
+        self.assertEqual("public", config["canonical_source"]["required_visibility"])
+        self.assertEqual("Matthew-Beare/MIRA-Personal-Production", config["canonical_source"]["repository"])
         self.assertFalse(config["promotion_contract"]["manual_edits_to_distribution_repositories_allowed"])
         self.assertFalse(config["promotion_contract"]["force_push_allowed"])
         channels = {row["channel_id"]: row for row in config["channels"]}
         self.assertEqual("public", channels["public-experimental"]["required_visibility"])
+        self.assertEqual("public", channels["institutional-experimental"]["required_visibility"])
+        self.assertEqual("Matthew-Beare/MIRA-Public-Experimental", channels["public-experimental"]["repository"])
+        self.assertEqual("Matthew-Beare/MIRA-Institutional-Experimental", channels["institutional-experimental"]["repository"])
         self.assertTrue(channels["public-experimental"]["template_repository"])
-        self.assertEqual("private", channels["institutional-experimental"]["required_visibility"])
         self.assertFalse(channels["institutional-experimental"]["regulated_data_allowed_in_git"])
 
 

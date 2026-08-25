@@ -1,20 +1,20 @@
-# MIRA | MIRROR release channels
+# MIRA | M.I.R.R.O.R. release channels
 
-MIRROR uses one canonical source and two generated experimental distributions. **MIRA is the assistant; MIRROR is the system.** Generated distributions are deterministic products of one exact canonical source revision.
+M.I.R.R.O.R. uses one canonical source and two generated experimental distributions. **M.I.R.R.O.R. is the reality layer; MIRA is the intelligence layer.** Generated distributions are deterministic products of one exact canonical source revision.
 
-| Human channel | Branded target | Current compatibility repository ID | Visibility | Purpose |
-|---|---|---|---|---|
-| MIRROR Personal-Production | `MIRROR-Personal-Production` | `Life-Planner-Personal-Production` | Private | Sole source of truth |
-| MIRROR Personal-Experimental | `MIRROR-Personal-Experimental` | `Life-Planner-Public-Experimental` | Public | Sanitised browser template |
-| MIRROR Institutional-Experimental | `MIRROR-Institutional-Experimental` | `Life-Planner-Institutional-Experimental` | Private | Sanitised institutional pilot source/config |
+All three GitHub repositories are public onboarding surfaces. Public visibility is for installation, inspection, and contribution. It never authorizes live personal, regulated, or operational data in Git.
 
-The compatibility repository IDs remain in the machine release contract until the branded repositories actually exist and their identity, visibility, branch, commit, and CI are remotely read back. Do not point users at repository names that have not been created.
+| Human channel | Repository | Visibility | Purpose |
+|---|---|---|---|
+| M.I.R.R.O.R. Personal-Production | `MIRA-Personal-Production` | Public | Sole canonical source |
+| M.I.R.R.O.R. Personal-Experimental | `MIRA-Public-Experimental` | Public | Sanitised browser-first personal onboarding distribution |
+| M.I.R.R.O.R. Institutional-Experimental | `MIRA-Institutional-Experimental` | Public | Sanitised institutional pilot source/config with no live regulated data |
 
 ## Same-code invariant
 
-All three channels use the **same portable application code from the same canonical source revision**. No channel may carry its own feature fork. Differences are limited to repository visibility, deployment policy, approved runtime/provider configuration, data classification, and mutable external state.
+All three channels use the **same portable application code from the same canonical source revision**. No channel may carry its own feature fork. Differences are limited to deployment policy, approved runtime/provider configuration, data classification, and mutable external state.
 
-Separate repositories exist for security and distribution boundaries, not because they are separate products.
+Separate repositories exist for onboarding and distribution boundaries, not because they are separate products.
 
 ## Promotion transaction
 
@@ -22,12 +22,12 @@ Separate repositories exist for security and distribution boundaries, not becaus
 2. Commit and push it without force.
 3. Build each distribution from that exact 40-character source commit.
 4. Run distribution validation, source/privacy audits, and portable starter tests.
-5. Publish the exact generated trees without manual edits.
+5. Publish the exact generated trees without manual drift.
 6. Perform remote readback of repository identity, visibility, `main` head, manifest, and source revision.
 7. Require green CI before calling promotion complete.
 
-Never patch a distribution repository by hand. Fix the canonical source and promote again.
+Never treat a generated distribution as an independent source of truth. Fix the canonical source and promote again.
 
 ## Data boundary
 
-Git contains source, policy, schemas, migrations, synthetic fixtures, and non-secret configuration. It contains no PHI/PII or mutable operational state. Regulated data may exist only in the exact approved runtime and storage for that purpose.
+Public Git contains portable source, policy, schemas, migrations, synthetic fixtures, and non-secret configuration only. It contains no PHI/PII, credentials, private provider evidence, or mutable operational state. Regulated or private data may exist only in the exact approved runtime and storage for that purpose.
