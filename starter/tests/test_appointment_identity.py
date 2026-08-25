@@ -19,7 +19,7 @@ def candidate(**overrides):
         "raw_title": "Appointment with Smith Clinic",
         "person_or_organization_name": "Smith Clinic",
         "start_at": "2026-09-01T10:00:00-04:00",
-        "email": "office@example.invalid",
+        "email": "synthetic-contact-token",
     }
     row.update(overrides)
     return row
@@ -32,7 +32,7 @@ def directory():
         "entity_type": "medical_practice",
         "category_or_specialty": "Cardiology",
         "aliases": ["Smith Clinic"],
-        "contact_identifiers": {"email": "office@example.invalid"},
+        "contact_identifiers": {"email": "synthetic-contact-token"},
         "source_bindings": [],
         "provenance": [{"kind": "fixture"}],
         "verification_status": "verified",
