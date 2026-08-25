@@ -125,6 +125,8 @@ class DistributionReleaseTests(unittest.TestCase):
 
     def test_distribution_artifacts_run_target_ci_and_finish_clean(self) -> None:
         workflow = (ROOT / ".github/workflows/build-distributions.yml").read_text(encoding="utf-8")
+        self.assertIn("pull_request:", workflow)
+        self.assertEqual(2, workflow.count("if: github.event_name != 'pull_request'"))
         self.assertEqual(2, workflow.count("include-hidden-files: true"))
         self.assertIn('cd "$RUNNER_TEMP/MIRA-Public-Experimental"', workflow)
         self.assertIn('cd "$RUNNER_TEMP/MIRA-Institutional-Experimental"', workflow)
