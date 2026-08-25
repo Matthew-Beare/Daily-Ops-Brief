@@ -123,12 +123,16 @@ class DistributionReleaseTests(unittest.TestCase):
         self.assertIn("current generated tree", release_doc)
         self.assertIn("no-force-push", release_doc)
 
-    def test_distribution_artifacts_include_hidden_payload_and_tree_audits(self) -> None:
+    def test_distribution_artifacts_run_target_ci_before_upload(self) -> None:
         workflow = (ROOT / ".github/workflows/build-distributions.yml").read_text(encoding="utf-8")
         self.assertEqual(2, workflow.count("include-hidden-files: true"))
-        self.assertEqual(2, workflow.count("scripts/audit_public_source.py"))
-        self.assertIn("MIRA-Public-Experimental/scripts/audit_public_source.py", workflow)
-        self.assertIn("MIRA-Institutional-Experimental/scripts/audit_public_source.py", workflow)
+        self.assertIn('cd "$RUNNER_TEMP/MIRA-Public-Experimental"', workflow)
+        self.assertIn('cd "$RUNNER_TEMP/MIRA-Institutional-Experimental"', workflow)
+        self.assertEqual(2, workflow.count("python3 scripts/audit_public_source.py ."))
+        self.assertEqual(2, workflow.count("python3 scripts/audit_starter_privacy.py starter"))
+        self.assertEqual(2, workflow.count("python3 scripts/validate_distribution.py ."))
+        self.assertEqual(2, workflow.count("python3 starter/tools/validate_feature_manifest.py --check-files"))
+        self.assertEqual(2, workflow.count("python3 -m unittest discover -s starter/tests -p 'test_*.py'"))
 
 
 if __name__ == "__main__":
