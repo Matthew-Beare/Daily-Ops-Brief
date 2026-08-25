@@ -24,6 +24,92 @@ class FeatureReconciliationTests(unittest.TestCase):
         self.assertEqual("keep-current", committed["policy"]["local_behavior_default"])
         self.assertFalse(committed["policy"]["automatic_local_feature_deletion"])
 
+    def test_register_new_user_feature_records_owner_and_refreshes_map(self) -> None:
+        manifest = {
+            "id": "garage-helper",
+            "version": "1.0.0",
+            "summary": "Garage helper",
+            "dependencies": [],
+            "runtime_contract": {
+                "required_capabilities": ["structured-state-authority"],
+                "optional_capabilities": ["drive-evidence"],
+                "conditional_capabilities": {},
+                "failure_domain": "garage-helper",
+            },
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            feature_dir = root / "features" / "garage-helper"
+            feature_dir.mkdir(parents=True)
+            (feature_dir / "feature.json").write_text(json.dumps(manifest), encoding="utf-8")
+            (root / "features.lock.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "default_conflict_policy": "preserve-local-and-ask",
+                        "default_rollback_policy": "checkpoint-before-change",
+                        "features": {},
+                    }
+                ),
+                encoding="utf-8",
+            )
+            dependency_map = feature_reconciliation.register_feature(root, "garage-helper", "user")
+            lock = json.loads((root / "features.lock.json").read_text(encoding="utf-8"))
+            row = lock["features"]["garage-helper"]
+            self.assertEqual("user", row["owner"])
+            self.assertEqual("user", row["origin"])
+            self.assertIsNone(row["upstream_feature_id"])
+            self.assertEqual("preserve-local-and-ask", row["conflict_policy"])
+            self.assertTrue((root / "feature-dependency-map.json").is_file())
+            self.assertEqual("user", dependency_map["features"]["garage-helper"]["owner"])
+
+    def test_register_refuses_silent_ownership_transfer(self) -> None:
+        manifest = {
+            "id": "garage-helper",
+            "version": "1.0.0",
+            "summary": "Garage helper",
+            "dependencies": [],
+            "runtime_contract": {
+                "required_capabilities": [],
+                "optional_capabilities": [],
+                "conditional_capabilities": {},
+                "failure_domain": "garage-helper",
+            },
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            feature_dir = root / "features" / "garage-helper"
+            feature_dir.mkdir(parents=True)
+            (feature_dir / "feature.json").write_text(json.dumps(manifest), encoding="utf-8")
+            (root / "features.lock.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "default_conflict_policy": "preserve-local-and-ask",
+                        "default_rollback_policy": "checkpoint-before-change",
+                        "features": {
+                            "garage-helper": {
+                                "owner": "user",
+                                "origin": "user",
+                                "installed_version": "1.0.0",
+                                "upstream_feature_id": None,
+                                "upstream_base_version": None,
+                                "upstream_base_revision": None,
+                                "local_revision": 0,
+                                "owned_paths": ["starter/features/garage-helper/**"],
+                                "conflict_policy": "preserve-local-and-ask",
+                                "rollback_policy": "checkpoint-before-change",
+                            }
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(
+                feature_reconciliation.ReconciliationError, "refusing to change.*ownership"
+            ):
+                feature_reconciliation.register_feature(root, "garage-helper", "mirror")
+
     def test_missing_required_capability_blocks_only_that_feature(self) -> None:
         dependency_map = {
             "schema_version": 1,
@@ -60,6 +146,32 @@ class FeatureReconciliationTests(unittest.TestCase):
         self.assertTrue(result["ready"])
         self.assertEqual(["receipts"], result["degraded_features"])
         self.assertEqual(["drive-evidence"], result["features"]["receipts"]["missing_optional"])
+
+    def test_new_upstream_feature_with_missing_requirement_is_not_offered_as_installable(self) -> None:
+        candidate = {
+            "schema_version": 1,
+            "features": {
+                "mail-summary": {
+                    "version": "1.0.0",
+                    "summary": "Mail summary",
+                    "owner": "mirror",
+                    "local_revision": 0,
+                    "feature_dependencies": [],
+                    "required_capabilities": ["email-evidence"],
+                    "optional_capabilities": [],
+                }
+            },
+        }
+        plan = feature_reconciliation.plan_upgrade(
+            {"schema_version": 1, "features": {}},
+            {"schema_version": 1, "features": {}},
+            candidate,
+            capability_sources={"email-evidence": "Gmail or Outlook email access"},
+        )
+        change = plan["changes"][0]
+        self.assertEqual("dependency-blocked", change["kind"])
+        self.assertEqual("keep-current", change["default_action"])
+        self.assertEqual(["Gmail or Outlook email access"], change["missing_required_help"])
 
     def test_user_owned_feature_is_preserved_by_default(self) -> None:
         base = {
@@ -166,6 +278,8 @@ class FeatureReconciliationTests(unittest.TestCase):
                     "reason": "The planning behavior changed.",
                     "missing_required": [],
                     "missing_optional": ["drive-evidence"],
+                    "missing_required_help": [],
+                    "missing_optional_help": ["Google Drive, OneDrive, or another evidence store"],
                 }
             ],
             "consolidation_candidates": [],
@@ -174,6 +288,7 @@ class FeatureReconciliationTests(unittest.TestCase):
         self.assertIn("Nothing has been changed yet", text)
         self.assertIn("rollback checkpoint", text)
         self.assertIn("keep what you have", text)
+        self.assertIn("Google Drive, OneDrive", text)
         self.assertIn("Your choices: keep mine, use the new version, or show me more detail.", text)
         self.assertNotIn("git rebase", text.lower())
         self.assertNotIn("three-way merge", text.lower())
