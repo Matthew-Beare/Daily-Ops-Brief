@@ -1,6 +1,6 @@
 # Start MIRA | M.I.R.R.O.R.
 
-**M.I.R.R.O.R.** means **Memory, Integration, Reality, Reconciliation, Observation, and Record**. **MIRA** is the **MIRROR Intelligence and Reasoning Assistant**. M.I.R.R.O.R. is the private reality layer that **holds the durable reflection of reality**; MIRA is the assistant that talks with you and reasons over that reflection.
+**M.I.R.R.O.R.** means **Memory, Integration, Reality, Reconciliation, Observation, and Record**. **MIRA** is the **MIRROR Intelligence and Reasoning Assistant**. The deliberately forced acronym is a nod to Dennis E. Taylor's *Bobiverse* books and their fondness for a good forced acronym. M.I.R.R.O.R. is the private reality layer that **holds the durable reflection of reality**; MIRA is the assistant that talks with you and reasons over that reflection.
 
 You do not need to know programming. You do not need a command prompt. You do not need to type Git commands.
 
