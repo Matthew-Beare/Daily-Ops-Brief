@@ -150,7 +150,8 @@ def validate(root: Path) -> list[str]:
     _require(
         canonical.get("repository") == "Matthew-Beare/MIRA-Personal-Production"
         and canonical.get("required_visibility") == "public"
-        and canonical.get("role") == "sole-source-of-truth",
+        and canonical.get("role") == "sole-source-of-truth"
+        and canonical.get("template_repository") is True,
         "canonical M.I.R.R.O.R. Personal-Production channel is invalid",
         errors,
     )
@@ -165,6 +166,7 @@ def validate(root: Path) -> list[str]:
     _require(
         channels.get("institutional-experimental", {}).get("repository") == "Matthew-Beare/MIRA-Institutional-Experimental"
         and channels.get("institutional-experimental", {}).get("required_visibility") == "public"
+        and channels.get("institutional-experimental", {}).get("template_repository") is True
         and channels.get("institutional-experimental", {}).get("regulated_data_allowed_in_git") is False,
         "M.I.R.R.O.R. Institutional-Experimental channel is invalid",
         errors,
