@@ -25,6 +25,8 @@ jobs:
             --channel public-experimental \
             --source-revision "$GITHUB_SHA" \
             --output "$RUNNER_TEMP/MIRA-Public-Experimental"
+          python3 "$RUNNER_TEMP/MIRA-Public-Experimental/scripts/audit_public_source.py" \
+            "$RUNNER_TEMP/MIRA-Public-Experimental"
           python3 scripts/validate_distribution.py \
             "$RUNNER_TEMP/MIRA-Public-Experimental" \
             --repository Matthew-Beare/MIRA-Public-Experimental \
@@ -38,6 +40,8 @@ jobs:
             --channel institutional-experimental \
             --source-revision "$GITHUB_SHA" \
             --output "$RUNNER_TEMP/MIRA-Institutional-Experimental"
+          python3 "$RUNNER_TEMP/MIRA-Institutional-Experimental/scripts/audit_public_source.py" \
+            "$RUNNER_TEMP/MIRA-Institutional-Experimental"
           python3 scripts/validate_distribution.py \
             "$RUNNER_TEMP/MIRA-Institutional-Experimental" \
             --repository Matthew-Beare/MIRA-Institutional-Experimental \
@@ -51,6 +55,7 @@ jobs:
           name: MIRA-Public-Experimental-${{ github.sha }}
           path: ${{ runner.temp }}/MIRA-Public-Experimental
           if-no-files-found: error
+          include-hidden-files: true
           retention-days: 14
       - name: Upload Institutional-Experimental
         uses: actions/upload-artifact@v4
@@ -58,4 +63,5 @@ jobs:
           name: MIRA-Institutional-Experimental-${{ github.sha }}
           path: ${{ runner.temp }}/MIRA-Institutional-Experimental
           if-no-files-found: error
+          include-hidden-files: true
           retention-days: 14
