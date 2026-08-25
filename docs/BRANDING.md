@@ -2,7 +2,7 @@
 
 ## Brand contract
 
-**M.I.R.R.O.R.** stands for:
+**M.I.R.R.O.R.** stands for **Memory, Integration, Reality, Reconciliation, Observation, and Record**:
 
 - **M**emory
 - **I**ntegration
