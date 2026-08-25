@@ -20,6 +20,7 @@ def _module(name: str, relative: str):
 
 BUILDER = _module("build_distribution", "scripts/build_distribution.py")
 VALIDATOR = _module("validate_distribution", "scripts/validate_distribution.py")
+AUDITOR = _module("audit_public_source", "scripts/audit_public_source.py")
 REVISION = "a" * 40
 
 
@@ -35,6 +36,7 @@ class DistributionReleaseTests(unittest.TestCase):
             for channel in ("public-experimental", "institutional-experimental"):
                 with self.subTest(channel=channel):
                     output = self.build(channel, parent, channel)
+                    self.assertEqual([], AUDITOR.audit(output))
                     self.assertEqual(
                         [],
                         VALIDATOR.validate(
@@ -101,6 +103,32 @@ class DistributionReleaseTests(unittest.TestCase):
         self.assertEqual("Matthew-Beare/MIRA-Institutional-Experimental", channels["institutional-experimental"]["repository"])
         self.assertTrue(channels["public-experimental"]["template_repository"])
         self.assertFalse(channels["institutional-experimental"]["regulated_data_allowed_in_git"])
+
+    def test_canonical_source_keeps_history_audit_while_distributions_scan_current_tree(self) -> None:
+        canonical_ci = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+        self.assertIn("scripts/audit_public_source.py . --history", canonical_ci)
+
+        for relative in (
+            "distribution/overlays/public-experimental/.github/workflows/ci.yml",
+            "distribution/overlays/institutional-experimental/.github/workflows/ci.yml",
+        ):
+            with self.subTest(relative=relative):
+                distribution_ci = (ROOT / relative).read_text(encoding="utf-8")
+                self.assertIn("scripts/audit_public_source.py .", distribution_ci)
+                self.assertNotIn("scripts/audit_public_source.py . --history", distribution_ci)
+                self.assertIn("scripts/validate_distribution.py", distribution_ci)
+
+        release_doc = (ROOT / "distribution/README.md").read_text(encoding="utf-8")
+        self.assertIn("canonical full-history audit", release_doc)
+        self.assertIn("current generated tree", release_doc)
+        self.assertIn("no-force-push", release_doc)
+
+    def test_distribution_artifacts_include_hidden_payload_and_tree_audits(self) -> None:
+        workflow = (ROOT / ".github/workflows/build-distributions.yml").read_text(encoding="utf-8")
+        self.assertEqual(2, workflow.count("include-hidden-files: true"))
+        self.assertEqual(2, workflow.count("scripts/audit_public_source.py"))
+        self.assertIn("MIRA-Public-Experimental/scripts/audit_public_source.py", workflow)
+        self.assertIn("MIRA-Institutional-Experimental/scripts/audit_public_source.py", workflow)
 
 
 if __name__ == "__main__":
