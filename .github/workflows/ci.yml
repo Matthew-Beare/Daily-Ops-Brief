@@ -26,6 +26,7 @@ jobs:
       - run: python3 scripts/audit_starter_privacy.py starter
       - run: python3 scripts/validate_repo.py .
       - run: python3 scripts/feature_catalog.py --check
+      - run: python3 starter/tools/feature_reconciliation.py sync --check
       - run: python3 -m unittest discover -s tests -p 'test_*.py'
       - run: python3 -m unittest discover -s skill/ops-brief-policy/scripts -p 'test_*.py'
       - run: python3 starter/tools/validate_feature_manifest.py --check-files
