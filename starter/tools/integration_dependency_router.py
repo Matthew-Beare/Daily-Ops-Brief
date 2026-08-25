@@ -213,7 +213,7 @@ def _remediation_card(behavior_title: str, dependency_id: str, label: str, kind:
 
 
 def add_remediation(readiness: dict[str, Any], contracts: dict[str, Any]) -> dict[str, Any]:
-    """Attach bounded plain-language remediation to blocked/degraded behavior results."""
+    """Attach bounded plain-language remediation to blocked behavior results."""
 
     capability_labels = contracts["capability_labels"]
     authority_labels = contracts["authority_labels"]
@@ -234,13 +234,11 @@ def add_remediation(readiness: dict[str, Any], contracts: dict[str, Any]) -> dic
             )
         row["remediation"] = cards
         if cards:
-            row["prompt"] = (
-                f"{row['prompt']} {cards[0]['help_question']}"
-            )
+            row["prompt"] = f"{row['prompt']} {cards[0]['help_question']}"
     return readiness
 
 
-def _validate_workflow_catalog(catalog: dict[str, Any], capability_labels: dict[str, str]) -> list[dict[str, Any]]:
+def _validate_workflow_catalog(catalog: dict[str, Any], contracts: dict[str, Any]) -> list[dict[str, Any]]:
     if catalog.get("schema_version") != 1:
         raise ValueError("integration workflow catalog must use schema_version 1")
     policy = _mapping(catalog.get("policy"), "workflow catalog policy")
@@ -257,6 +255,8 @@ def _validate_workflow_catalog(catalog: dict[str, Any], capability_labels: dict[
     workflows = catalog.get("workflows")
     if not isinstance(workflows, list):
         raise ValueError("workflow catalog workflows must be a list")
+    capability_labels = _mapping(contracts.get("capability_labels"), "capability_labels")
+    known_behaviors = set(_mapping(contracts.get("assignments"), "assignments"))
     result: list[dict[str, Any]] = []
     seen: set[str] = set()
     for index, raw in enumerate(workflows):
@@ -274,9 +274,16 @@ def _validate_workflow_catalog(catalog: dict[str, Any], capability_labels: dict[
         if workflow_id in seen:
             raise ValueError(f"duplicate workflow id: {workflow_id}")
         seen.add(workflow_id)
-        unknown = sorted((set(required) | set(optional)) - set(capability_labels))
-        if unknown:
-            raise ValueError(f"workflow {workflow_id} references unknown capabilities: {', '.join(unknown)}")
+        unknown_capabilities = sorted((set(required) | set(optional)) - set(capability_labels))
+        if unknown_capabilities:
+            raise ValueError(
+                f"workflow {workflow_id} references unknown capabilities: {', '.join(unknown_capabilities)}"
+            )
+        unknown_behaviors = sorted(set(behavior_ids) - known_behaviors)
+        if unknown_behaviors:
+            raise ValueError(
+                f"workflow {workflow_id} references unknown behaviors: {', '.join(unknown_behaviors)}"
+            )
         result.append(
             {
                 "id": workflow_id,
@@ -298,7 +305,7 @@ def recommend_workflows(
     """Recommend workflows only from verified capabilities and explicit active goals."""
 
     observed = _validate_registry(registry, contracts)
-    workflows = _validate_workflow_catalog(workflow_catalog, contracts["capability_labels"])
+    workflows = _validate_workflow_catalog(workflow_catalog, contracts)
     available_capabilities: set[str] = set(observed["direct_verified_capabilities"])
     capability_integrations: dict[str, set[str]] = {}
     for integration in observed["integrations"]:
