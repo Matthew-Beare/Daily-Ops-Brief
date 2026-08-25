@@ -1,9 +1,11 @@
-# Life Planner (Public-Experimental)
+# MIRROR (Personal-Experimental)
 
-This is the public, sanitised experimental distribution of Life Planner. It is a browser-first template for personal evaluation with public, synthetic or user-controlled personal data stored in separately selected authorities.
+This is the public, sanitised personal experimental distribution of **MIRROR**. **MIRA** is the default assistant.
 
-Start with [`starter/INSTALL.md`](starter/INSTALL.md). Google Workspace, Microsoft 365/OneDrive, Apple/iCloud manual portability, ChatGPT, Claude and managed enterprise lanes are covered in [`starter/PROVIDER_ONBOARDING.md`](starter/PROVIDER_ONBOARDING.md).
+Start with [`starter/QUICK_START.md`](starter/QUICK_START.md). The deeper provider and enterprise references remain available under `starter/`.
 
-This repository contains portable source and synthetic fixtures only. It is not the canonical development repository and must not receive hand edits, secrets, live authority IDs, receipts, health records, employment records or other mutable user state. Its `DEPLOYMENT_CHANNEL.json` identifies the exact private canonical source revision from which it was generated.
+This repository contains portable source and synthetic fixtures only. It is not the canonical source and must not receive hand edits, secrets, live authority IDs, receipts, health records, employment records, or mutable user state. `DEPLOYMENT_CHANNEL.json` identifies the exact canonical source revision.
 
-Experimental means the code and contracts are under active evaluation. Provider writes, schedules and regulated-data use remain disabled until the exact runtime, permissions and readback are verified.
+The internal channel ID remains `public-experimental` and the historical generated title `Life Planner (Public-Experimental)` remains a compatibility identifier until repository migration is complete.
+
+Personal-Experimental uses the same portable code as Personal-Production and Institutional-Experimental. Experimental means provider writes, schedules, and regulated-data use remain gated by exact runtime capability and readback.
