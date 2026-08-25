@@ -77,19 +77,40 @@ class MiraMirrorBrandingTests(unittest.TestCase):
         self.assertIn('display_name: "MIRA | M.I.R.R.O.R."', agent)
 
     def test_release_channels_share_one_code_line_and_are_public(self) -> None:
-        config = json.loads((REPO / "distribution/channels.json").read_text(encoding="utf-8"))
-        self.assertEqual("MIRROR", config["brand_product_name"])
-        self.assertEqual("MIRA", config["assistant_default_name"])
-        self.assertEqual("Matthew-Beare/MIRA-Personal-Production", config["canonical_source"]["repository"])
-        self.assertEqual("public", config["canonical_source"]["required_visibility"])
-        channels = {row["channel_id"]: row for row in config["channels"]}
-        self.assertEqual("Matthew-Beare/MIRA-Public-Experimental", channels["public-experimental"]["repository"])
-        self.assertEqual("Matthew-Beare/MIRA-Institutional-Experimental", channels["institutional-experimental"]["repository"])
-        self.assertEqual("public", channels["public-experimental"]["required_visibility"])
-        self.assertEqual("public", channels["institutional-experimental"]["required_visibility"])
-        shared = config["shared_code_contract"]
-        self.assertTrue(shared["same_portable_source_revision_required"])
-        self.assertFalse(shared["channel_specific_feature_code_allowed"])
+        canonical_config = REPO / "distribution/channels.json"
+        generated_manifest = REPO / "DEPLOYMENT_CHANNEL.json"
+
+        if canonical_config.is_file():
+            config = json.loads(canonical_config.read_text(encoding="utf-8"))
+            self.assertEqual("MIRROR", config["brand_product_name"])
+            self.assertEqual("MIRA", config["assistant_default_name"])
+            self.assertEqual("Matthew-Beare/MIRA-Personal-Production", config["canonical_source"]["repository"])
+            self.assertEqual("public", config["canonical_source"]["required_visibility"])
+            channels = {row["channel_id"]: row for row in config["channels"]}
+            self.assertEqual("Matthew-Beare/MIRA-Public-Experimental", channels["public-experimental"]["repository"])
+            self.assertEqual("Matthew-Beare/MIRA-Institutional-Experimental", channels["institutional-experimental"]["repository"])
+            self.assertEqual("public", channels["public-experimental"]["required_visibility"])
+            self.assertEqual("public", channels["institutional-experimental"]["required_visibility"])
+            shared = config["shared_code_contract"]
+            self.assertTrue(shared["same_portable_source_revision_required"])
+            self.assertFalse(shared["channel_specific_feature_code_allowed"])
+            return
+
+        self.assertTrue(generated_manifest.is_file(), "generated release must carry DEPLOYMENT_CHANNEL.json")
+        manifest = json.loads(generated_manifest.read_text(encoding="utf-8"))
+        self.assertTrue(manifest["generated_distribution"])
+        self.assertFalse(manifest["manual_edits_allowed"])
+        self.assertEqual("Matthew-Beare/MIRA-Personal-Production", manifest["canonical_source_repository"])
+        self.assertRegex(manifest["canonical_source_revision"], r"^[0-9a-f]{40}$")
+        self.assertIn(
+            manifest["repository"],
+            {
+                "Matthew-Beare/MIRA-Public-Experimental",
+                "Matthew-Beare/MIRA-Institutional-Experimental",
+            },
+        )
+        self.assertIn(manifest["channel_id"], {"public-experimental", "institutional-experimental"})
+        self.assertEqual("M.I.R.R.O.R.", manifest["product_name"])
 
 
 if __name__ == "__main__":
