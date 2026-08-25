@@ -116,10 +116,7 @@ class BriefScheduleTests(unittest.TestCase):
             "EXPLICIT_USER_SELECTED_LOCAL_TIMES_OR_DISABLED_NO_PRODUCT_DEFAULT",
             config["BRIEF_SLOTS"],
         )
-        self.assertEqual(
-            "VALIDATE_COMMIT_PUSH_REMOTE_READBACK_THEN_RECONCILE_SCHEDULER",
-            config["BRIEF_CHANGE_POLICY"],
-        )
+        self.assertIn("standing authorization", config["AUTO_VERSIONING"].lower())
 
 
 if __name__ == "__main__":
