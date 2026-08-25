@@ -1,7 +1,7 @@
 "use strict";
 
 const QUEUE_KEY = "mirror.capture.pending.v1";
-const API_KEY = "mirror.capture.api-base.v1";
+const API_BASE_STORAGE_NAME = "mirror.capture.api-base.v1";
 const CLIENT_KEY = "mirror.capture.client-id.v1";
 
 const byId = (id) => document.getElementById(id);
@@ -219,11 +219,11 @@ function speakPreview() {
 }
 
 function initialize() {
-  byId("apiBase").value = localStorage.getItem(API_KEY) || "";
+  byId("apiBase").value = localStorage.getItem(API_BASE_STORAGE_NAME) || "";
   savePending(pending());
 
   byId("saveSettings").addEventListener("click", () => {
-    localStorage.setItem(API_KEY, apiBase());
+    localStorage.setItem(API_BASE_STORAGE_NAME, apiBase());
     sessionStorage.setItem("mirror.capture.token-present", token() ? "yes" : "no");
     setStatus("API address saved. Access token remains only in this page/session input.");
   });
