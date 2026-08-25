@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#111111">
+  <title>MIRA Capture</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <style>
+    :root { font-family: system-ui, sans-serif; color-scheme: light dark; }
+    body { max-width: 760px; margin: 0 auto; padding: 1rem; }
+    h1 { margin-bottom: .25rem; }
+    .muted { opacity: .75; }
+    .row { display: grid; gap: .5rem; margin: .8rem 0; }
+    input, button, select { font: inherit; padding: .75rem; }
+    button { cursor: pointer; }
+    video { width: 100%; max-height: 360px; background: #000; border-radius: .5rem; }
+    #status { min-height: 2.5rem; white-space: pre-wrap; }
+    .actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+  </style>
+</head>
+<body>
+  <h1>MIRA Capture</h1>
+  <p class="muted">Barcode/QR capture for M.I.R.R.O.R. Camera when supported; keyboard scanners and manual entry always available.</p>
+
+  <section class="row">
+    <label>API base URL
+      <input id="apiBase" inputmode="url" placeholder="https://mirror.example/api">
+    </label>
+    <label>Session access token
+      <input id="token" type="password" autocomplete="off" placeholder="Not stored persistently">
+    </label>
+    <button id="saveSettings" type="button">Save API address for this device</button>
+  </section>
+
+  <section class="row">
+    <video id="camera" playsinline muted hidden></video>
+    <div class="actions">
+      <button id="startCamera" type="button">Start camera scanner</button>
+      <button id="stopCamera" type="button" disabled>Stop camera</button>
+    </div>
+  </section>
+
+  <form id="scanForm" class="row">
+    <label>Scan or type identifier
+      <input id="scanValue" autocomplete="off" autofocus placeholder="USB/Bluetooth scanner can type here">
+    </label>
+    <label>Symbology
+      <select id="symbology">
+        <option value="UNKNOWN">Unknown / manual</option>
+        <option value="QR_CODE">QR</option>
+        <option value="UPC_A">UPC-A</option>
+        <option value="EAN_13">EAN-13</option>
+        <option value="EAN_8">EAN-8</option>
+        <option value="CODE_128">Code 128</option>
+      </select>
+    </label>
+    <button type="submit">Queue / submit scan</button>
+  </form>
+
+  <section class="row">
+    <label>Foreground speech preview
+      <input id="speechText" value="You have an appointment in one hour.">
+    </label>
+    <button id="speakTest" type="button">Speak test on this device</button>
+    <small class="muted">Preview only. Reliable background spoken reminders require the native Android companion.</small>
+  </section>
+
+  <section>
+    <div class="actions">
+      <button id="syncPending" type="button">Sync pending captures</button>
+      <button id="exportPending" type="button">Export pending JSON</button>
+    </div>
+    <p id="queueCount" class="muted"></p>
+    <pre id="status" role="status" aria-live="polite"></pre>
+  </section>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
