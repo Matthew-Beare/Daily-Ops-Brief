@@ -596,6 +596,7 @@ def verify(plan: dict[str, Any], observed: dict[str, Any]) -> dict[str, Any]:
     blocks = list(dict.fromkeys(blocks))
     degradations = list(dict.fromkeys(degradations))
     decision = "blocked" if blocks else "degraded" if degradations else "ready"
+    scheduled_dispatch_selected = plan.get("schedule_test", {}).get("enabled") is True
     return {
         "decision": decision,
         "deployment_uuid": deployment.get("deployment_uuid"),
@@ -603,7 +604,8 @@ def verify(plan: dict[str, Any], observed: dict[str, Any]) -> dict[str, Any]:
         "blocks": blocks,
         "degradations": degradations,
         "ready_for_manual_use": not blocks,
-        "ready_for_scheduled_use": not blocks and not degradations,
+        "scheduled_dispatch_selected": scheduled_dispatch_selected,
+        "ready_for_scheduled_use": scheduled_dispatch_selected and not blocks and not degradations,
     }
 
 

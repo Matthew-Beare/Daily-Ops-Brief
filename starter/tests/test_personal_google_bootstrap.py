@@ -133,7 +133,17 @@ class PersonalGoogleBootstrapTests(unittest.TestCase):
         result = subject.verify(plan, self.observed(plan))
         self.assertEqual("ready", result["decision"])
         self.assertTrue(result["ready_for_manual_use"])
+        self.assertTrue(result["scheduled_dispatch_selected"])
         self.assertTrue(result["ready_for_scheduled_use"])
+
+    def test_unselected_scheduler_is_not_reported_ready(self) -> None:
+        self.config["scheduled_dispatch_enabled"] = False
+        plan = self.plan()
+        result = subject.verify(plan, self.observed(plan))
+        self.assertEqual("ready", result["decision"])
+        self.assertTrue(result["ready_for_manual_use"])
+        self.assertFalse(result["scheduled_dispatch_selected"])
+        self.assertFalse(result["ready_for_scheduled_use"])
 
     def test_missing_or_drifted_core_provider_evidence_blocks(self) -> None:
         plan = self.plan()
