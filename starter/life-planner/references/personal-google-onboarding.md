@@ -25,7 +25,7 @@ Connection badges are not evidence. Read back the authenticated profile for GitH
 8. Populate `Metadata`, `Authority Registry`, `Interview Ledger`, `Integration Registry`, `People`, and `Services` from the plan.
 9. If Gmail is enabled, prove a bounded read without changing mail.
 10. If Calendar is enabled, create one clearly synthetic setup event, read it back, record its provider ID, then remove or retain it according to the user's test-record policy.
-11. Build an observed readback document from provider responses and run `google_bootstrap.py verify --strict`.
+11. Build an observed readback document from provider responses and run `google_bootstrap.py verify --strict`. Use unformatted cell values for readback; the verifier compares offset-aware ISO and Excel/Sheets serial timestamps as instants while keeping all other seed fields strict.
 12. Generate the deployment's non-secret policy/config/schema files, validate, commit, push, read back the remote commit, and require green CI.
 13. If recurring delivery is enabled, create the fewest required dispatchers and do not claim scheduling healthy until one real firing and Run Log record are observed.
 

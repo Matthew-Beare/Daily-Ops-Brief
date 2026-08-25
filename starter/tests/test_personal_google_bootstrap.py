@@ -157,6 +157,14 @@ class PersonalGoogleBootstrapTests(unittest.TestCase):
         with self.assertRaises(subject.BootstrapError):
             subject.verify(plan, observed)
 
+    def test_excel_serial_timestamp_readback_matches_same_instant(self) -> None:
+        plan = self.plan()
+        observed = self.observed(plan)
+        metadata = observed["workbooks"]["workbook:core"]["tabs"]["Metadata"]["values"]
+        metadata[1][3] = 46260.0
+        result = subject.verify(plan, observed)
+        self.assertEqual("ready", result["decision"])
+
     def test_optional_google_and_first_firing_failures_degrade_only(self) -> None:
         plan = self.plan()
         observed = self.observed(plan)

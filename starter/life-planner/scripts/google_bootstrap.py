@@ -9,7 +9,7 @@ import json
 import re
 import sys
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
@@ -45,6 +45,7 @@ SEED_VERIFICATION_COLUMNS = {
     "People": ["Person UUID", "Display Name", "Relationship", "Canonical Timezone", "Created At"],
     "Services": ["Service ID", "Service Name", "Timezone"],
 }
+TIMESTAMP_VERIFICATION_COLUMNS = {"Generated At", "Created At"}
 
 
 class BootstrapError(ValueError):
@@ -459,14 +460,28 @@ def _tab_values(value: Any) -> list[list[Any]] | None:
     return [row[:width] + [""] * max(0, width - len(row)) for row in value]
 
 
-def _seed_projection(tab: dict[str, Any]) -> list[list[Any]]:
-    headers = tab["headers"]
-    columns = tab.get("verification_columns", [])
-    indexes = [headers.index(column) for column in columns]
-    return [
-        [row.get(headers[index], "") for index in indexes]
-        for row in tab.get("rows", [])
-    ]
+def _timestamp_instant(value: Any) -> str | None:
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        instant = datetime(1899, 12, 30, tzinfo=timezone.utc) + timedelta(seconds=round(float(value) * 86400))
+        return instant.isoformat()
+    if not isinstance(value, str):
+        return None
+    text = value.removeprefix("'").strip()
+    try:
+        instant = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if instant.tzinfo is None or instant.utcoffset() is None:
+        return None
+    return instant.astimezone(timezone.utc).replace(microsecond=0).isoformat()
+
+
+def _seed_cell_matches(header: str, expected: Any, actual: Any) -> bool:
+    if header in TIMESTAMP_VERIFICATION_COLUMNS:
+        expected_instant = _timestamp_instant(expected)
+        actual_instant = _timestamp_instant(actual)
+        return expected_instant is not None and expected_instant == actual_instant
+    return expected == actual
 
 
 def verify(plan: dict[str, Any], observed: dict[str, Any]) -> dict[str, Any]:
@@ -522,15 +537,21 @@ def verify(plan: dict[str, Any], observed: dict[str, Any]) -> dict[str, Any]:
             if values[0] != tab["headers"]:
                 blocks.append(f"header-mismatch-{logical_id}-{tab['name']}")
                 continue
-            expected_seed = _seed_projection(tab)
+            expected_seed = tab.get("rows", [])
             verification_columns = tab.get("verification_columns", [])
             if expected_seed:
                 indexes = [tab["headers"].index(column) for column in verification_columns]
-                actual_seed = [
-                    [row[index] for index in indexes]
-                    for row in values[1:1 + len(expected_seed)]
-                ]
-                if actual_seed != expected_seed:
+                actual_seed = values[1:1 + len(expected_seed)]
+                seed_matches = len(actual_seed) == len(expected_seed) and all(
+                    _seed_cell_matches(
+                        tab["headers"][index],
+                        expected_row.get(tab["headers"][index], ""),
+                        actual_row[index],
+                    )
+                    for expected_row, actual_row in zip(expected_seed, actual_seed)
+                    for index in indexes
+                )
+                if not seed_matches:
                     blocks.append(f"seed-mismatch-{logical_id}-{tab['name']}")
 
     observed_folders = _mapping(observed.get("folders", {}), "observed.folders")
