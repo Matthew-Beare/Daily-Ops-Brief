@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import unittest
 from pathlib import Path
 
@@ -90,6 +91,35 @@ class BriefScheduleTests(unittest.TestCase):
         )
         self.assertEqual("degraded", result["decision"])
         self.assertEqual(["schedule-awaiting-observed-firing"], result["degradations"])
+
+    def test_portable_policy_requires_user_choice_and_versioned_change(self) -> None:
+        reference = (
+            ROOT / "starter" / "life-planner" / "references" / "brief-schedule.md"
+        ).read_text(encoding="utf-8")
+        control = (
+            ROOT / "starter" / "life-planner" / "references" / "control-cycle.md"
+        ).read_text(encoding="utf-8")
+        onboarding = (
+            ROOT / "starter" / "life-planner" / "references" / "personal-google-onboarding.md"
+        ).read_text(encoding="utf-8")
+        lifecycle = (ROOT / "starter" / "PERSONAL_FORK_LIFECYCLE.md").read_text(
+            encoding="utf-8"
+        )
+        config = json.loads((ROOT / "starter" / "config.example.json").read_text(encoding="utf-8"))
+
+        self.assertIn("no stock brief time", reference.lower())
+        self.assertIn("no product-default brief time", control.lower())
+        self.assertIn("do not offer, infer, or inherit a stock time", onboarding.lower())
+        self.assertIn("commit/push/read", onboarding.lower())
+        self.assertIn("changed recurring brief time", lifecycle.lower())
+        self.assertEqual(
+            "EXPLICIT_USER_SELECTED_LOCAL_TIMES_OR_DISABLED_NO_PRODUCT_DEFAULT",
+            config["BRIEF_SLOTS"],
+        )
+        self.assertEqual(
+            "VALIDATE_COMMIT_PUSH_REMOTE_READBACK_THEN_RECONCILE_SCHEDULER",
+            config["BRIEF_CHANGE_POLICY"],
+        )
 
 
 if __name__ == "__main__":
