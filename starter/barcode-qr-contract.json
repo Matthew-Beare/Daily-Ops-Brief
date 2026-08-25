@@ -18,7 +18,15 @@
   },
   "capture": {
     "decode_preference": "client_local",
+    "baseline_client": "installable_pwa",
     "supported_clients": ["android", "web_camera_when_supported", "windows_desktop", "linux_desktop"],
+    "input_adapters": [
+      "pwa_camera_barcode_detector_when_supported",
+      "usb_or_bluetooth_keyboard_wedge_scanner",
+      "manual_entry",
+      "future_native_camera_decoder"
+    ],
+    "secure_context_required_for_camera": true,
     "submit_fields": [
       "scan_uuid",
       "captured_at",
@@ -59,6 +67,10 @@
     "assign_asset_label": "scan unassigned asset tag, create/select asset, bind printed code to Entity UUID",
     "move_item": "scan destination location then asset tag or product/asset identifier; write one location relationship event with readback",
     "bulk_mode": "destination location remains active only for the explicit bounded scan session"
+  },
+  "rfid_boundary": {
+    "contract": "rfid-asset-tracking-contract.json",
+    "rule": "RFID/NFC presence observations use the same immutable asset/location identities but are not silently converted into barcode-style explicit move events."
   },
   "safety": {
     "unresolved_identity_never_invented": true,
