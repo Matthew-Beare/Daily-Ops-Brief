@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -27,15 +28,23 @@ jobs:
             --output "$RUNNER_TEMP/MIRA-Public-Experimental"
           (
             cd "$RUNNER_TEMP/MIRA-Public-Experimental"
-            python3 -m compileall -q scripts starter
             python3 scripts/audit_public_source.py .
             python3 scripts/audit_starter_privacy.py starter
             python3 scripts/validate_distribution.py . \
               --repository Matthew-Beare/MIRA-Public-Experimental \
               --channel public-experimental \
               --source-revision "$GITHUB_SHA"
+            python3 -m compileall -q scripts starter
             python3 starter/tools/validate_feature_manifest.py --check-files
             python3 -m unittest discover -s starter/tests -p 'test_*.py'
+            find . -type d -name __pycache__ -prune -exec rm -rf -- {} +
+            find . -type f \( -name '*.pyc' -o -name '*.pyo' \) -delete
+            python3 scripts/audit_public_source.py .
+            python3 scripts/audit_starter_privacy.py starter
+            python3 scripts/validate_distribution.py . \
+              --repository Matthew-Beare/MIRA-Public-Experimental \
+              --channel public-experimental \
+              --source-revision "$GITHUB_SHA"
           )
       - name: Build Institutional-Experimental
         run: |
@@ -45,17 +54,26 @@ jobs:
             --output "$RUNNER_TEMP/MIRA-Institutional-Experimental"
           (
             cd "$RUNNER_TEMP/MIRA-Institutional-Experimental"
-            python3 -m compileall -q scripts starter
             python3 scripts/audit_public_source.py .
             python3 scripts/audit_starter_privacy.py starter
             python3 scripts/validate_distribution.py . \
               --repository Matthew-Beare/MIRA-Institutional-Experimental \
               --channel institutional-experimental \
               --source-revision "$GITHUB_SHA"
+            python3 -m compileall -q scripts starter
             python3 starter/tools/validate_feature_manifest.py --check-files
             python3 -m unittest discover -s starter/tests -p 'test_*.py'
+            find . -type d -name __pycache__ -prune -exec rm -rf -- {} +
+            find . -type f \( -name '*.pyc' -o -name '*.pyo' \) -delete
+            python3 scripts/audit_public_source.py .
+            python3 scripts/audit_starter_privacy.py starter
+            python3 scripts/validate_distribution.py . \
+              --repository Matthew-Beare/MIRA-Institutional-Experimental \
+              --channel institutional-experimental \
+              --source-revision "$GITHUB_SHA"
           )
       - name: Upload Personal-Experimental
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: MIRA-Public-Experimental-${{ github.sha }}
@@ -64,6 +82,7 @@ jobs:
           include-hidden-files: true
           retention-days: 14
       - name: Upload Institutional-Experimental
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: MIRA-Institutional-Experimental-${{ github.sha }}

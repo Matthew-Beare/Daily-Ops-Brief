@@ -123,16 +123,20 @@ class DistributionReleaseTests(unittest.TestCase):
         self.assertIn("current generated tree", release_doc)
         self.assertIn("no-force-push", release_doc)
 
-    def test_distribution_artifacts_run_target_ci_before_upload(self) -> None:
+    def test_distribution_artifacts_run_target_ci_and_finish_clean(self) -> None:
         workflow = (ROOT / ".github/workflows/build-distributions.yml").read_text(encoding="utf-8")
+        self.assertIn("pull_request:", workflow)
+        self.assertEqual(2, workflow.count("if: github.event_name != 'pull_request'"))
         self.assertEqual(2, workflow.count("include-hidden-files: true"))
         self.assertIn('cd "$RUNNER_TEMP/MIRA-Public-Experimental"', workflow)
         self.assertIn('cd "$RUNNER_TEMP/MIRA-Institutional-Experimental"', workflow)
-        self.assertEqual(2, workflow.count("python3 scripts/audit_public_source.py ."))
-        self.assertEqual(2, workflow.count("python3 scripts/audit_starter_privacy.py starter"))
-        self.assertEqual(2, workflow.count("python3 scripts/validate_distribution.py ."))
+        self.assertEqual(4, workflow.count("python3 scripts/audit_public_source.py ."))
+        self.assertEqual(4, workflow.count("python3 scripts/audit_starter_privacy.py starter"))
+        self.assertEqual(4, workflow.count("python3 scripts/validate_distribution.py ."))
         self.assertEqual(2, workflow.count("python3 starter/tools/validate_feature_manifest.py --check-files"))
         self.assertEqual(2, workflow.count("python3 -m unittest discover -s starter/tests -p 'test_*.py'"))
+        self.assertEqual(2, workflow.count("-name __pycache__"))
+        self.assertEqual(2, workflow.count("-name '*.pyc' -o -name '*.pyo'"))
 
 
 if __name__ == "__main__":

@@ -2,7 +2,7 @@
 
 **M.I.R.R.O.R.** means **Memory, Integration, Reality, Reconciliation, Observation, and Record**. **MIRA** is the **MIRROR Intelligence and Reasoning Assistant**. The deliberately forced acronym is a nod to Dennis E. Taylor's *Bobiverse* books and his fondness for a good forced acronym. M.I.R.R.O.R. is the reality layer that **holds the durable reflection of reality**; MIRA is the intelligence layer that talks with the user and reasons over that reflection.
 
-This is the **public, sanitised** Personal-Experimental onboarding distribution. With user-approved integrations, M.I.R.R.O.R. can connect assets, finances, calendars, email, orders and shipments, receipts and refunds, appointments, tasks, medication reminder schedules, documents and knowledge, travel/work context, meals, and custom skills.
+This is the **public, sanitised** Personal-Experimental onboarding distribution. With user-approved integrations, M.I.R.R.O.R. can connect assets, finances, calendars, email, orders and shipments, receipts and refunds, appointments, tasks, medications and opt-in reminder schedules, documents and knowledge, travel/work context, meals, and custom skills.
 
 > **Magic MIRA on the wall...**
 
