@@ -10,7 +10,7 @@
     "display_name": "M.I.R.R.O.R. Personal-Production",
     "required_visibility": "public",
     "role": "sole-source-of-truth",
-    "template_repository": false
+    "template_repository": true
   },
   "portable_paths": [
     ".gitignore",
@@ -50,7 +50,7 @@
       "repository": "Matthew-Beare/MIRA-Institutional-Experimental",
       "brand_repository": "Matthew-Beare/MIRA-Institutional-Experimental",
       "required_visibility": "public",
-      "template_repository": false,
+      "template_repository": true,
       "overlay": "distribution/overlays/institutional-experimental",
       "allowed_runtime_data": [
         "public",
