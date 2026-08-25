@@ -9,6 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 STARTER = ROOT / "starter"
+CATALOG_PATH = ROOT / "docs" / "feature-catalog.json"
 
 
 def _module():
@@ -22,7 +23,7 @@ def _module():
 
 CHECKER = _module()
 CONTRACTS = json.loads((STARTER / "behavior-dependencies.json").read_text(encoding="utf-8"))
-CATALOG = json.loads((ROOT / "docs" / "feature-catalog.json").read_text(encoding="utf-8"))
+CATALOG = json.loads(CATALOG_PATH.read_text(encoding="utf-8")) if CATALOG_PATH.is_file() else None
 
 
 class BehaviorDependencyCheckTests(unittest.TestCase):
@@ -45,15 +46,16 @@ class BehaviorDependencyCheckTests(unittest.TestCase):
             "available_authorities": sorted(set(CONTRACTS["authority_labels"]) - missing_authorities),
         }
 
+    @unittest.skipUnless(CATALOG is not None, "canonical forensic catalog is not shipped in generated distributions")
     def test_every_forensic_catalog_behavior_has_a_dependency_assignment(self) -> None:
+        assert CATALOG is not None
         result = CHECKER.audit_catalog(CONTRACTS, CATALOG)
         self.assertTrue(result["complete"])
         self.assertEqual(123, result["behavior_count"])
         self.assertEqual(result["behavior_count"], result["dependency_assignment_count"])
 
     def test_receipt_intake_has_explicit_state_evidence_and_optional_ingestion_dependencies(self) -> None:
-        catalog = CHECKER._flatten_catalog(CATALOG)
-        receipt = CHECKER.resolve_behavior("c-06", CONTRACTS, catalog)
+        receipt = CHECKER.resolve_behavior("c-06", CONTRACTS)
         self.assertIn("purchase-receipt-archive", receipt["required_authorities"])
         self.assertIn("evidence-store", receipt["required_authorities"])
         self.assertTrue(
@@ -68,8 +70,7 @@ class BehaviorDependencyCheckTests(unittest.TestCase):
         )
 
     def test_scheduling_has_explicit_scheduler_clock_state_and_run_log_dependencies(self) -> None:
-        catalog = CHECKER._flatten_catalog(CATALOG)
-        scheduling = CHECKER.resolve_behavior("a-01", CONTRACTS, catalog)
+        scheduling = CHECKER.resolve_behavior("a-01", CONTRACTS)
         self.assertTrue(
             {"scheduled_dispatch", "canonical_clock_gate"}.issubset(
                 set(scheduling["required_capabilities"])
@@ -107,15 +108,16 @@ class BehaviorDependencyCheckTests(unittest.TestCase):
         self.assertEqual(["f-05"], result["blocked_behaviors"])
         self.assertIn("c-06", result["behaviors"]["f-05"]["missing_required_behaviors"])
 
+    @unittest.skipUnless(CATALOG is not None, "canonical forensic catalog is not shipped in generated distributions")
     def test_catalog_drift_fails_until_new_behavior_gets_dependencies(self) -> None:
+        assert CATALOG is not None
         contracts = copy.deepcopy(CONTRACTS)
         contracts["assignments"].pop("c-06")
         with self.assertRaises(CHECKER.DependencyContractError):
             CHECKER.audit_catalog(contracts, CATALOG)
 
     def test_template_onboarding_is_dependency_checked(self) -> None:
-        catalog = CHECKER._flatten_catalog(CATALOG)
-        onboarding = CHECKER.resolve_behavior("e-21", CONTRACTS, catalog)
+        onboarding = CHECKER.resolve_behavior("e-21", CONTRACTS)
         self.assertIn("template_repository", onboarding["required_capabilities"])
         self.assertIn("source-repository", onboarding["required_authorities"])
 
