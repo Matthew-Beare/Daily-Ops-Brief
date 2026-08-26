@@ -80,6 +80,8 @@
     loadStyleOnce("experience-v3.css","mira-experience-v3");
     if (globalThis.MirrorNative) loadStyleOnce("android-fixes.css","mira-android-fixes");
 
+    loadScriptOnce("receipt-queue-cloud-v1.js","mira-receipt-queue-cloud");
+    loadScriptOnce("reconciliation-cloud-v1.js","mira-reconciliation-cloud");
     loadScriptOnce("platform-ui.js","mira-platform-ui",()=>globalThis.MirrorPlatformUI?.initialize());
     loadScriptOnce("smart-capture.js","mira-smart-capture");
     loadScriptOnce("guided-migration.js","mira-guided-migration");
@@ -88,6 +90,8 @@
     loadScriptOnce("native-updater.js","mira-native-updater");
     loadScriptOnce("integrations-v1.js","mira-integrations-v1");
     loadScriptOnce("dashboard-v2.js","mira-dashboard-v2");
+    loadScriptOnce("reconciliation-v1.js","mira-reconciliation-ui");
+    loadScriptOnce("feature-studio-reconciliation-v1.js","mira-feature-studio-reconciliation");
     loadScriptOnce("onboarding-polish.js","mira-onboarding-polish");
     loadScriptOnce("interaction-audit.js","mira-interaction-audit");
     loadScriptOnce("experience-v3.js","mira-experience-v3-script");
@@ -95,5 +99,5 @@
   }
 
   document.addEventListener("DOMContentLoaded", loadCommercialShell);
-  document.addEventListener("visibilitychange",()=>{ if(!document.hidden&&apiBase()) { loadProviders().catch(()=>{}); globalThis.MiraShell?.refreshHome?.().catch(()=>{}); globalThis.MiraExperienceV3?.refreshExperience?.().catch(()=>{}); } });
+  document.addEventListener("visibilitychange",()=>{ if(!document.hidden&&apiBase()) { loadProviders().catch(()=>{}); globalThis.MiraShell?.refreshHome?.().catch(()=>{}); globalThis.MiraExperienceV3?.refreshExperience?.().catch(()=>{}); globalThis.MiraReconciliationUI?.refresh?.().catch(()=>{}); } });
 })();
