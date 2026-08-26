@@ -1,172 +1,67 @@
 "use strict";
 
-const QUEUE_KEY = "mirror.capture.pending.v1";
-const API_BASE_STORAGE_KEY = "mirror.capture.api-base.v1";
-const CLIENT_KEY = "mirror.capture.client-id.v1";
-const MAX_PHOTO_BYTES = 15 * 1024 * 1024;
+const CLIENT_VERSION = "0.2.0";
+const API_MAJOR = 1;
+const SERVER_KEY = "mirror.client.server.v2";
+const CLIENT_ID_KEY = "mirror.client.id.v2";
+const PENDING_KEY = "mirror.client.pending.v2";
+const MAX_UPLOAD = 25 * 1024 * 1024;
 
-const byId = (id) => document.getElementById(id);
-const statusEl = byId("status");
-const queueCountEl = byId("queueCount");
-const videoEl = byId("camera");
-let stream = null;
-let detector = null;
-let scanLoopActive = false;
-let lastCameraValue = "";
-let lastCameraAt = 0;
-let previewUrl = null;
+function pendingScans(){try{const rows=JSON.parse(localStorage.getItem(PENDING_KEY)||"[]");return Array.isArray(rows)?rows:[]}catch{return[]}}
+function savePendingScans(rows){localStorage.setItem(PENDING_KEY,JSON.stringify(rows));if($("pendingCount"))$("pendingCount").textContent=`${rows.length} pending`}
+function scanCommand(raw,symbology){const commandId=crypto.randomUUID(),now=new Date().toISOString();return{command_id:commandId,command_type:"capture.barcode_qr_scan",actor_id:`client:${clientId()}`,submitted_at:now,idempotency_key:`scan:${commandId}`,payload:{scan_uuid:commandId,captured_at:now,raw_value:raw,symbology:symbology||"UNKNOWN",client_id:clientId(),scan_class_candidate:"client_unverified"}}}
+async function submitScanCommand(command){return api("/v1/commands",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(command)})}
+async function syncPendingScans(){const rows=pendingScans(),remain=[];let synced=0;for(const row of rows){try{await submitScanCommand(row);synced++}catch{remain.push(row)}}savePendingScans(remain);toast(`Synced ${synced}; ${remain.length} scan${remain.length===1?"":"s"} still pending.`)}
 
-function setStatus(message) { statusEl.textContent = String(message || ""); }
-function uuid() { if (globalThis.crypto?.randomUUID) return crypto.randomUUID(); throw new Error("This client requires crypto.randomUUID in a secure context."); }
-function clientId() { let value = localStorage.getItem(CLIENT_KEY); if (!value) { value = uuid(); localStorage.setItem(CLIENT_KEY, value); } return value; }
-function pending() { try { const rows = JSON.parse(localStorage.getItem(QUEUE_KEY) || "[]"); return Array.isArray(rows) ? rows : []; } catch { return []; } }
-function savePending(rows) { localStorage.setItem(QUEUE_KEY, JSON.stringify(rows)); queueCountEl.textContent = `${rows.length} capture${rows.length === 1 ? "" : "s"} pending sync`; }
-function apiBase() { return byId("apiBase").value.trim().replace(/\/+$/, ""); }
-function token() { return byId("token").value.trim(); }
+const $=id=>document.getElementById(id);
+const state={apiBase:"",token:"",health:null,providers:null,entities:[],selectedAsset:null,activeLocation:null,ingress:[],stream:null,detector:null,scanLoop:false,lastScan:"",lastScanAt:0};
+function sameOriginApiDefault(){if(location.protocol==="http:"||location.protocol==="https:")return location.origin;return""}
+function normalizeBase(v){return String(v||"").trim().replace(/\/+$/,"")}
+function clientId(){let id=localStorage.getItem(CLIENT_ID_KEY);if(!id){id=crypto.randomUUID();localStorage.setItem(CLIENT_ID_KEY,id)}return id}
+function toast(message,danger=false){const el=$("toast");el.textContent=message;el.hidden=false;el.style.borderColor=danger?"#733646":"#365481";clearTimeout(toast.timer);toast.timer=setTimeout(()=>{el.hidden=true},5000)}
+async function tauriInvoke(command,args={}){const invoke=globalThis.__TAURI__?.core?.invoke;if(!invoke)return null;return invoke(command,args)}
+async function loadNativeCredential(){try{return await tauriInvoke("credential_get")||""}catch{return""}}
+async function saveNativeCredential(token){if(!token)return;try{await tauriInvoke("credential_set",{token})}catch{sessionStorage.setItem("mirror.session.token",token)}}
+async function openExternal(url){try{const result=await tauriInvoke("open_url",{url});if(result!==null)return}catch{}window.open(url,"_blank","noopener")}
+function headers(extra={}){const h=new Headers(extra);h.set("X-MIRA-Client-Version",CLIENT_VERSION);h.set("X-MIRA-API-Major",String(API_MAJOR));if(state.token)h.set("Authorization",`Bearer ${state.token}`);return h}
+async function api(path,options={}){if(!state.apiBase)throw new Error("No mirror server is configured.");const response=await fetch(`${state.apiBase}${path}`,{...options,headers:headers(options.headers||{}),credentials:"include"});if(response.status===401)throw new Error("AUTH_REQUIRED");if(!response.ok){let message=`mirror returned HTTP ${response.status}`;try{const body=await response.json();message=body.detail||message}catch{}throw new Error(message)}const type=response.headers.get("content-type")||"";return type.includes("application/json")?response.json():response}
 
-async function authorizedFetch(url, options = {}) {
-  const headers = new Headers(options.headers || {});
-  if (token()) headers.set("Authorization", `Bearer ${token()}`);
-  return fetch(url, { ...options, headers });
-}
-
-function commandFor(rawValue, symbology) {
-  const commandId = uuid();
-  const capturedAt = new Date().toISOString();
-  return {
-    command_id: commandId,
-    command_type: "capture.barcode_qr_scan",
-    actor_id: `client:${clientId()}`,
-    submitted_at: capturedAt,
-    idempotency_key: `scan:${commandId}`,
-    payload: { scan_uuid: commandId, captured_at: capturedAt, raw_value: rawValue, symbology: symbology || "UNKNOWN", client_id: clientId(), scan_class_candidate: "client_unverified" }
-  };
-}
-
-async function submitCommand(command) {
-  const base = apiBase();
-  if (!base) throw new Error("No API base URL configured.");
-  const response = await authorizedFetch(`${base}/v1/commands`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(command) });
-  if (!response.ok) throw new Error(`API returned HTTP ${response.status}.`);
-  const result = await response.json().catch(() => ({}));
-  if (result?.readback_verified === false) throw new Error("Server did not verify canonical readback.");
-  return result;
-}
-
-async function capture(rawValue, symbology) {
-  const raw = String(rawValue || "").trim();
-  if (!raw) return;
-  const command = commandFor(raw, symbology);
-  try { const result = await submitCommand(command); setStatus(`Submitted ${raw}\n${JSON.stringify(result, null, 2)}`); }
-  catch (error) { const rows = pending(); if (!rows.some((row) => row.idempotency_key === command.idempotency_key)) rows.push(command); savePending(rows); setStatus(`Queued locally: ${raw}\n${error.message}`); }
-  byId("scanValue").value = "";
-  byId("scanValue").focus();
-}
-
-async function syncPending() {
-  const rows = pending();
-  if (!rows.length) { setStatus("Nothing pending."); return; }
-  const remaining = []; let synced = 0;
-  for (const command of rows) { try { await submitCommand(command); synced += 1; } catch { remaining.push(command); } }
-  savePending(remaining); setStatus(`Synced ${synced}; ${remaining.length} remain pending.`);
-}
-
-function exportPending() {
-  const blob = new Blob([JSON.stringify(pending(), null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob); const anchor = document.createElement("a"); anchor.href = url; anchor.download = `mirror-pending-captures-${new Date().toISOString().replace(/[:.]/g, "-")}.json`; anchor.click(); URL.revokeObjectURL(url);
-}
-
-async function makeDetector() {
-  if (!("BarcodeDetector" in globalThis)) throw new Error("Camera barcode decoding is unavailable here. Use manual entry or a USB/Bluetooth keyboard-wedge scanner.");
-  let formats = ["qr_code", "ean_13", "ean_8", "upc_a", "code_128"];
-  if (typeof BarcodeDetector.getSupportedFormats === "function") { const supported = await BarcodeDetector.getSupportedFormats(); formats = formats.filter((format) => supported.includes(format)); }
-  if (!formats.length) throw new Error("This runtime exposes BarcodeDetector but none of the requested formats.");
-  return new BarcodeDetector({ formats });
-}
-
-async function cameraLoop() {
-  if (!scanLoopActive || !detector || videoEl.readyState < 2) { if (scanLoopActive) requestAnimationFrame(cameraLoop); return; }
-  try {
-    const codes = await detector.detect(videoEl);
-    if (codes.length) {
-      const code = codes[0]; const value = String(code.rawValue || "").trim(); const now = Date.now();
-      if (value && (value !== lastCameraValue || now - lastCameraAt > 2500)) { lastCameraValue = value; lastCameraAt = now; await capture(value, String(code.format || "UNKNOWN").toUpperCase()); }
-    }
-  } catch (error) { setStatus(`Camera decode error: ${error.message}`); }
-  if (scanLoopActive) requestAnimationFrame(cameraLoop);
-}
-
-async function startCamera() {
-  if (!navigator.mediaDevices?.getUserMedia) throw new Error("Camera access requires a current secure browser/runtime.");
-  detector = await makeDetector();
-  stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false });
-  videoEl.srcObject = stream; videoEl.hidden = false; await videoEl.play(); scanLoopActive = true; byId("startCamera").disabled = true; byId("stopCamera").disabled = false; setStatus("Camera scanner active."); requestAnimationFrame(cameraLoop);
-}
-
-function stopCamera() { scanLoopActive = false; if (stream) stream.getTracks().forEach((track) => track.stop()); stream = null; detector = null; videoEl.srcObject = null; videoEl.hidden = true; byId("startCamera").disabled = false; byId("stopCamera").disabled = true; setStatus("Camera stopped."); }
-
-function previewPhoto() {
-  const file = byId("photoFile").files?.[0]; const image = byId("photoPreview");
-  if (previewUrl) URL.revokeObjectURL(previewUrl); previewUrl = null;
-  if (!file) { image.hidden = true; image.removeAttribute("src"); return; }
-  previewUrl = URL.createObjectURL(file); image.src = previewUrl; image.hidden = false;
-}
-
-async function uploadPhoto() {
-  const base = apiBase(); const assetUuid = byId("photoAssetUuid").value.trim(); const role = byId("photoRole").value; const file = byId("photoFile").files?.[0];
-  if (!base) throw new Error("No API base URL configured.");
-  if (!assetUuid) throw new Error("Asset UUID is required.");
-  if (!file) throw new Error("Choose an image first.");
-  if (!file.type.startsWith("image/")) throw new Error("Asset media must be an image for this capture path.");
-  if (file.size > MAX_PHOTO_BYTES) throw new Error("Image exceeds the 15 MiB client upload limit.");
-  const form = new FormData(); form.set("asset_uuid", assetUuid); form.set("media_role", role); form.set("file", file, file.name);
-  const response = await authorizedFetch(`${base}/v1/evidence`, { method: "POST", body: form });
-  if (!response.ok) throw new Error(`Evidence API returned HTTP ${response.status}.`);
-  const result = await response.json();
-  if (result?.readback_verified === false) throw new Error("Evidence upload did not pass canonical readback.");
-  setStatus(`Asset photo stored and linked.\n${JSON.stringify(result, null, 2)}`);
-  byId("assetLookupUuid").value = assetUuid; await loadAsset();
-}
-
-function absoluteMediaUrl(value) {
-  if (!value) return "";
-  try { return new URL(value, `${apiBase()}/`).toString(); } catch { return ""; }
-}
-
-async function loadAsset() {
-  const base = apiBase(); const assetUuid = byId("assetLookupUuid").value.trim();
-  if (!base) throw new Error("No API base URL configured."); if (!assetUuid) throw new Error("Asset UUID is required.");
-  const response = await authorizedFetch(`${base}/v1/assets/${encodeURIComponent(assetUuid)}`);
-  if (!response.ok) throw new Error(`Asset API returned HTTP ${response.status}.`);
-  const result = await response.json(); byId("assetResult").textContent = JSON.stringify(result, null, 2);
-  const gallery = byId("assetPhotos"); gallery.replaceChildren();
-  for (const photo of Array.isArray(result.photo_evidence) ? result.photo_evidence : []) {
-    const src = absoluteMediaUrl(photo.thumbnail_url || photo.content_url);
-    if (!src) continue;
-    const image = document.createElement("img"); image.src = src; image.alt = photo.caption || photo.media_role || "Asset photo"; image.loading = "lazy"; gallery.appendChild(image);
-  }
-  setStatus("Asset read model loaded.");
-}
-
-function speakPreview() {
-  const text = byId("speechText").value.trim(); if (!text) return;
-  if (!("speechSynthesis" in globalThis)) { setStatus("Foreground speech preview is unavailable in this runtime."); return; }
-  speechSynthesis.cancel(); speechSynthesis.speak(new SpeechSynthesisUtterance(text)); setStatus("Foreground TTS preview requested. This is not background reminder-delivery evidence.");
-}
-
-function initialize() {
-  byId("apiBase").value = localStorage.getItem(API_BASE_STORAGE_KEY) || ""; savePending(pending());
-  byId("saveSettings").addEventListener("click", () => { localStorage.setItem(API_BASE_STORAGE_KEY, apiBase()); setStatus("API address saved. Access token remains only in this page/session input."); });
-  byId("scanForm").addEventListener("submit", async (event) => { event.preventDefault(); await capture(byId("scanValue").value, byId("symbology").value); });
-  byId("startCamera").addEventListener("click", () => startCamera().catch((error) => setStatus(error.message)));
-  byId("stopCamera").addEventListener("click", stopCamera);
-  byId("syncPending").addEventListener("click", () => syncPending().catch((error) => setStatus(error.message)));
-  byId("exportPending").addEventListener("click", exportPending);
-  byId("speakTest").addEventListener("click", speakPreview);
-  byId("photoFile").addEventListener("change", previewPhoto);
-  byId("uploadPhoto").addEventListener("click", () => uploadPhoto().catch((error) => setStatus(error.message)));
-  byId("loadAsset").addEventListener("click", () => loadAsset().catch((error) => setStatus(error.message)));
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch((error) => setStatus(`Service worker unavailable: ${error.message}`));
-}
-
-document.addEventListener("DOMContentLoaded", initialize);
+const VIEW_META={home:["Home","One reality layer, whichever client you happen to be using."],inventory:["Inventory","Find, edit, relocate, label and document what you own."],capture:["Capture","Camera, QR, barcode and scanner workflows."],ingress:["Ingress","Receipts, photos, manuals and files enter through one evidence path."],integrations:["Integrations","Connect only the providers and capabilities you actually use."],settings:["Settings","Server, device pairing and compatibility."]};
+function showView(name){document.querySelectorAll("[data-view-panel]").forEach(el=>el.classList.toggle("active",el.dataset.viewPanel===name));document.querySelectorAll("#nav button").forEach(el=>el.classList.toggle("active",el.dataset.view===name));$("pageTitle").textContent=VIEW_META[name][0];$("pageSubtitle").textContent=VIEW_META[name][1];if(name==="inventory")renderInventory();if(name==="integrations")loadProviders()}
+function setConnection(ok,text){const pill=$("connectionPill");pill.classList.toggle("ok",ok);pill.classList.toggle("bad",!ok);pill.querySelector("b").textContent=text}
+async function checkHealth(){try{state.health=await api("/v1/health");const compat=state.health.compatibility;setConnection(true,`mirror ${state.health.server_version}`);$("compatBanner").hidden=!(compat&&!compat.compatible);if(compat&&!compat.compatible)$("compatBanner").textContent=compat.reason;$("compatDetails").textContent=JSON.stringify(state.health,null,2);$("metricProvider").textContent=state.health.default_provider||"—";renderHealth();return true}catch(error){setConnection(false,error.message==="AUTH_REQUIRED"?"Sign in / pair":"mirror unavailable");$("compatDetails").textContent=error.message;return false}}
+function renderHealth(){const h=state.health||{},entries=[["Server",h.server_version||"—"],["API",`v${h.api_major??"—"}`],["State",h.state_backend||"—"],["Client",CLIENT_VERSION]];$("healthDetails").innerHTML=entries.map(([a,b])=>`<div class="detail"><span>${escapeHtml(a)}</span><strong>${escapeHtml(b)}</strong></div>`).join("")}
+async function loadEntities(){try{const data=await api("/v1/entities");state.entities=data.items||[];updateMetrics();fillSelectors();renderInventory()}catch(e){if(e.message!=="AUTH_REQUIRED")toast(e.message,true)}}
+function updateMetrics(){$("metricAssets").textContent=state.entities.filter(e=>e.entity_type==="asset").length;$("metricLocations").textContent=state.entities.filter(e=>e.entity_type==="location").length;$("metricEvidence").textContent=state.entities.filter(e=>e.entity_type==="knowledge"&&e.payload?.evidence).length}
+function entityById(id){return state.entities.find(e=>e.entity_uuid===id)}function identifiers(e){return Array.isArray(e?.payload?.identifiers)?e.payload.identifiers:[]}
+function escapeHtml(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function optionHtml(items,blank="None"){return`<option value="">${escapeHtml(blank)}</option>`+items.map(e=>`<option value="${e.entity_uuid}">${escapeHtml(e.name)}</option>`).join("")}
+function fillSelectors(){const assets=state.entities.filter(e=>e.entity_type==="asset").sort(byName),locations=state.entities.filter(e=>e.entity_type==="location").sort(byName),parents=state.entities.filter(e=>["category","location"].includes(e.entity_type)).sort(byName);$("ingressAsset").innerHTML=optionHtml(assets,"No asset link");$("captureLocation").innerHTML=optionHtml(locations,"Choose a location");$("entityParent").innerHTML=optionHtml(parents,"Top level");$("scanAssignEntity").innerHTML=optionHtml([...assets,...locations],"Choose an item")}
+function byName(a,b){return a.name.localeCompare(b.name,undefined,{sensitivity:"base"})}
+function renderInventory(){if(!$("inventoryList"))return;const q=$("inventorySearch").value.trim().toLowerCase(),visible=state.entities.filter(e=>["asset","location","category"].includes(e.entity_type)).filter(e=>!q||`${e.name} ${JSON.stringify(e.payload||{})}`.toLowerCase().includes(q)).sort(byName);$("inventoryList").innerHTML=visible.map(e=>`<div class="item-row" data-entity="${e.entity_uuid}"><div><strong>${escapeHtml(e.name)}</strong><small>${escapeHtml(e.entity_type)}${e.payload?.model?` · ${escapeHtml(e.payload.model)}`:""}</small></div><span class="chip">${identifiers(e).length} tag${identifiers(e).length===1?"":"s"}</span></div>`).join("")||`<div class="empty-state">Nothing matches.</div>`;document.querySelectorAll("[data-entity]").forEach(el=>el.onclick=()=>selectEntity(el.dataset.entity));renderTree()}
+function renderTree(){const roots=state.entities.filter(e=>["asset","location","category"].includes(e.entity_type)),children=new Map();for(const e of roots){const key=e.parent_uuid||"root";if(!children.has(key))children.set(key,[]);children.get(key).push(e)}for(const arr of children.values())arr.sort(byName);const rows=[];function walk(parent,depth){for(const e of children.get(parent)||[]){rows.push(`<div class="tree-row" data-type="${e.entity_type}" data-tree-entity="${e.entity_uuid}"><span class="tree-indent" style="--indent:${depth*15}px"></span><span class="type-dot ${e.entity_type}"></span><span>${escapeHtml(e.name)}</span></div>`);walk(e.entity_uuid,depth+1)}}walk("root",0);$("inventoryTree").innerHTML=rows.join("")||`<div class="empty-state">Add your first location or asset.</div>`;document.querySelectorAll("[data-tree-entity]").forEach(el=>el.onclick=()=>selectEntity(el.dataset.treeEntity))}
+async function selectEntity(id){const e=entityById(id);if(!e)return;if(e.entity_type!=="asset"){if(e.entity_type==="location"){state.activeLocation=e;renderActiveLocation()}return}state.selectedAsset=e;let detail={item:e,photo_evidence:[],evidence:[]};try{detail=await api(`/v1/assets/${encodeURIComponent(id)}`)}catch{}const location=entityById(e.payload?.location_uuid);$("assetDetail").innerHTML=`<div class="asset-header"><div><span class="eyebrow">Asset</span><h2>${escapeHtml(e.name)}</h2><div class="asset-meta"><span class="chip">${escapeHtml(e.payload?.model||"No model recorded")}</span><span class="chip">${escapeHtml(location?.name||e.payload?.location_name||"Location not set")}</span></div></div><div class="button-row"><button class="secondary" id="assetRelocate">Relocate</button><button class="secondary" id="assetTag">Assign tag</button><button class="primary" id="assetLabel">Print label</button></div></div><div><strong>Identifiers</strong><p>${identifiers(e).map(i=>`<span class="chip">${escapeHtml(i.symbology)} · ${escapeHtml(i.value)}</span>`).join(" ")||"<span class=chip>None</span>"}</p></div><div class="evidence-gallery">${(detail.photo_evidence||[]).map(p=>`<img src="${state.apiBase}${p.content_url}" alt="${escapeHtml(p.caption||"Asset photo")}" loading="lazy">`).join("")}</div><div class="button-row"><button class="ghost" id="assetAddEvidence">Add photo / file</button></div>`;$("assetRelocate").onclick=async()=>{showView("capture");$("captureLocation").focus()};$("assetTag").onclick=()=>{showView("capture");$("scanValue").focus();toast("Scan or type the tag you want to assign to this asset.")};$("assetLabel").onclick=()=>openLabel(e);$("assetAddEvidence").onclick=()=>{showView("ingress");$("ingressAsset").value=e.entity_uuid}}
+async function createEntity(){const type=$("entityType").value,name=$("entityName").value.trim();if(!name)throw new Error("Name is required.");const body={entity_type:type,name,parent_uuid:$("entityParent").value||null,payload:{}};if(type==="asset"&&$("entityModel").value.trim())body.payload.model=$("entityModel").value.trim();const result=await api("/v1/entities",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});await loadEntities();$("entityDialog").close();$("entityForm").reset();toast(`${type} created.`);if(type==="asset")selectEntity(result.item.entity_uuid)}
+function renderActiveLocation(){$("activeLocation").textContent=state.activeLocation?`Target: ${state.activeLocation.name}`:"No target location selected.";$("captureLocation").value=state.activeLocation?.entity_uuid||""}
+async function processScan(raw,symbology){raw=String(raw||"").trim();if(!raw)return;const command=scanCommand(raw,symbology);let result;try{result=await submitScanCommand(command)}catch(error){if(error.message==="AUTH_REQUIRED")throw error;const rows=pendingScans();rows.push(command);savePendingScans(rows);toast("Scanner event queued offline.");return}const match=result.entity||null;if(match){const local=entityById(match.entity_uuid)||match;if(local.entity_type==="location"){state.activeLocation=local;renderActiveLocation();toast(`Location set to ${local.name}.`);return}if(local.entity_type==="asset"){if(state.activeLocation&&local.payload?.location_uuid!==state.activeLocation.entity_uuid){const ok=confirm(`Move "${local.name}" to "${state.activeLocation.name}"?`);if(ok){await api(`/v1/assets/${local.entity_uuid}/move`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({location_uuid:state.activeLocation.entity_uuid})});await loadEntities();toast("Asset relocated and read back.")}}state.selectedAsset=local;$("scanResult").innerHTML=`<div class="scan-card"><strong>${escapeHtml(local.name)}</strong><p>Known ${escapeHtml(local.entity_type)}.</p></div>`;return}}state.pendingScan={raw,symbology};$("scanDialogTitle").textContent="New identifier";$("scanDialogText").textContent=`${raw} is not assigned yet. Attach it to an existing item or create a new asset.`;$("scanNewAssetName").value="";$("scanDialog").showModal()}
+async function assignPendingScan(entityId){const s=state.pendingScan;if(!s||!entityId)throw new Error("Choose an item.");await api(`/v1/entities/${entityId}/identifiers`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({value:s.raw,symbology:s.symbology})});state.pendingScan=null;await loadEntities();$("scanDialog").close();toast("Identifier assigned.")}
+async function createFromScan(){const name=$("scanNewAssetName").value.trim();if(!name)throw new Error("Give the new asset a name.");const created=await api("/v1/entities",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({entity_type:"asset",name,parent_uuid:null,payload:{}})});await assignPendingScan(created.item.entity_uuid);selectEntity(created.item.entity_uuid)}
+async function makeDetector(){if(!("BarcodeDetector" in globalThis))throw new Error("Camera barcode decoding is unavailable here. Use a USB/Bluetooth scanner or manual entry.");let formats=["qr_code","ean_13","ean_8","upc_a","code_128"];if(BarcodeDetector.getSupportedFormats){const supported=await BarcodeDetector.getSupportedFormats();formats=formats.filter(f=>supported.includes(f))}if(!formats.length)throw new Error("This runtime exposes no supported barcode formats.");return new BarcodeDetector({formats})}
+async function startCamera(){state.detector=await makeDetector();state.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});$("camera").srcObject=state.stream;$("camera").hidden=false;await $("camera").play();state.scanLoop=true;$("startCamera").disabled=true;$("stopCamera").disabled=false;cameraLoop()}
+async function cameraLoop(){if(!state.scanLoop)return;try{if($("camera").readyState>=2){const codes=await state.detector.detect($("camera"));if(codes.length){const c=codes[0],raw=String(c.rawValue||"").trim(),now=Date.now();if(raw&&(raw!==state.lastScan||now-state.lastScanAt>2500)){state.lastScan=raw;state.lastScanAt=now;await processScan(raw,String(c.format||"UNKNOWN").toUpperCase())}}}}catch(e){toast(e.message,true)}if(state.scanLoop)requestAnimationFrame(cameraLoop)}
+function stopCamera(){state.scanLoop=false;state.stream?.getTracks().forEach(t=>t.stop());state.stream=null;state.detector=null;$("camera").srcObject=null;$("camera").hidden=true;$("startCamera").disabled=false;$("stopCamera").disabled=true}
+function queueIngress(files){for(const f of files){if(f.size>MAX_UPLOAD){toast(`${f.name} exceeds 25 MiB.`,true);continue}state.ingress.push(f)}renderIngress()}
+function renderIngress(){$("ingressQueue").innerHTML=state.ingress.map((f,i)=>`<div class="file-row"><span>${escapeHtml(f.name)}</span><button class="ghost" data-remove-file="${i}">Remove</button></div>`).join("");document.querySelectorAll("[data-remove-file]").forEach(b=>b.onclick=()=>{state.ingress.splice(Number(b.dataset.removeFile),1);renderIngress()})}
+async function uploadIngress(){if(!state.ingress.length)throw new Error("Choose at least one file.");const type=$("ingressType").value,asset=$("ingressAsset").value||"",caption=$("ingressCaption").value.trim();let completed=0;for(const file of[...state.ingress]){const form=new FormData();form.set("file",file,file.name);if(asset)form.set("asset_uuid",asset);form.set("relation_type",type);form.set("caption",caption);await api("/v1/evidence",{method:"POST",body:form});completed++}state.ingress=[];renderIngress();await loadEntities();toast(`${completed} file${completed===1?"":"s"} uploaded and read back.`)}
+async function loadProviders(){try{const data=await api("/v1/providers");state.providers=data;const g=data.providers.find(p=>p.provider==="google");$("googleStatus").textContent=g?.connected?(g.provisioned?"Connected + ready":"Connected"):(g?.configured?"Not connected":"Server setup required");$("connectGoogle").textContent=g?.connected?"Reconnect Google":"Connect Google";$("provisionGoogle").hidden=!(g?.connected&&!g?.provisioned)}catch(e){$("googleStatus").textContent=e.message==="AUTH_REQUIRED"?"Sign in required":"Unavailable"}}
+function connectGoogle(){location.href=`${state.apiBase}/auth/google/start`}
+async function provisionGoogle(){await api("/v1/providers/google/provision",{method:"POST"});await loadProviders();await loadEntities();toast("Google workspace created and verified.")}
+function openLabel(entity){state.labelEntity=entity;$("labelValue").value=`mirror:entity:${entity.entity_uuid}`;$("labelPreview").replaceChildren();$("labelDialog").showModal()}
+async function generateLabel(){const value=$("labelValue").value.trim(),kind=$("labelKind").value;if(!value)throw new Error("Label value is required.");if(state.labelEntity&&!identifiers(state.labelEntity).some(i=>i.value===value)){await api(`/v1/entities/${state.labelEntity.entity_uuid}/identifiers`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({value,symbology:kind==="qr"?"QR_CODE":"CODE_128"})});await loadEntities()}const response=await api("/v1/labels/render",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({value,kind})});$("labelPreview").innerHTML=await response.text()}
+function printLabel(){if(!$("labelPreview").innerHTML)return toast("Generate the label first.",true);const w=window.open("","_blank");w.document.write(`<html><body onload="print()" style="display:grid;place-items:center">${$("labelPreview").innerHTML}</body></html>`);w.document.close()}
+function speakPreview(){const text=$("speechText").value.trim();if(!text)return;if(globalThis.MiraNative?.speak){globalThis.MiraNative.speak(text);toast("Android native TTS requested.");return}if("speechSynthesis" in globalThis){speechSynthesis.cancel();speechSynthesis.speak(new SpeechSynthesisUtterance(text));toast("Foreground speech preview requested; this is not background reminder-delivery evidence.");return}toast("Speech preview is unavailable on this client.",true)}
+async function pairDevice(){if(!state.apiBase)throw new Error("Save the mirror server address first.");const deviceName=`${navigator.platform||"Device"} · ${clientId().slice(0,8)}`,start=await fetch(`${state.apiBase}/v1/auth/device/start`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({device_name:deviceName})}).then(r=>r.json());$("pairingBox").hidden=false;$("pairingBox").innerHTML=`<strong>Pairing code: ${escapeHtml(start.user_code)}</strong><p>A browser window will open. Sign in and approve this device.</p>`;await openExternal(start.verification_url_complete);const deadline=Date.now()+start.expires_in*1000;while(Date.now()<deadline){await new Promise(r=>setTimeout(r,(start.interval||3)*1000));const r=await fetch(`${state.apiBase}/v1/auth/device/poll/${encodeURIComponent(start.device_code)}`).then(x=>x.json());if(r.status==="approved"){state.token=r.access_token;sessionStorage.setItem("mirror.session.token",state.token);await saveNativeCredential(state.token);$("pairingBox").innerHTML="<strong>Paired.</strong><p>This device now has a scoped mirror credential.</p>";await refreshAll();return}if(r.status==="already_consumed")throw new Error("Pairing token was already consumed. Start again.")}throw new Error("Pairing code expired.")}
+async function refreshAll(){await checkHealth();await loadEntities();await loadProviders()}
+function bind(){document.querySelectorAll("#nav [data-view]").forEach(b=>b.onclick=()=>showView(b.dataset.view));document.querySelectorAll("[data-nav]").forEach(b=>b.onclick=()=>showView(b.dataset.nav));document.querySelectorAll("[data-open-dialog]").forEach(b=>b.onclick=()=>$(b.dataset.openDialog).showModal());$("refreshAll").onclick=refreshAll;$("inventorySearch").oninput=renderInventory;$("entityType").onchange=()=>{$("entityModelWrap").hidden=$("entityType").value!=="asset"};$("createEntity").onclick=e=>{e.preventDefault();createEntity().catch(x=>toast(x.message,true))};$("manualScanForm").onsubmit=e=>{e.preventDefault();processScan($("scanValue").value,$("symbology").value).catch(x=>toast(x.message,true));$("scanValue").value=""};$("assignScanExisting").onclick=e=>{e.preventDefault();assignPendingScan($("scanAssignEntity").value).catch(x=>toast(x.message,true))};$("createFromScan").onclick=e=>{e.preventDefault();createFromScan().catch(x=>toast(x.message,true))};$("startCamera").onclick=()=>startCamera().catch(x=>toast(x.message,true));$("stopCamera").onclick=stopCamera;$("syncPending").onclick=()=>syncPendingScans().catch(x=>toast(x.message,true));$("setCaptureLocation").onclick=()=>{state.activeLocation=entityById($("captureLocation").value)||null;renderActiveLocation()};$("clearCaptureLocation").onclick=()=>{state.activeLocation=null;renderActiveLocation()};const dz=$("dropzone");dz.onclick=()=>$("ingressFiles").click();dz.onkeydown=e=>{if(e.key==="Enter"||e.key===" ")$("ingressFiles").click()};["dragenter","dragover"].forEach(n=>dz.addEventListener(n,e=>{e.preventDefault();dz.classList.add("drag")}));["dragleave","drop"].forEach(n=>dz.addEventListener(n,e=>{e.preventDefault();dz.classList.remove("drag")}));dz.ondrop=e=>queueIngress(e.dataTransfer.files);$("ingressFiles").onchange=e=>queueIngress(e.target.files);$("uploadIngress").onclick=()=>uploadIngress().catch(x=>toast(x.message,true));$("connectGoogle").onclick=connectGoogle;$("provisionGoogle").onclick=()=>provisionGoogle().catch(x=>toast(x.message,true));$("generateLabel").onclick=e=>{e.preventDefault();generateLabel().catch(x=>toast(x.message,true))};$("printLabel").onclick=e=>{e.preventDefault();printLabel()};$("saveServer").onclick=async()=>{state.apiBase=normalizeBase($("apiBase").value);localStorage.setItem(SERVER_KEY,state.apiBase);await refreshAll()};$("pairDevice").onclick=()=>pairDevice().catch(x=>toast(x.message,true));$("speakTest").onclick=speakPreview}
+async function init(){state.apiBase=normalizeBase(localStorage.getItem(SERVER_KEY)||sameOriginApiDefault());$("apiBase").value=state.apiBase;state.token=sessionStorage.getItem("mirror.session.token")||await loadNativeCredential();bind();renderActiveLocation();savePendingScans(pendingScans());if("serviceWorker" in navigator&&["http:","https:"].includes(location.protocol))navigator.serviceWorker.register("sw.js").catch(()=>{});await refreshAll()}
+document.addEventListener("DOMContentLoaded",init);

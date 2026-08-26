@@ -1,104 +1,13 @@
 <!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#12151b">
-  <title>MIRA</title>
-  <link rel="manifest" href="manifest.webmanifest">
-  <style>
-    :root { font-family: Inter, ui-sans-serif, system-ui, sans-serif; color-scheme: light dark; }
-    * { box-sizing: border-box; }
-    body { margin: 0; background: Canvas; color: CanvasText; }
-    header { padding: 1.25rem max(1rem, calc((100vw - 1120px)/2)); border-bottom: 1px solid color-mix(in srgb, CanvasText 15%, transparent); }
-    header h1 { margin: 0; font-size: 1.55rem; }
-    header p { margin: .3rem 0 0; opacity: .7; }
-    main { max-width: 1120px; margin: 0 auto; padding: 1rem; display: grid; grid-template-columns: repeat(auto-fit,minmax(320px,1fr)); gap: 1rem; }
-    .card { border: 1px solid color-mix(in srgb, CanvasText 15%, transparent); border-radius: 14px; padding: 1rem; background: color-mix(in srgb, Canvas 96%, CanvasText 4%); box-shadow: 0 8px 24px color-mix(in srgb, CanvasText 8%, transparent); }
-    .wide { grid-column: 1 / -1; }
-    h2 { font-size: 1.05rem; margin: 0 0 .75rem; }
-    .row { display: grid; gap: .65rem; margin: .65rem 0; }
-    .actions { display: flex; flex-wrap: wrap; gap: .55rem; }
-    label { display: grid; gap: .3rem; font-size: .9rem; }
-    input, button, select { font: inherit; padding: .72rem; border-radius: 9px; border: 1px solid color-mix(in srgb, CanvasText 22%, transparent); }
-    button { cursor: pointer; font-weight: 600; }
-    video, #photoPreview { width: 100%; max-height: 360px; object-fit: contain; background: #000; border-radius: 10px; }
-    #photoPreview[hidden], video[hidden] { display: none; }
-    .muted { opacity: .7; }
-    #status { min-height: 3rem; white-space: pre-wrap; overflow-wrap: anywhere; }
-    #assetResult { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .85rem; max-height: 260px; overflow: auto; }
-    .photos { display: grid; grid-template-columns: repeat(auto-fill,minmax(120px,1fr)); gap: .5rem; margin-top: .5rem; }
-    .photos img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; border: 1px solid color-mix(in srgb, CanvasText 15%, transparent); }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>MIRA</h1>
-    <p>M.I.R.R.O.R. capture and asset client. Same API on web, Windows, Linux and Android.</p>
-  </header>
-  <main>
-    <section class="card">
-      <h2>Connection</h2>
-      <div class="row">
-        <label>API base URL<input id="apiBase" inputmode="url" placeholder="https://mirror.example/api"></label>
-        <label>Session access token<input id="token" type="password" autocomplete="off" placeholder="Not stored persistently"></label>
-        <button id="saveSettings" type="button">Save API address</button>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>Barcode / QR</h2>
-      <video id="camera" playsinline muted hidden></video>
-      <div class="actions">
-        <button id="startCamera" type="button">Start camera scanner</button>
-        <button id="stopCamera" type="button" disabled>Stop camera</button>
-      </div>
-      <form id="scanForm" class="row">
-        <label>Scan or type identifier<input id="scanValue" autocomplete="off" autofocus placeholder="USB/Bluetooth scanner can type here"></label>
-        <label>Symbology<select id="symbology"><option value="UNKNOWN">Unknown / manual</option><option value="QR_CODE">QR</option><option value="UPC_A">UPC-A</option><option value="EAN_13">EAN-13</option><option value="EAN_8">EAN-8</option><option value="CODE_128">Code 128</option></select></label>
-        <button type="submit">Queue / submit scan</button>
-      </form>
-    </section>
-
-    <section class="card">
-      <h2>Asset photo</h2>
-      <div class="row">
-        <label>Asset UUID<input id="photoAssetUuid" autocomplete="off" placeholder="Immutable asset UUID"></label>
-        <label>Photo role<select id="photoRole"><option value="primary">Primary</option><option value="gallery">Gallery</option><option value="serial_or_model_label">Serial / model label</option><option value="condition">Condition</option><option value="location_context">Location context</option></select></label>
-        <label>Image<input id="photoFile" type="file" accept="image/*" capture="environment"></label>
-        <img id="photoPreview" alt="Selected asset preview" hidden>
-        <button id="uploadPhoto" type="button">Upload and link photo</button>
-        <small class="muted">The image becomes evidence linked to the asset UUID. Storage may be Drive today or object storage later without changing asset identity.</small>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>Asset lookup</h2>
-      <div class="row">
-        <label>Asset UUID<input id="assetLookupUuid" autocomplete="off" placeholder="Immutable asset UUID"></label>
-        <button id="loadAsset" type="button">Load asset</button>
-      </div>
-      <div id="assetPhotos" class="photos"></div>
-      <pre id="assetResult"></pre>
-    </section>
-
-    <section class="card">
-      <h2>Spoken reminder test</h2>
-      <div class="row">
-        <label>Foreground speech preview<input id="speechText" value="You have an appointment in one hour."></label>
-        <button id="speakTest" type="button">Speak test on this device</button>
-        <small class="muted">Preview only. Reliable background spoken reminders require the native Android companion.</small>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>Pending captures</h2>
-      <div class="actions"><button id="syncPending" type="button">Sync pending captures</button><button id="exportPending" type="button">Export pending JSON</button></div>
-      <p id="queueCount" class="muted"></p>
-    </section>
-
-    <section class="card wide"><h2>Status</h2><pre id="status" role="status" aria-live="polite"></pre></section>
-  </main>
-  <script src="app.js" defer></script>
-</body>
-</html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0b1020"><title>MIRA</title><link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="styles.css"></head>
+<body><div class="app-shell"><aside class="sidebar"><div class="brand"><div class="brand-mark">M</div><div><strong>MIRA</strong><span>mirror client</span></div></div><nav id="nav"><button data-view="home" class="active">Home</button><button data-view="inventory">Inventory</button><button data-view="capture">Capture</button><button data-view="ingress">Ingress</button><button data-view="integrations">Integrations</button><button data-view="settings">Settings</button></nav><div class="connection-pill" id="connectionPill"><span></span><b>Checking mirror…</b></div></aside>
+<main class="main"><header class="topbar"><div><h1 id="pageTitle">Home</h1><p id="pageSubtitle">One reality layer, whichever client you happen to be using.</p></div><div class="top-actions"><button class="secondary" id="refreshAll">Refresh</button><button class="primary" data-open-dialog="entityDialog">Add item</button></div></header><div id="compatBanner" class="banner danger" hidden></div><div id="toast" class="toast" hidden></div>
+<section class="view active" data-view-panel="home"><div class="hero"><div><span class="eyebrow">MIRA + mirror</span><h2>Your stuff, schedules, evidence and integrations in one place.</h2><p>Use web, Windows, Linux, Android or CLI. They all talk to the same mirror service and canonical state.</p></div><div class="hero-actions"><button class="primary" data-nav="capture">Scan something</button><button class="secondary" data-nav="inventory">Open inventory</button></div></div><div class="metric-grid"><article class="metric"><span>Assets</span><strong id="metricAssets">—</strong></article><article class="metric"><span>Locations</span><strong id="metricLocations">—</strong></article><article class="metric"><span>Evidence</span><strong id="metricEvidence">—</strong></article><article class="metric"><span>Provider</span><strong id="metricProvider">—</strong></article></div><div class="panel"><div class="panel-heading"><div><h3>System readiness</h3><p>Missing dependencies stay local to the feature that needs them.</p></div></div><div id="healthDetails" class="detail-grid"></div></div></section>
+<section class="view" data-view-panel="inventory"><div class="split"><div class="panel hierarchy-panel"><div class="panel-heading"><div><h3>Hierarchy</h3><p>Categories, locations and assets.</p></div><button class="icon-button" data-open-dialog="entityDialog">+</button></div><div id="inventoryTree" class="tree"></div></div><div class="panel"><div class="panel-heading"><div><h3>Inventory</h3><p>Search, edit, relocate, label and document anything.</p></div><input id="inventorySearch" class="compact-input" type="search" placeholder="Search inventory"></div><div id="inventoryList" class="item-list"></div></div></div><div class="panel asset-detail" id="assetDetail"><div class="empty-state">Select an asset to see its details, identifiers, location and evidence.</div></div></section>
+<section class="view" data-view-panel="capture"><div class="capture-grid"><div class="panel"><div class="panel-heading"><div><h3>Camera scanner</h3><p>QR, UPC/EAN and Code 128 when the current camera runtime supports them.</p></div></div><video id="camera" playsinline muted hidden></video><div class="button-row"><button id="startCamera" class="primary">Start camera</button><button id="stopCamera" class="secondary" disabled>Stop</button></div><form id="manualScanForm" class="stack"><label>Scan or type an identifier<input id="scanValue" autocomplete="off" placeholder="USB/Bluetooth scanner types here"></label><label>Symbology<select id="symbology"><option value="UNKNOWN">Unknown / automatic</option><option value="QR_CODE">QR</option><option value="UPC_A">UPC-A</option><option value="EAN_13">EAN-13</option><option value="EAN_8">EAN-8</option><option value="CODE_128">Code 128</option></select></label><button class="primary" type="submit">Process scan</button></form><div class="button-row"><button id="syncPending" class="secondary">Sync pending scans</button><span id="pendingCount" class="status-chip">0 pending</span></div></div><div class="panel"><div class="panel-heading"><div><h3>Relocation mode</h3><p>Scan/select a location, then scan assets into it. Moves still require an explicit confirmation.</p></div></div><div id="activeLocation" class="location-target">No target location selected.</div><label>Target location<select id="captureLocation"></select></label><button id="setCaptureLocation" class="secondary">Set target</button><button id="clearCaptureLocation" class="ghost">Clear</button><div id="scanResult" class="scan-result"></div></div></div></section>
+<section class="view" data-view-panel="ingress"><div class="panel"><div class="panel-heading"><div><h3>Drop anything useful</h3><p>Photos, receipts, PDFs and other evidence enter the same provenance path.</p></div></div><div id="dropzone" class="dropzone" tabindex="0"><strong>Drop files here</strong><span>or click to choose files</span><input id="ingressFiles" type="file" multiple hidden></div><div class="form-grid"><label>Classify as<select id="ingressType"><option value="receipt">Receipt / purchase evidence</option><option value="asset_photo">Asset photo</option><option value="manual">Manual / specification</option><option value="document">Document / evidence</option></select></label><label>Link to asset (optional)<select id="ingressAsset"></select></label><label>Caption / note<input id="ingressCaption" placeholder="What is this?"></label></div><div id="ingressQueue" class="file-list"></div><button id="uploadIngress" class="primary">Upload queued files</button></div></section>
+<section class="view" data-view-panel="integrations"><div class="integration-grid"><article class="integration-card featured"><div class="integration-logo">G</div><div><span class="recommended">Default</span><h3>Google Workspace</h3><p>Sheets for structured state, Drive for evidence. Calendar and Gmail are separate optional capabilities.</p></div><div class="integration-actions"><span id="googleStatus" class="status-chip">Checking…</span><button id="connectGoogle" class="primary">Connect Google</button><button id="provisionGoogle" class="secondary" hidden>Create mirror workspace</button></div></article><article class="integration-card"><div class="integration-logo microsoft">M</div><div><h3>Microsoft 365</h3><p>Provider-neutral contracts allow OneDrive/SharePoint, Lists/Excel, Outlook and Calendar without changing mirror Core.</p></div><span class="status-chip">Adapter lane</span></article><article class="integration-card"><div class="integration-logo apple">A</div><div><h3>Apple / iCloud</h3><p>Manual Files/ICS lane today. Native iCloud automation is not claimed without a verified provider adapter.</p></div><span class="status-chip">Manual lane</span></article></div></section>
+<section class="view" data-view-panel="settings"><div class="panel settings-panel"><div class="panel-heading"><div><h3>mirror connection</h3><p>Web uses its signed-in session. Native clients pair once and use scoped device credentials.</p></div></div><label>mirror server<input id="apiBase" inputmode="url" placeholder="https://mirror.example"></label><div class="button-row"><button id="saveServer" class="primary">Save and test</button><button id="pairDevice" class="secondary">Pair this device</button></div><div id="pairingBox" class="pairing-box" hidden></div><hr><label>Speech test<input id="speechText" value="You have an appointment in one hour."></label><button id="speakTest" class="secondary">Test speech on this device</button><small>Foreground browser speech is only a preview. Android native TTS is the background appointment-delivery path.</small></div><div class="panel"><div class="panel-heading"><div><h3>Client compatibility</h3><p>Clients negotiate API major version and minimum supported client version before writes.</p></div></div><pre id="compatDetails" class="code-lite"></pre></div></section></main></div>
+<dialog id="entityDialog"><form method="dialog" id="entityForm"><div class="dialog-heading"><h2>Add to mirror</h2><button value="cancel" class="icon-button">×</button></div><label>Type<select id="entityType"><option value="asset">Asset</option><option value="location">Location</option><option value="category">Category</option></select></label><label>Name<input id="entityName" required placeholder="e.g. Tekton 3/8 socket set"></label><label>Parent / category<select id="entityParent"></select></label><label id="entityModelWrap">Model / part number<input id="entityModel" placeholder="Optional"></label><div class="dialog-actions"><button value="cancel" class="secondary">Cancel</button><button id="createEntity" value="default" class="primary">Create</button></div></form></dialog>
+<dialog id="scanDialog"><form method="dialog"><div class="dialog-heading"><h2 id="scanDialogTitle">Unknown identifier</h2><button value="cancel" class="icon-button">×</button></div><p id="scanDialogText"></p><label>Assign to existing item<select id="scanAssignEntity"></select></label><button id="assignScanExisting" value="default" class="primary">Assign identifier</button><hr><label>Or create a new asset<input id="scanNewAssetName" placeholder="Asset name"></label><button id="createFromScan" value="default" class="secondary">Create and assign</button></form></dialog>
+<dialog id="labelDialog"><form method="dialog"><div class="dialog-heading"><h2>Print an asset label</h2><button value="cancel" class="icon-button">×</button></div><label>Format<select id="labelKind"><option value="qr">QR code</option><option value="code128">Code 128 barcode</option></select></label><label>Label value<input id="labelValue"></label><div id="labelPreview" class="label-preview"></div><div class="dialog-actions"><button id="generateLabel" value="default" class="secondary">Generate</button><button id="printLabel" value="default" class="primary">Print</button></div></form></dialog><script src="app.js" defer></script></body></html>
