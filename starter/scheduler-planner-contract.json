@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "purpose": "Keep MIRA recurring work inside the smallest practical number of ChatGPT scheduled tasks while making Daily Cleanup and Daily Briefs understandable to normal users.",
+  "defaults": {
+    "daily_cleanup_enabled": true,
+    "daily_cleanup_local_time": "00:01",
+    "daily_cleanup_hidden_from_first_run_questions": true,
+    "user_can_change_reconciliation_windows_in_settings": true,
+    "attach_cleanup_to_existing_mira_cycle": true,
+    "feature_specific_scheduled_tasks_prohibited": true,
+    "max_chatgpt_task_slots_assumed": 5
+  },
+  "planner_order": [
+    "add work as a phase of an existing MIRA scheduled task",
+    "add another execution time to an existing recurring MIRA task when one task can cover it",
+    "merge compatible Daily Cleanup and Daily Brief preparation",
+    "reuse another compatible MIRA cycle",
+    "create another scheduled task only when no safe consolidation exists"
+  ],
+  "warnings": {
+    "warn_when_new_task_slot_is_required": true,
+    "warn_when_user_is_near_five_task_limit": true,
+    "warn_when_frequency_may_materially_increase_metered_ai_cost": true,
+    "do_not_warn_merely_for_another_BYHOUR_on_same_task": true
+  },
+  "daily_briefs": {
+    "settings_button": "Set up Daily Briefs",
+    "setup_is_chatgpt_guided": true,
+    "app_handoff_contains_setup_request_not_private_data": true,
+    "brief_preferences_live_in_mirror": true,
+    "cleanup_should_run_before_brief_generation": true,
+    "existing_brief_cycle_should_absorb_cleanup_when_compatible": true
+  },
+  "feature_studio": {
+    "features_describe_work_not_schedules": true,
+    "friendly_checkbox": "MIRA may need to organize new information later",
+    "friendly_explanation": "Turn this on when new information may need MIRA to identify, categorize, match, summarize, or check it later.",
+    "freshness_choices": ["next_daily_cleanup", "within_a_few_hours", "as_soon_as_possible", "only_when_asked"],
+    "planner_translates_feature_policy_to_existing_cycles": true
+  },
+  "manual_cleanup": {
+    "button": "Clean up now",
+    "chatgpt_mode": "Open the user's MIRA ChatGPT destination with or copy a prepared request to process pending MIRROR cleanup work; do not call the OpenAI API from the app.",
+    "api_mode": "When a user explicitly enables a metered API processor, an immediate processor may be offered with visible cost consequences.",
+    "manual_mode": "Run deterministic work only and leave AI-required items in Review."
+  }
+}
