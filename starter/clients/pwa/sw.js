@@ -3,7 +3,7 @@
 const CACHE = "mirror-client-shell-v18";
 const SHELL = [
   "./", "./index.html", "./app.js", "./provider-connect-v3.js", "./google-authority-v1.js", "./cloud-authority-compat.js", "./receipt-queue-cloud-v1.js", "./reconciliation-cloud-v1.js", "./client-hardening.js", "./platform-ui.js", "./product-v1.js",
-  "./smart-capture.js", "./guided-migration.js", "./ble-proximity.js", "./receipt-v1.js", "./native-updater.js", "./integrations-v1.js", "./dashboard-v2.js", "./reconciliation-v1.js", "./feature-studio-reconciliation-v1.js", "./onboarding-polish.js", "./interaction-audit.js", "./experience-v3.js", "./native-kiosk-bridge.js", "./brand-final.js", "./theme-v1.js",
+  "./smart-capture.js", "./guided-migration.js", "./ble-proximity.js", "./receipt-v1.js", "./native-updater.js", "./integrations-v1.js", "./dashboard-v2.js", "./reconciliation-v1.js", "./reconciliation-ui-bridge-v1.js", "./feature-studio-reconciliation-v1.js", "./onboarding-polish.js", "./interaction-audit.js", "./experience-v3.js", "./native-kiosk-bridge.js", "./brand-final.js", "./theme-v1.js",
   "./commercial.css", "./sleek-v2.css", "./experience-v3.css", "./android-fixes.css", "./brand-final.css", "./theme-v1.css",
   "./manifest.webmanifest", "./mira-logo.png", "./tutorial-google.svg", "./tutorial-github.svg", "./tutorial-conflict.svg", "./tutorial-hierarchy.svg"
 ];
