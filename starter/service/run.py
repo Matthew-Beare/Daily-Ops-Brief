@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 
 import app as core_app
+from automation_preferences import install_automation_preferences
 from backup_scheduler import install_backup_scheduler
 from device_auth import install_device_auth, valid_device_token
 from fastapi import Request
@@ -36,6 +37,7 @@ install_oauth_hardening(core_app)
 register_provider_extensions(app)
 install_platform_foundations(app, core_app)
 install_product_v1(app, core_app)
+install_automation_preferences(app, core_app)
 install_experience_v3(app, core_app)
 install_inventory_hierarchy(app, core_app)
 install_enrichment(app, core_app)
