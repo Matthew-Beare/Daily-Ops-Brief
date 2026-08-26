@@ -47,16 +47,11 @@
     return root.querySelector("input[name='miraReleaseMode']:checked")?.value || "cloud";
   }
 
-  function connectionState() {
-    return globalThis.MiraProviderConnect?.state?.() || {};
-  }
-
-  function cloudConnected() {
-    return globalThis.MiraProviderConnect?.isCloudConnected?.() === true;
-  }
-
+  function connectionState() { return globalThis.MiraProviderConnect?.state?.() || {}; }
+  function cloudConnected() { return globalThis.MiraProviderConnect?.isCloudConnected?.() === true; }
   function saveDeploymentMode(mode) {
     localStorage.setItem(MODE_KEY, mode);
+    localStorage.setItem("mira.manual.only", mode === "manual" ? "true" : "false");
   }
 
   async function testSelfHosted(urlInput, result) {
@@ -122,25 +117,26 @@
     brand.alt = "MIRA — assistant. MIRROR — your private data.";
     brand.className = "mira-release-brand";
     const title = el("h2", "", "Set up MIRA");
-    const sub = el("p", "muted", "MIRA is your assistant. MIRROR is the private data store that keeps MIRA consistent between ChatGPT and any MIRA app you choose to use.");
+    const sub = el("p", "muted", "MIRA is your assistant. MIRROR is the private data store that keeps your records consistent. You can start with AI assistance or use the app manually and connect MIRA later.");
     card.append(brand, title, sub);
 
     const steps = [];
     const welcome = el("section", "mira-release-step");
     welcome.append(
-      el("h3", "", "One assistant. One shared memory of what is true."),
-      el("p", "", "Talk to MIRA in ChatGPT. MIRROR keeps the durable records. The MIRA app is optional: it is a fast way to scan, photograph, enter and display MIRROR data."),
-      el("div", "mira-release-explain", "Anything added in the app goes into MIRROR. Anything MIRA writes into MIRROR can appear in the app. Both must agree on the same state.")
+      el("h3", "", "One place for what is true."),
+      el("p", "", "MIRROR keeps the durable records. When ChatGPT or another approved AI processor is connected, MIRA can help organize and reason over those same records."),
+      el("div", "mira-release-explain", "Anything added in the app goes into MIRROR. Connecting AI later does not require rebuilding your inventory or receipt history.")
     );
     steps.push(welcome);
 
     const deployment = el("section", "mira-release-step");
-    deployment.append(el("h3", "", "Where should MIRROR live?"), el("p", "muted", "There is no chat-only mode. MIRA always needs a durable place to keep your data."));
+    deployment.append(el("h3", "", "Where should MIRROR live?"), el("p", "muted", "Choose the simplest option that fits you. These can be migrated later without changing permanent item identities."));
     const modes = el("div", "mira-release-modes");
     modes.append(
       modeCard("cloud", "Cloud", "ChatGPT + Google Workspace or Microsoft 365. No Linux or server required.", true),
-      modeCard("cloud_local", "Cloud + local services", "Same simple cloud setup, plus optional access to Home Assistant, Plex, Paperless and other services on your network."),
-      modeCard("self_hosted", "Self-hosted", "Run MIRROR on your own system. Google or Microsoft can still be connected later, but they are optional.")
+      modeCard("cloud_local", "Cloud + local services", "Same simple cloud setup, plus optional Home Assistant, Plex, Paperless and other services on your network."),
+      modeCard("self_hosted", "Self-hosted", "Run MIRROR on your own system. Cloud accounts and AI processors are optional."),
+      modeCard("manual", "Use the app manually", "Keep a local MIRROR on this device for inventory, receipts, photos and scanning. No AI is required; connect MIRA later if you want it.")
     );
     deployment.append(modes);
     steps.push(deployment);
@@ -157,11 +153,17 @@
     server.value = localStorage.getItem(API_STORAGE_KEY) || "";
     const serverResult = el("div", "mira-release-connection-status", "Not connected yet.");
     selfHost.append(server, button("Check MIRROR connection", () => testSelfHosted(server, serverResult), true), serverResult);
-    connection.append(cloud, selfHost);
+    const manual = el("div", "mira-release-selfhost");
+    manual.id = "miraReleaseManual";
+    manual.append(
+      el("div", "mira-release-connection-status connected", "Local MIRROR is stored on this device. No account or AI connection is required."),
+      el("p", "muted", "AI-only work will stay in Review. If you later connect ChatGPT, a paid API, OpenClaw, or a local model, it can work from the MIRROR data you already created.")
+    );
+    connection.append(cloud, selfHost, manual);
     steps.push(connection);
 
     const profile = el("section", "mira-release-step");
-    profile.append(el("h3", "", "A few useful defaults"), el("p", "muted", "These can all be changed later. The app does not replace MIRA's full first-time interview in ChatGPT."));
+    profile.append(el("h3", "", "A few useful defaults"), el("p", "muted", "These can all be changed later. Daily Cleanup defaults quietly to 12:01 AM when an AI schedule is eventually configured; you can change that in Settings."));
     const profileSelect = document.createElement("select");
     profileSelect.id = "miraReleaseProfile";
     [["personal", "Personal"], ["family", "Family"], ["institutional-pilot", "Institutional pilot"]].forEach(([value, label]) => profileSelect.add(new Option(label, value)));
@@ -192,8 +194,8 @@
     const ready = el("section", "mira-release-step");
     ready.append(
       el("h3", "", "Ready"),
-      el("p", "", "Use the MIRA app for quick capture and display: scan items, take pictures, add receipts, move things between locations and see Upcoming or your to-do list."),
-      el("p", "muted", "Use ChatGPT for the larger MIRA experience: conversation, planning, reconciliation, feature requests and anything that benefits from reasoning. Both use MIRROR.")
+      el("p", "", "Use the MIRA app to scan items, take pictures, add receipts, move things between locations and review anything that still needs attention."),
+      el("p", "muted", "With AI connected, new information is normally saved first and organized later during Daily Cleanup. Without AI, the same records remain editable manually and nothing is sent to a model.")
     );
     steps.push(ready);
 
@@ -201,34 +203,34 @@
     const footer = el("div", "mira-release-footer");
     const back = button("Back", () => { if (index > 0) { index -= 1; render(); } });
     const next = button("Next", async () => {
-      if (index === 1) {
-        const mode = selectedMode(card);
-        saveDeploymentMode(mode);
-      }
+      if (index === 1) saveDeploymentMode(selectedMode(card));
       if (index === 2) {
         const mode = localStorage.getItem(MODE_KEY) || selectedMode(card);
         if (mode === "self_hosted") {
           if (serverResult.dataset.connected !== "true") throw new Error("Connect MIRROR before continuing.");
-        } else if (!cloudConnected()) {
-          throw new Error("Connect Google or Microsoft before continuing. MIRA does not have a chat-only mode.");
+        } else if (mode !== "manual" && !cloudConnected()) {
+          throw new Error("Connect Google or Microsoft before continuing.");
+        } else if (mode === "manual") {
+          await globalThis.MiraLocalAuthority?.ready?.();
         }
       }
       if (index < steps.length - 1) { index += 1; render(); return; }
       localStorage.setItem(KEY, "true");
       localStorage.setItem(LEGACY_KEY, "true");
       const mode = localStorage.getItem(MODE_KEY) || "cloud";
-      const hosted = mode === "self_hosted";
-      if (hosted && typeof apiBase === "function" && apiBase()) {
+      if (mode === "manual") {
         try {
-          await apiJson("/v1/settings", {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ settings: { "deployment.mode": mode, "profile.mode": profileSelect.value, "onboarding.completed": true } })
-          });
-        } catch (_) { /* connection was verified; settings can retry later */ }
+          await apiJson("/v1/settings", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ settings: { "deployment.mode": "manual", "profile.mode": profileSelect.value, "onboarding.completed": true, "daily_cleanup.enabled": true, "daily_cleanup.times": ["00:01"], "ai.mode": "manual_only" } }) });
+        } catch (_) {}
+      } else if (mode === "self_hosted" && typeof apiBase === "function" && apiBase()) {
+        try {
+          await apiJson("/v1/settings", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ settings: { "profile.mode": profileSelect.value, "onboarding.completed": true } }) });
+        } catch (_) {}
       }
       overlay.remove(); currentOverlay = null;
-      announce("MIRA setup is complete on this device.");
+      announce(mode === "manual" ? "Local MIRROR is ready. AI cleanup is off until you connect it." : "MIRA setup is complete on this device.");
+      globalThis.MiraShell?.refreshHome?.().catch(() => {});
+      globalThis.MiraReconciliationUI?.refresh?.().catch(() => {});
     }, true);
     footer.append(back, next);
     card.append(...steps, footer);
@@ -242,11 +244,13 @@
       next.textContent = index === steps.length - 1 ? "Finish setup" : "Next";
       const mode = selectedMode(card);
       if (index === 2) {
-        cloud.hidden = mode === "self_hosted";
+        cloud.hidden = mode === "self_hosted" || mode === "manual";
         selfHost.hidden = mode !== "self_hosted";
-        connection.querySelector(".mira-release-mode-help").textContent = mode === "self_hosted"
-          ? "Enter the address of your own MIRROR server."
-          : "Choose Google or Microsoft. This account holds the MIRROR data shared with ChatGPT and the app.";
+        manual.hidden = mode !== "manual";
+        const help = connection.querySelector(".mira-release-mode-help");
+        if (mode === "self_hosted") help.textContent = "Enter the address of your own MIRROR server.";
+        else if (mode === "manual") help.textContent = "Nothing to connect. Your local MIRROR stays on this device until you choose to migrate or connect another authority.";
+        else help.textContent = "Choose Google or Microsoft. This account holds the MIRROR data shared with ChatGPT and the app.";
       }
     }
     modes.addEventListener("change", () => { saveDeploymentMode(selectedMode(card)); render(); });
@@ -268,7 +272,6 @@
     document.head.append(style);
   }
 
-  // Suppress the legacy engineering wizard. This release wizard owns first boot.
   localStorage.setItem(LEGACY_KEY, "true");
   installStyles();
   if (globalThis.MiraV1) globalThis.MiraV1.showOnboarding = () => show(true);
