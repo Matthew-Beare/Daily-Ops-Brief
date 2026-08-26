@@ -19,6 +19,7 @@ COPY starter/service/inventory_hierarchy.py /app/inventory_hierarchy.py
 COPY starter/service/enrichment.py /app/enrichment.py
 COPY starter/service/receipts.py /app/receipts.py
 COPY starter/service/receipt_processing.py /app/receipt_processing.py
+COPY starter/service/reconciliation.py /app/reconciliation.py
 COPY starter/service/merchants.py /app/merchants.py
 COPY starter/service/integrations.py /app/integrations.py
 COPY starter/service/media.py /app/media.py
