@@ -22,6 +22,9 @@ STALE_RELEASE_ERRORS = {
     "institutional experimental channel is invalid",
     "shared feature workflow blurs portable source and live state",
     "browser install flow points at the wrong live beta template",
+    "appointment feature lacks provider/reminder/readback contract",
+    "platform capability manifest schema is invalid",
+    "starter config does not default mutable state to Sheets/supported DB",
 }
 
 
@@ -50,11 +53,15 @@ def validate(root: Path) -> list[str]:
     errors = [error for error in _legacy_validate(root) if error not in STALE_RELEASE_ERRORS]
 
     def text(path: str) -> str:
-        return (root / path).read_text(encoding="utf-8")
+        try:
+            return (root / path).read_text(encoding="utf-8")
+        except OSError as exc:
+            errors.append(f"missing/unreadable required text {path}: {exc}")
+            return ""
 
     def load_json(path: str):
         try:
-            return json.loads(text(path))
+            return json.loads((root / path).read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as exc:
             errors.append(f"invalid JSON {path}: {exc}")
             return {}
@@ -66,8 +73,19 @@ def validate(root: Path) -> list[str]:
     institutional_overlay = text("distribution/overlays/institutional-experimental/README.md")
     shared = text("starter/SHARED_FEATURE_WORKFLOW.md")
     quick_start = text("starter/QUICK_START.md")
+    appointment_feature = text("starter/features/appointment-reconciliation/FEATURE.md")
+    architecture = text("docs/architecture.md")
+    runtime_architecture = text("docs/runtime-platform-architecture.md")
     config = load_json("distribution/channels.json")
     install_flow = load_json("starter/install-flow.json")
+    starter_config = load_json("starter/config.example.json")
+    platform_manifest = load_json("starter/platform-capabilities.json")
+    runtime_contract = load_json("starter/runtime-interface-contract.json")
+    model_policy = load_json("starter/model-routing-policy.json")
+    barcode_contract = load_json("starter/barcode-qr-contract.json")
+    appointment_contract = load_json("starter/appointment-identity-contract.json")
+    client_api = load_json("starter/client-api-contract.json")
+    network_contract = load_json("starter/network-security-contract.json")
 
     _require(
         _all_terms(
@@ -213,6 +231,74 @@ def validate(root: Path) -> list[str]:
         "browser install flow points at the wrong M.I.R.R.O.R. onboarding source",
         errors,
     )
+
+    # Current provider-neutral runtime architecture supersedes provider-specific beta assumptions.
+    _require(
+        _all_terms(
+            appointment_feature,
+            "cache first, research second",
+            "owner correction",
+            "morning-of",
+            "60 minutes before",
+            "IANA timezone",
+            "read canonical state back",
+            "spoken delivery",
+            "Text-to-Speech",
+            "Visual reminders remain available",
+        ),
+        "appointment feature lacks current identity/reminder/readback/spoken-delivery contract",
+        errors,
+    )
+
+    capability_ids = set(platform_manifest.get("capability_ids", [])) if isinstance(platform_manifest, dict) else set()
+    runtime_ids = {row.get("id") for row in platform_manifest.get("ai_runtimes", []) if isinstance(row, dict)} if isinstance(platform_manifest, dict) else set()
+    storage_ids = {row.get("id") for row in platform_manifest.get("storage_backends", []) if isinstance(row, dict)} if isinstance(platform_manifest, dict) else set()
+    client_ids = {row.get("id") for row in platform_manifest.get("client_surfaces", []) if isinstance(row, dict)} if isinstance(platform_manifest, dict) else set()
+    _require(platform_manifest.get("schema_version") == 2, "platform capability manifest is not runtime-architecture schema v2", errors)
+    _require({
+        "source_read", "source_write", "source_remote_readback", "managed_release_read",
+        "structured_state_read", "structured_state_write", "structured_state_readback",
+        "structured_state_transactions", "structured_state_migration_export",
+        "evidence_read", "evidence_write", "evidence_readback", "evidence_content_hash",
+        "email_read", "calendar_read", "calendar_write", "calendar_readback",
+        "scheduled_dispatch", "canonical_clock_gate", "observed_scheduled_firing",
+        "client_api_read", "client_api_command", "client_sync", "local_agent",
+        "visual_notification", "spoken_notification", "barcode_decode", "camera_capture",
+        "local_model", "hosted_model", "strong_hosted_model",
+        "private_overlay_network", "authenticated_https_api",
+    } <= capability_ids, "platform capability manifest lacks future runtime/client/storage gates", errors)
+    _require({"chatgpt", "local-model-runtime"} <= runtime_ids, "platform manifest lacks hosted/local model runtime lanes", errors)
+    _require({"google-workspace", "self-hosted-linux", "cloud-native"} <= storage_ids, "platform manifest lacks browser/self-hosted/cloud storage lanes", errors)
+    _require(client_ids == {"web", "windows-desktop", "linux-desktop", "android"}, "platform manifest lacks exact supported client surfaces", errors)
+
+    _require(
+        isinstance(starter_config, dict)
+        and "POSTGRESQL" in starter_config.get("STATE_BACKEND", "")
+        and starter_config.get("STATE_STORE") == "CURRENT_STRUCTURED_STATE_AUTHORITY_SELECTED_BY_AUTHORITY_REGISTRY"
+        and "S3" in starter_config.get("EVIDENCE_BACKEND", "")
+        and "VERSIONED_BOUNDED_SERVICE_API" in starter_config.get("CLIENT_API", "")
+        and "SYSTEMD_TIMER" in starter_config.get("SCHEDULER_ADAPTER", ""),
+        "starter config does not declare provider-neutral state/evidence/API/scheduler adapters",
+        errors,
+    )
+
+    _require(
+        runtime_contract.get("schema_version") == 1
+        and runtime_contract.get("principles", {}).get("provider_neutral_core") is True
+        and runtime_contract.get("principles", {}).get("clients_never_write_database_directly") is True
+        and "postgresql" in runtime_contract.get("interfaces", {}).get("structured_state", {}).get("candidate_adapters", [])
+        and "s3_compatible_object_storage" in runtime_contract.get("interfaces", {}).get("evidence_store", {}).get("candidate_adapters", [])
+        and set(runtime_contract.get("client_surfaces", [])) == {"web", "windows_desktop", "linux_desktop", "android"},
+        "runtime interface contract is incomplete or provider-coupled",
+        errors,
+    )
+    _require(model_policy.get("default_path") == "deterministic" and "required_validator_failed" in model_policy.get("escalation_triggers", []), "model routing does not remain deterministic-first with explicit escalation", errors)
+    _require(set(barcode_contract.get("scan_classes", {})) == {"product_identifier", "asset_tag", "location_tag", "evidence_reference"}, "barcode/QR contract lacks product/asset/location identity classes", errors)
+    _require(appointment_contract.get("correction_rule") and appointment_contract.get("delivery", {}).get("privacy_default") == "generic", "appointment identity contract lacks durable correction or privacy-safe spoken delivery", errors)
+    _require(client_api.get("security", {}).get("database_credentials_in_clients_prohibited") is True and client_api.get("sync", {}).get("client_offline_queue_requires_idempotency_keys") is True, "client API contract lacks credential/idempotency boundary", errors)
+    _require(network_contract.get("homelab", {}).get("database_public_exposure") == "prohibited" and network_contract.get("cloud_native", {}).get("same_client_API_contract") is True, "network contract permits unsafe database exposure or client divergence", errors)
+    _require(_all_terms(architecture, "provider-neutral", "PostgreSQL", "systemd", "Windows/Linux desktop", "Android", "database stays private"), "architecture doc lacks future runtime topology", errors)
+    _require(_all_terms(runtime_architecture, "browser/connector", "Self-hosted Linux", "Cloud native", "service/API", "barcode and QR", "model routing", "Never expose PostgreSQL"), "runtime platform architecture is incomplete", errors)
 
     return sorted(set(errors))
 

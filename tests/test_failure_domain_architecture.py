@@ -17,12 +17,14 @@ class FailureDomainArchitectureTests(unittest.TestCase):
 
     def test_state_model_separates_canonical_identity_from_physical_failure_domains(self) -> None:
         state = self.text("starter/STATE_AUTHORITY_MODEL.md")
+        lower = state.lower()
         self.assertIn("One canonical authority per data class does not mean one giant workbook", state)
         self.assertIn("Recommended production resource boundaries", state)
         self.assertIn("Core Ops authority", state)
         self.assertIn("Commerce authority", state)
         self.assertIn("Mileage/Pay authority", state)
-        self.assertIn("provider-wide outage", state.lower())
+        self.assertIn("a missing **required** capability blocks that module only", state)
+        self.assertIn("unrelated modules with healthy independent authorities may continue", lower)
         self.assertIn("Recovery snapshots", state)
         self.assertIn("never a second writable master", state)
 

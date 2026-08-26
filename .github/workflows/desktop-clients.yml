@@ -1,0 +1,60 @@
+name: Desktop Clients
+
+on:
+  pull_request:
+    paths:
+      - "starter/clients/pwa/**"
+      - "starter/clients/desktop/**"
+      - "starter/client-api-contract.json"
+      - "starter/asset-media-contract.json"
+      - "starter/hardware-capture-contract.json"
+      - ".github/workflows/desktop-clients.yml"
+  push:
+    branches: [main]
+    paths:
+      - "starter/clients/pwa/**"
+      - "starter/clients/desktop/**"
+      - "starter/client-api-contract.json"
+      - "starter/asset-media-contract.json"
+      - "starter/hardware-capture-contract.json"
+      - ".github/workflows/desktop-clients.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Linux desktop dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build Linux GUI and CLI
+        run: cargo build --manifest-path starter/clients/desktop/src-tauri/Cargo.toml --release --bins
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mira-linux-clients
+          if-no-files-found: error
+          path: |
+            starter/clients/desktop/src-tauri/target/release/mira-desktop
+            starter/clients/desktop/src-tauri/target/release/mira-cli
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build Windows GUI and CLI
+        shell: pwsh
+        run: cargo build --manifest-path starter/clients/desktop/src-tauri/Cargo.toml --release --bins
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mira-windows-clients
+          if-no-files-found: error
+          path: |
+            starter/clients/desktop/src-tauri/target/release/mira-desktop.exe
+            starter/clients/desktop/src-tauri/target/release/mira-cli.exe
