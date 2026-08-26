@@ -1,128 +1,80 @@
 "use strict";
 
 (() => {
-  let stagedSnapshotUuid = null;
+  let stagedSnapshot = null;
 
-  async function previewMagic(snapshotUuid) {
-    const result = await apiJson(`/v1/migrations/${encodeURIComponent(snapshotUuid)}/magic`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ apply: false }),
-    });
-    const host = document.getElementById("migrationMagicResult");
-    if (host) host.textContent = JSON.stringify(result.plan, null, 2);
-    const apply = document.getElementById("migrationMagicApply");
-    if (apply) {
-      apply.disabled = !result.plan?.safe_to_apply;
-      apply.textContent = result.plan?.fully_automatic ? "4. Import everything safely" : "4. Import safe rows + keep ambiguous rows for review";
-    }
+  function apiReady() { try { return Boolean(apiBase()); } catch (_) { return false; } }
+  function text(tag, className, value) { const node=document.createElement(tag); if(className) node.className=className; node.textContent=value; return node; }
+
+  function summaryPlan(plan) {
+    const safe = plan?.safe_rows?.length ?? plan?.safe_count ?? 0;
+    const review = plan?.needs_review?.length ?? plan?.review_count ?? 0;
+    const unknown = plan?.unknown_sheets?.length ?? 0;
+    return `Ready to import ${safe} safe row${safe===1?"":"s"}. ${review+unknown ? `${review+unknown} item${review+unknown===1?"":"s"} will wait for review.` : "Nothing ambiguous was found."}`;
+  }
+
+  async function previewMagic(snapshotId) {
+    const result=await apiJson(`/v1/migrations/${encodeURIComponent(snapshotId)}/magic`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({apply:false})});
+    const summary=document.getElementById("migrationPlanSummary"); if(summary) summary.textContent=summaryPlan(result.plan||{});
+    const technical=document.getElementById("migrationMagicResult"); if(technical) technical.textContent=JSON.stringify(result.plan,null,2);
+    const apply=document.getElementById("migrationMagicApply"); if(apply){apply.disabled=!result.plan?.safe_to_apply;apply.textContent=result.plan?.fully_automatic?"Import now":"Import safe items";}
+    markStep(4,result.plan?.safe_to_apply?"ready":"locked");
     return result;
   }
 
   async function applyMagic() {
-    if (!stagedSnapshotUuid) throw new Error("Preview a staged spreadsheet first.");
-    const result = await apiJson(`/v1/migrations/${encodeURIComponent(stagedSnapshotUuid)}/magic`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ apply: true }),
-    });
-    const host = document.getElementById("migrationMagicResult");
-    if (host) host.textContent = JSON.stringify(result, null, 2);
-    const needs = result.result?.needs_review?.length || 0;
-    const unknown = result.result?.unknown_sheets?.length || 0;
-    if (needs || unknown) setStatus(`Migration applied every unambiguous row. ${needs + unknown} item(s) remain for review; MIRA did not guess.`);
-    else setStatus("Migration applied in one verified transaction. UUID identity was preserved or generated where legacy data had no UUID.");
+    if(!stagedSnapshot) throw new Error("Preview a spreadsheet first.");
+    const result=await apiJson(`/v1/migrations/${encodeURIComponent(stagedSnapshot)}/magic`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({apply:true})});
+    const needs=(result.result?.needs_review?.length||0)+(result.result?.unknown_sheets?.length||0);
+    const summary=document.getElementById("migrationPlanSummary"); if(summary) summary.textContent=needs?`Imported everything MIRA could verify. ${needs} item${needs===1?"":"s"} need your review.`:"Import complete. Everything was verified and applied safely.";
+    const technical=document.getElementById("migrationMagicResult"); if(technical) technical.textContent=JSON.stringify(result,null,2);
+    setStatus(needs?`Import complete. ${needs} item(s) need review; MIRA did not guess.`:"Import complete and verified.");
+    markStep(4,"done");
   }
 
-  function hookStageButton(stageButton) {
-    if (stageButton.dataset.magicHook === "true") return;
-    stageButton.dataset.magicHook = "true";
-    stageButton.addEventListener("click", () => {
-      const resultPre = document.getElementById("migrationResult");
-      let tries = 0;
-      const poll = setInterval(() => {
-        tries += 1;
-        try {
-          const payload = JSON.parse(resultPre?.textContent || "{}");
-          if (payload.snapshot_uuid) {
-            clearInterval(poll);
-            stagedSnapshotUuid = payload.snapshot_uuid;
-            previewMagic(stagedSnapshotUuid).catch(showError);
-          }
-        } catch (_) { /* wait for staged JSON */ }
-        if (tries > 40) clearInterval(poll);
-      }, 250);
+  function markStep(number,state){const card=document.querySelector(`[data-migration-step='${number}']`);if(card)card.dataset.state=state;document.querySelectorAll("#migrationProgress span").forEach((bar,index)=>bar.classList.toggle("active",index<number&&(state!=="locked"||index<number-1)));}
+
+  function waitForSnapshot(stageButton) {
+    if(stageButton.dataset.guidedHook)return; stageButton.dataset.guidedHook="true";
+    stageButton.addEventListener("click",()=>{
+      let tries=0;const timer=setInterval(()=>{tries+=1;try{const raw=document.getElementById("migrationResult")?.textContent||"{}";const payload=JSON.parse(raw);if(payload.snapshot_uuid){clearInterval(timer);stagedSnapshot=payload.snapshot_uuid;markStep(3,"done");previewMagic(stagedSnapshot).catch(showError);}}catch(_){/* waiting */}if(tries>50)clearInterval(timer);},200);
     });
   }
 
-  function improveMigrationPanel() {
-    const panel = document.getElementById("panel-migration");
-    if (!panel || panel.dataset.guided === "true") return;
-    const select = document.getElementById("googleSheetSelect");
-    const stageButton = select?.nextElementSibling;
-    const buttons = select?.previousElementSibling;
-    if (!select || !buttons || !stageButton) return;
+  function improve() {
+    const panel=document.getElementById("panel-migration"); if(!panel||panel.dataset.progressive==="true")return;
+    const select=document.getElementById("googleSheetSelect"); const stage=select?.nextElementSibling; const toolbar=select?.previousElementSibling;
+    if(!select||!stage||!toolbar)return;
+    const google=select.closest(".card"); if(!google)return;
+    const buttons=[...toolbar.querySelectorAll("button")]; if(buttons.length<2)return;
+    const connect=buttons[0],discover=buttons[1];
+    panel.dataset.progressive="true"; waitForSnapshot(stage);
 
-    panel.dataset.guided = "true";
-    hookStageButton(stageButton);
-    const googleCard = select.closest(".card");
-    if (googleCard) {
-      const heading = googleCard.querySelector("h2");
-      if (heading) heading.textContent = "Bring in existing Google Sheets";
-      const warning = googleCard.querySelector(".mira-warning");
-      if (warning) warning.textContent = "Safe preview first: MIRA requests separate read-only Google access, makes a provenance snapshot, and does not change MIRROR while you are choosing or reviewing a spreadsheet.";
-      const buttonList = buttons.querySelectorAll("button");
-      if (buttonList[0]) buttonList[0].textContent = "1. Continue with Google (read-only)";
-      if (buttonList[1]) buttonList[1].textContent = "2. Find my spreadsheets";
-      stageButton.textContent = "3. Preview selected spreadsheet";
-      const note = document.createElement("div");
-      note.className = "mira-callout";
-      note.textContent = "Previewing is not importing. The magic import applies only rows whose identity/mapping is unambiguous; uncertain rows remain reviewable instead of being guessed.";
-      googleCard.append(note);
-    }
+    const heading=google.querySelector("h2"); if(heading) heading.textContent="Bring in your Google data";
+    const warning=google.querySelector(".mira-warning"); if(warning) warning.textContent="MIRA previews first and changes nothing until you press Import.";
 
-    const intro = document.createElement("div");
-    intro.className = "card wide";
-    intro.innerHTML = `
-      <h2>Guided migration</h2>
-      <div class="mira-metric-grid">
-        <div class="mira-metric"><strong>1. Connect</strong><small>Google grants read-only migration access.</small></div>
-        <div class="mira-metric"><strong>2. Find</strong><small>MIRA lists spreadsheets you can read.</small></div>
-        <div class="mira-metric"><strong>3. Preview</strong><small>MIRROR hashes and stages a safe snapshot.</small></div>
-        <div class="mira-metric"><strong>4. Import</strong><small>One press applies safe rows and leaves only ambiguity for review.</small></div>
-      </div>`;
-    panel.prepend(intro);
+    const progress=document.createElement("div"); progress.id="migrationProgress"; progress.className="mira-progress"; for(let i=0;i<4;i++)progress.append(document.createElement("span"));
+    const makeStep=(number,title,copy)=>{const card=document.createElement("div");card.className="mira-step-card";card.dataset.migrationStep=String(number);card.append(text("div","mira-eyebrow",`Step ${number}`),text("h3","",title),text("p","muted",copy));return card;};
+    const one=makeStep(1,"Connect Google",apiReady()?"Give MIRA read-only access for migration.":"Finish setup first. This test app is not connected yet.");
+    connect.textContent=apiReady()?"Continue with Google":"Finish setup to connect Google"; connect.classList.add("primary-action"); one.append(connect);
+    const two=makeStep(2,"Find your spreadsheets","MIRA will list the Google Sheets you can import."); discover.textContent="Find spreadsheets"; discover.disabled=!apiReady(); two.append(discover);
+    const three=makeStep(3,"Choose and preview","Pick a spreadsheet. Previewing still does not import anything."); stage.textContent="Preview spreadsheet"; stage.classList.add("primary-action"); stage.disabled=true; three.append(select,stage);
+    const four=makeStep(4,"Import","Only verified rows are applied. Anything ambiguous waits for review."); four.dataset.state="locked"; const plan=text("div","mira-callout","Preview a spreadsheet to see what MIRA can import safely."); plan.id="migrationPlanSummary"; const apply=document.createElement("button");apply.id="migrationMagicApply";apply.className="primary-action";apply.disabled=true;apply.textContent="Import";apply.addEventListener("click",()=>applyMagic().catch(showError));four.append(plan,apply);
 
-    const magic = document.createElement("div");
-    magic.className = "card wide";
-    magic.innerHTML = `<h2>Magic import</h2><p class="muted">UUID and strong-identifier matches are preserved. Names alone never merge two assets.</p><button id="migrationMagicApply" class="primary-action" disabled>4. Import safely</button><details><summary>Migration plan and review queue</summary><pre id="migrationMagicResult" class="mira-code">Preview a spreadsheet first.</pre></details>`;
-    magic.querySelector("button").addEventListener("click", () => applyMagic().catch(showError));
-    panel.append(magic);
+    toolbar.remove();
+    const warningNode=warning||null; google.replaceChildren(); if(heading)google.append(heading);else google.append(text("h2","","Bring in your Google data")); if(warningNode)google.append(warningNode); google.append(progress,one,two,three,four);
+    const technical=document.createElement("details");technical.className="mira-advanced";technical.append(text("summary","","Advanced migration details"));const pre=document.createElement("pre");pre.id="migrationMagicResult";pre.className="mira-code";pre.textContent="No preview yet.";technical.append(pre);google.append(technical);
 
-    [...panel.querySelectorAll(".card")].forEach((card) => {
-      const title = card.querySelector("h2")?.textContent || "";
-      if (title === "Stage JSON / legacy export") {
-        const details = document.createElement("details");
-        const summary = document.createElement("summary");
-        summary.textContent = "Advanced: stage a JSON export";
-        details.append(summary);
-        [...card.children].slice(1).forEach((child) => details.append(child));
-        card.append(details);
-      }
-      if (title === "Migration result") {
-        const pre = card.querySelector("pre");
-        if (pre) {
-          const details = document.createElement("details");
-          const summary = document.createElement("summary");
-          summary.textContent = "Technical snapshot details";
-          details.append(summary, pre);
-          card.append(details);
-        }
-      }
+    select.addEventListener("change",()=>{stage.disabled=!select.value;markStep(3,select.value?"ready":"locked");});
+    const optionObserver=new MutationObserver(()=>{if(select.options.length>1){markStep(2,"done");select.disabled=false;}});optionObserver.observe(select,{childList:true});
+    markStep(1,apiReady()?"ready":"locked"); markStep(2,apiReady()?"ready":"locked"); markStep(3,"locked");
+
+    [...panel.querySelectorAll(".card")].forEach((card)=>{
+      const title=card.querySelector("h2")?.textContent||"";
+      if(title.includes("JSON")||title.includes("legacy export")){const details=document.createElement("details");details.className="mira-advanced";details.append(text("summary","","Advanced: import a technical export"));[...card.children].slice(1).forEach(child=>details.append(child));card.replaceChildren(details);}
+      if(title==="Migration result"){card.style.display="none";}
     });
   }
 
-  const observer = new MutationObserver(improveMigrationPanel);
-  observer.observe(document.documentElement, { childList: true, subtree: true });
-  improveMigrationPanel();
+  const observer=new MutationObserver(improve);observer.observe(document.documentElement,{childList:true,subtree:true});improve();
 })();
