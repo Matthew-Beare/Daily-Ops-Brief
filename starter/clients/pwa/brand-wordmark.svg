@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 88" role="img" aria-labelledby="title desc">
+  <title id="title">MIRA</title>
+  <desc id="desc">MIRA wordmark with MIRROR reality layer subtitle.</desc>
+  <defs>
+    <linearGradient id="g" x1="8" y1="8" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#79F2C0"/>
+      <stop offset="1" stop-color="#69A7FF"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="84" height="84" rx="24" fill="#09111F"/>
+  <path d="M20 61V27L44 50 68 27V61" fill="none" stroke="url(#g)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M28 61V45L44 60 60 45V61" fill="none" stroke="#E7F1FF" stroke-opacity=".72" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="106" y="44" fill="#F5F9FF" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="34" font-weight="760" letter-spacing="1">MIRA</text>
+  <text x="107" y="67" fill="#8EA2BE" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="13" font-weight="600" letter-spacing="3.1">MIRROR • REFLECTING REALITY</text>
+</svg>
