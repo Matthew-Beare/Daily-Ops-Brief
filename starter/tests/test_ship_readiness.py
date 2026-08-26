@@ -39,7 +39,7 @@ class ShipReadinessContractTests(unittest.TestCase):
         self.assertIn("X-Mirror-Client", guard)
         self.assertIn("status_code=426", guard)
 
-    def test_docker_service_has_inventory_evidence_labels_compatibility_and_oauth(self):
+    def test_docker_service_has_inventory_evidence_labels_compatibility_oauth_and_cleanup(self):
         service = self.text("service/app.py")
         dockerfile = self.text("service/Dockerfile")
         for endpoint in (
@@ -56,7 +56,11 @@ class ShipReadinessContractTests(unittest.TestCase):
             self.assertIn(command, service)
         self.assertIn("MIRROR_TOKEN_KEY", service)
         self.assertIn("code_challenge_method", service)
-        for packaged in ("provider_extensions.py", "platform_foundations.py", "product_v1.py", "enrichment.py", "oauth_hardening.py", "idempotency.py", "release_guard.py", "signed_media.py"):
+        for packaged in (
+            "provider_extensions.py", "platform_foundations.py", "product_v1.py", "enrichment.py",
+            "oauth_hardening.py", "idempotency.py", "release_guard.py", "signed_media.py",
+            "reconciliation.py", "automation_preferences.py", "receipt_processing.py",
+        ):
             self.assertIn(packaged, dockerfile)
         self.assertIn("USER mirror", dockerfile)
         self.assertIn("HEALTHCHECK", dockerfile)
@@ -104,8 +108,11 @@ class ShipReadinessContractTests(unittest.TestCase):
         self.assertFalse(companion["model_access"]["embedded_openai_model_backend"])
         self.assertFalse(companion["model_access"]["openai_api_key_required_for_companion"])
         self.assertEqual("ChatGPT", companion["model_access"]["chat_surface"])
-        self.assertIn("MCP", companion["model_access"]["transport"])
-        self.assertTrue(companion["feature_delivery"]["unreviewed_dynamic_code_execution_in_customer_runtime"] is False)
+        self.assertIn("MCP", companion["model_access"]["fallback_custom_app_transport"])
+        self.assertTrue(companion["model_access"]["no_claim_that_chatgpt_subscription_supplies_external_api_compute"])
+        self.assertFalse(companion["feature_delivery"]["unreviewed_dynamic_code_execution_in_customer_runtime"])
+        self.assertIn("settings.read", companion["google_native_tools"])
+        self.assertTrue(companion["forbidden_modes"]["chatgpt_only_without_mirror"])
 
     def test_feature_rfid_home_assistant_and_google_migration_are_live_service_surfaces(self):
         foundations = self.text("service/platform_foundations.py")
@@ -130,18 +137,21 @@ class ShipReadinessContractTests(unittest.TestCase):
         self.assertIn("sql_server", portability["structured_state_adapters"])
         self.assertIn("clients talk only to the MIRROR API", portability["client_rule"])
 
-    def test_shared_client_has_commercial_feature_and_migration_studios(self):
+    def test_shared_client_has_commercial_feature_migration_and_cleanup_surfaces(self):
         hardening = self.text("clients/pwa/client-hardening.js")
         ui = self.text("clients/pwa/platform-ui.js")
         css = self.text("clients/pwa/commercial.css")
         worker = self.text("clients/pwa/sw.js")
+        index = self.text("clients/pwa/index.html")
         self.assertIn("commercial.css", hardening)
         self.assertIn("platform-ui.js", hardening)
         self.assertIn("smart-capture.js", hardening)
         self.assertIn("Feature Studio", ui)
         self.assertIn("RFID / NFC identity", ui)
         self.assertIn("Import existing Google Sheets", ui)
-        self.assertIn("mirror-client-shell-v5", worker)
+        self.assertIn("mirror-client-shell-v", worker)
+        self.assertIn("reconciliation-v1.js", worker)
+        self.assertIn("reconciliation-cloud-v1.js", index)
         self.assertIn("product-v1.js", worker)
         self.assertIn("smart-capture.js", worker)
         self.assertIn("--mira-accent", css)
