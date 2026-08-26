@@ -33,7 +33,33 @@ jobs:
       - name: Build image
         run: docker build -f starter/service/Dockerfile -t mirror-service:test .
       - name: Start service in production-auth mode
-        run: docker run -d --rm --name mirror-service-test -e MIRROR_ACCESS_TOKEN=ci-test-token -p 8765:8765 mirror-service:test
+        run: docker run -d --name mirror-service-test -e MIRROR_ACCESS_TOKEN=ci-test-token -p 8765:8765 mirror-service:test
+      - name: Require healthy startup
+        shell: bash
+        run: |
+          set -euo pipefail
+          base=http://127.0.0.1:8765
+          ready=false
+          for i in {1..30}; do
+            if curl -fsS "$base/v1/health" >/tmp/health.json 2>/dev/null; then
+              ready=true
+              break
+            fi
+            if ! docker inspect -f '{{.State.Running}}' mirror-service-test 2>/dev/null | grep -qx true; then
+              echo 'MIRROR container exited during startup.' >&2
+              docker inspect mirror-service-test >&2 || true
+              docker logs mirror-service-test >&2 || true
+              exit 1
+            fi
+            sleep 1
+          done
+          if [ "$ready" != true ]; then
+            echo 'MIRROR did not become healthy within 30 seconds.' >&2
+            docker inspect mirror-service-test >&2 || true
+            docker logs mirror-service-test >&2 || true
+            exit 1
+          fi
+          grep -q '"status":"ready"' /tmp/health.json
       - name: Smoke customer inventory, compatibility, settings, features, RFID, evidence and migration
         shell: bash
         run: |
@@ -43,11 +69,6 @@ jobs:
           api='X-Mirror-Api-Version: 1.1'
           client='X-Mirror-Client: mira-ci/0.2.0'
 
-          for i in {1..30}; do
-            if curl -fsS "$base/v1/health" >/tmp/health.json; then break; fi
-            sleep 1
-          done
-          grep -q '"status":"ready"' /tmp/health.json
           curl -fsS "$base/" | grep -q 'MIRA // MIRROR'
           curl -fsS "$base/v1/product/info" >/tmp/product.json
           test "$(jq -r '.brand' /tmp/product.json)" = 'MIRA // MIRROR'
@@ -148,6 +169,11 @@ jobs:
           test "$(jq -r '.location_uuid' /tmp/readback.json)" = "$location_uuid"
           test "$(jq -r '.metadata.brand' /tmp/readback.json)" = Tekton
           curl -fsS -H "$auth" "$base/v1/integrations/provider-health" | grep -q '"default_provider":"google_workspace"'
-      - name: Container logs on failure
+      - name: Container state and logs on failure
         if: failure()
-        run: docker logs mirror-service-test || true
+        run: |
+          docker inspect mirror-service-test || true
+          docker logs mirror-service-test || true
+      - name: Cleanup container
+        if: always()
+        run: docker rm -f mirror-service-test || true
