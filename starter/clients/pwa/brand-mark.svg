@@ -16,7 +16,7 @@
     <ellipse cx="59" cy="48" rx="31" ry="34" fill="#10243A" stroke="url(#rim)" stroke-width="8"/>
     <ellipse cx="59" cy="48" rx="22" ry="25" fill="url(#glass)"/>
     <path d="M44 38c8-9 18-12 29-8" fill="none" stroke="#FFFFFF" stroke-opacity=".72" stroke-width="5" stroke-linecap="round"/>
-    <path d="M64 79l14 33c2 5-1 10-6 12-5 2-10-1-12-6L49 82" fill="#12283E" stroke="url(#rim)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M64 79l14 33c2,5 -1,10 -6,12 -5,2 -10,-1 -12,-6L49 82" fill="#12283E" stroke="url(#rim)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
     <path d="M59 93l8 19" stroke="#EAF7FF" stroke-opacity=".55" stroke-width="3" stroke-linecap="round"/>
   </g>
   <path d="M98 24v12M92 30h12" stroke="#79F2C0" stroke-width="4" stroke-linecap="round"/>
