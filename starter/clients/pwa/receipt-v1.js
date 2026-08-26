@@ -20,9 +20,25 @@
 
   async function queueCapturedReceipt() {
     if (!currentReceipt?.receipt_uuid) return null;
-    if (cloudMode() && globalThis.MiraReceiptQueue?.queueReceipt) {
-      const result = await globalThis.MiraReceiptQueue.queueReceipt(currentReceipt);
-      processing = result.processing || null;
+    if (cloudMode()) {
+      if (globalThis.MiraReceiptQueue?.queueReceipt) {
+        const result = await globalThis.MiraReceiptQueue.queueReceipt(currentReceipt);
+        processing = result.processing || null;
+      }
+      if (globalThis.MiraCloudReconciliation?.queueWork) {
+        await globalThis.MiraCloudReconciliation.queueWork({
+          feature_namespace: "receipts",
+          source_type: "receipt",
+          source_uuid: currentReceipt.receipt_uuid,
+          work_type: "receipt.reconcile",
+          processing_mode: "deferred_reconciliation",
+          priority: 20,
+          freshness_minutes: 1440,
+          capabilities: ["text_reasoning"],
+          allowed_mutations: ["receipt_fields", "receipt_lines", "merchant", "merchant_location", "inventory_suggestions"],
+          confidence_threshold: 0.90
+        });
+      }
       return processing;
     }
     try {
@@ -46,28 +62,23 @@
     currentReceipt = result.receipt;
     await queueCapturedReceipt();
     renderReceipt();
-    setStatus("Receipt saved to MIRROR. Processing is queued. You can leave this screen.");
+    setStatus("Saved to MIRROR. MIRA will organize this during Daily Cleanup unless you ask it to clean up now.");
+    globalThis.MiraReconciliationUI?.refresh?.().catch(() => {});
   }
 
   async function parseReceiptText() {
-    if (cloudMode()) {
-      throw new Error("Cloud receipts are processed from the saved MIRROR receipt. You do not need to paste receipt text here.");
-    }
+    if (cloudMode()) throw new Error("Cloud receipts are processed from the saved MIRROR receipt. You do not need to paste receipt text here.");
     if (!currentReceipt?.receipt_uuid) throw new Error("Capture the receipt first.");
     const raw = document.getElementById("receiptRawText")?.value.trim();
     if (!raw) throw new Error("Paste extracted receipt text first.");
     const result = await apiJson(`/v1/receipt-processing/${encodeURIComponent(currentReceipt.receipt_uuid)}/extracted-text`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        raw_text: raw,
-        source: "user_supplied_text",
-        merchant_hint: document.getElementById("receiptMerchantHint")?.value.trim() || "",
-      }),
+      body: JSON.stringify({ raw_text: raw, source: "user_supplied_text", merchant_hint: document.getElementById("receiptMerchantHint")?.value.trim() || "" })
     });
     processing = result.processing || null;
     await refreshReceipt(false);
-    setStatus(`Receipt text parsed. ${result.parsed_line_count || 0} line(s) are ready for reconciliation.`);
+    setStatus(`Receipt text parsed. ${result.parsed_line_count || 0} line(s) are ready for Daily Cleanup or Review.`);
   }
 
   async function refreshReceipt(showMessage = true) {
@@ -82,12 +93,11 @@
   async function openResearchPlan() {
     if (!currentReceipt?.receipt_uuid) throw new Error("Capture a receipt first.");
     if (cloudMode()) {
-      setStatus("MIRA handles retailer research from the shared MIRROR receipt during reconciliation. No OpenAI API key is required.");
+      setStatus("MIRA handles retailer research from the shared MIRROR receipt during Daily Cleanup. No OpenAI API key is required.");
       return;
     }
     const result = await apiJson(`/v1/receipts/${encodeURIComponent(currentReceipt.receipt_uuid)}/retailer-search-plan`);
-    const host = document.getElementById("receiptResearch");
-    host.replaceChildren();
+    const host = document.getElementById("receiptResearch"); host.replaceChildren();
     (result.search_plan || []).forEach((plan) => {
       const box = el("div", { class: "mira-list-item" });
       box.append(el("strong", { text: plan.official_domain ? `Official retailer: ${plan.official_domain}` : "Retailer research" }));
@@ -95,31 +105,37 @@
       const search = el("button", { text: "Open search" });
       search.addEventListener("click", () => {
         const url = `https://www.google.com/search?q=${encodeURIComponent(plan.official_query)}`;
-        if (globalThis.MirrorNative?.openExternal) globalThis.MirrorNative.openExternal(url);
-        else window.open(url, "_blank", "noopener");
+        if (globalThis.MirrorNative?.openExternal) globalThis.MirrorNative.openExternal(url); else window.open(url, "_blank", "noopener");
       });
-      box.append(search);
-      host.append(box);
+      box.append(search); host.append(box);
     });
   }
 
   async function reconcileKnownCandidates() {
     if (!currentReceipt?.receipt_uuid) throw new Error("Capture a receipt first.");
     if (cloudMode()) {
-      setStatus("This receipt is in MIRROR. MIRA can reconcile it in ChatGPT or on the next configured receipt-processing run.");
+      await finishInMira();
       return;
     }
     const result = await apiJson(`/v1/receipts/${encodeURIComponent(currentReceipt.receipt_uuid)}/reconcile`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ auto_apply_high_confidence: true }),
+      body: JSON.stringify({ auto_apply_high_confidence: true })
     });
     currentReceipt = result.receipt;
     renderReceipt();
     const needs = result.needs_review?.length || 0;
-    setStatus(needs
-      ? `Applied ${result.applied?.length || 0} verified line(s). ${needs} still need review.`
-      : "Receipt reconciliation completed and read back from MIRROR.");
+    setStatus(needs ? `Applied ${result.applied?.length || 0} verified line(s). ${needs} still need review.` : "Receipt reconciliation completed and read back from MIRROR.");
+    globalThis.MiraReconciliationUI?.refresh?.().catch(() => {});
+  }
+
+  async function finishInMira() {
+    if (!currentReceipt?.receipt_uuid) throw new Error("Capture a receipt first.");
+    const prompt = `Process the pending MIRROR reconciliation work for receipt ${currentReceipt.receipt_uuid}. Preserve the original receipt, use known MIRROR mappings first, search official merchant/manufacturer sources when product identity is still unknown, capture merchant store/location when supported by the evidence, never overwrite user-confirmed values, write verified results back to MIRROR, and leave low-confidence fields in Needs review.`;
+    try { await navigator.clipboard.writeText(prompt); } catch (_) {}
+    if (globalThis.MirrorNative?.openExternal) globalThis.MirrorNative.openExternal("https://chatgpt.com/");
+    else window.open("https://chatgpt.com/", "_blank", "noopener");
+    setStatus("Receipt cleanup request copied and MIRA opened in ChatGPT. The app did not make an OpenAI API call.");
   }
 
   function money(value) {
@@ -138,12 +154,14 @@
     }
 
     const summary = el("div", { class: "mira-receipt-summary" });
+    const merchant = currentReceipt.merchant_display || currentReceipt.merchant || "Waiting for cleanup";
+    const storeLocation = currentReceipt.merchant_location_display || currentReceipt.store_location || "";
     const fields = [
-      ["Store", currentReceipt.merchant_display || currentReceipt.merchant || "Processing"],
-      ["Date", currentReceipt.purchase_at || "Processing"],
+      ["Store", storeLocation ? `${merchant} • ${storeLocation}` : merchant],
+      ["Date", currentReceipt.purchase_at || "Waiting for cleanup"],
       ["Total", money(currentReceipt.total)],
-      ["Items", String(currentReceipt.lines?.length || 0)],
-      ["Status", processing?.status === "queued" ? "Queued for processing" : processing?.status || currentReceipt.status || "Captured"],
+      ["Items", currentReceipt.lines?.length ? String(currentReceipt.lines.length) : "Waiting for cleanup"],
+      ["Status", processing?.status === "queued" ? "Waiting for Daily Cleanup" : processing?.status || currentReceipt.status || "Saved"]
     ];
     fields.forEach(([label, value]) => {
       const card = el("div", { class: "mira-receipt-field" });
@@ -156,10 +174,8 @@
       const lines = el("div", { class: "mira-list" });
       currentReceipt.lines.forEach((line) => {
         const row = el("div", { class: "mira-list-item" });
-        row.append(
-          el("strong", { text: line.description || "Receipt item" }),
-          el("span", { class: "muted", text: [line.retailer_sku ? `SKU ${line.retailer_sku}` : "", money(line.amount)].filter(Boolean).join(" • ") })
-        );
+        const identity = [line.retailer_sku ? `SKU ${line.retailer_sku}` : "", line.gtin ? `GTIN ${line.gtin}` : "", line.model ? `Model ${line.model}` : ""].filter(Boolean).join(" • ");
+        row.append(el("strong", { text: line.product_name || line.description || "Receipt item" }), el("span", { class: "muted", text: [identity, money(line.amount)].filter(Boolean).join(" • ") }));
         lines.append(row);
       });
       host.append(lines);
@@ -175,46 +191,41 @@
     const nav = document.querySelector("header nav");
     if (!nav || nav.querySelector("[data-tab='receipts']")) return;
     const button = el("button", { "data-tab": "receipts", "aria-selected": "false", text: "Receipts" });
-    button.addEventListener("click", () => switchTab("receipts"));
-    nav.append(button);
+    button.addEventListener("click", () => switchTab("receipts")); nav.append(button);
 
     const panel = el("section", { id: "panel-receipts", class: "panel" });
     const intro = el("div", { class: "card wide" }, [
       el("h2", { text: "Receipts" }),
-      el("div", { class: "mira-callout", text: "Capture it once. MIRA saves the original to MIRROR, queues processing, and fills in what it can without an OpenAI API key." }),
-      el("p", { class: "muted", text: "Clear merchant, date, total and item details can be populated automatically. Uncertain product matches stay reviewable instead of being guessed." })
+      el("div", { class: "mira-callout", text: "Capture it once. The original is saved immediately. MIRA normally identifies the store, line items and products later during Daily Cleanup, so a new receipt may not look fully organized right away." }),
+      el("p", { class: "muted", text: "Known UPCs, GTINs, model numbers and retailer SKUs can reuse MIRROR's confirmed product mappings instead of researching the same item again." })
     ]);
 
     const capture = el("div", { class: "card" }, [el("h2", { text: "Add receipt" })]);
     const photo = el("input", { id: "receiptPhoto", type: "file", accept: "image/*,application/pdf", capture: "environment" });
     const upload = el("button", { class: "primary-action", text: "Save receipt" });
     upload.addEventListener("click", () => uploadReceipt().catch(showError));
-    capture.append(photo, upload);
+    const clean = el("button", { text: "Clean up this receipt now" });
+    clean.addEventListener("click", () => finishInMira().catch(showError));
+    capture.append(photo, el("div", { class: "actions" }, [upload, clean]));
 
-    const actions = el("div", { class: "card" }, [el("h2", { text: "Processing" })]);
-    actions.append(el("p", { class: "muted", text: "Receipts keep processing after capture. MIRA can finish uncertain retailer/product matching from the same MIRROR record in ChatGPT." }));
-    const refresh = el("button", { text: "Refresh status" });
-    refresh.addEventListener("click", () => refreshReceipt().catch(showError));
-    actions.append(refresh);
+    const result = el("div", { class: "card wide" }, [el("h2", { text: "Receipt status" }), el("div", { id: "receiptResult" })]);
 
     const manual = el("details", { class: "card wide" });
-    manual.append(el("summary", { text: "Advanced: supply extracted text" }));
+    manual.append(el("summary", { text: "Advanced receipt tools" }));
+    manual.append(el("p", { class: "muted", text: "Manual extracted-text parsing and retailer research are fallback tools. Normal receipt capture should not require these." }));
     const merchant = el("input", { id: "receiptMerchantHint", placeholder: "Store name (optional)" });
     const raw = el("textarea", { id: "receiptRawText", placeholder: "Paste OCR or extracted receipt text" });
     const parseButton = el("button", { text: "Parse supplied text" });
     parseButton.addEventListener("click", () => parseReceiptText().catch(showError));
-    manual.append(merchant, raw, parseButton);
-
-    const research = el("details", { class: "card wide" });
-    research.append(el("summary", { text: "Advanced: retailer reconciliation" }));
-    const planButton = el("button", { text: "Build official-site search plan" });
+    const planButton = el("button", { text: "Build official-source search plan" });
     planButton.addEventListener("click", () => openResearchPlan().catch(showError));
-    const reconcileButton = el("button", { class: "primary-action", text: "Apply verified matches" });
+    const reconcileButton = el("button", { text: "Apply verified matches" });
     reconcileButton.addEventListener("click", () => reconcileKnownCandidates().catch(showError));
-    research.append(el("div", { class: "actions" }, [planButton, reconcileButton]), el("div", { id: "receiptResearch", class: "mira-list" }));
+    const refresh = el("button", { text: "Refresh" });
+    refresh.addEventListener("click", () => refreshReceipt().catch(showError));
+    manual.append(merchant, raw, el("div", { class: "actions" }, [parseButton, planButton, reconcileButton, refresh]), el("div", { id: "receiptResearch", class: "mira-list" }));
 
-    const result = el("div", { class: "card wide" }, [el("h2", { text: "Current receipt" }), el("div", { id: "receiptResult" })]);
-    panel.append(intro, capture, actions, manual, research, result);
+    panel.append(intro, capture, result, manual);
     document.querySelector("main")?.append(panel);
     renderReceipt();
   }
