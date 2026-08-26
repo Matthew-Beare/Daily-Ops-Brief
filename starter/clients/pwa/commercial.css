@@ -35,7 +35,7 @@ header h1 {
   letter-spacing: -.025em;
 }
 header h1::after {
-  content: "  •  Reality, reconciled";
+  content: "  •  Reflecting reality";
   color: var(--mira-muted);
   font-size: .72rem;
   font-weight: 500;
