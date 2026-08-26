@@ -1,0 +1,101 @@
+:root{
+  --mira-bg:#07101d;
+  --mira-panel:#0d1828;
+  --mira-panel-2:#101e31;
+  --mira-panel-soft:#12243a;
+  --mira-line:rgba(160,190,225,.13);
+  --mira-text:#f5f8fc;
+  --mira-muted:#8ea2be;
+  --mira-faint:#647891;
+  --mira-accent:#79f2c0;
+  --mira-accent-2:#69a7ff;
+  --mira-shadow:0 22px 70px rgba(0,0,0,.24);
+  --mira-radius:24px;
+  color-scheme:dark;
+}
+html,body{background:var(--mira-bg)!important;color:var(--mira-text)!important;overscroll-behavior:none}
+body{min-height:100vh;background:radial-gradient(circle at 12% -8%,rgba(105,167,255,.14),transparent 34rem),radial-gradient(circle at 96% 10%,rgba(121,242,192,.08),transparent 30rem),var(--mira-bg)!important}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.012),transparent 18rem);z-index:-1}
+header{position:sticky!important;top:0;z-index:200!important;padding:calc(.8rem + env(safe-area-inset-top)) max(1rem,calc((100vw - 1240px)/2)) .7rem!important;background:rgba(7,16,29,.88)!important;backdrop-filter:blur(24px) saturate(1.18);border-bottom:1px solid var(--mira-line)!important;box-shadow:none!important}
+header h1,header>p,header>nav{display:none!important}
+.mira-shell-head{max-width:1240px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:1rem;min-height:50px}
+.mira-brand-lockup{height:46px;width:auto;max-width:min(330px,70vw);display:block}
+.mira-account-dot{width:38px;height:38px;border-radius:14px;border:1px solid var(--mira-line);display:grid;place-items:center;background:rgba(255,255,255,.035);color:var(--mira-muted);font-weight:800;font-size:.75rem}
+main{max-width:1240px!important;margin:0 auto!important;padding:1.15rem 1rem calc(6.5rem + env(safe-area-inset-bottom))!important}
+.panel{display:none!important;grid-template-columns:repeat(12,minmax(0,1fr))!important;gap:1rem!important}
+.panel.active{display:grid!important}
+.card{grid-column:span 6;background:linear-gradient(180deg,rgba(16,30,49,.94),rgba(11,23,39,.96))!important;border:1px solid var(--mira-line)!important;border-radius:var(--mira-radius)!important;padding:1.15rem!important;box-shadow:0 14px 38px rgba(0,0,0,.12)!important}
+.card.wide,.wide{grid-column:1/-1!important}
+.card h2{font-size:1.04rem!important;letter-spacing:-.015em!important;margin:0 0 .8rem!important;color:var(--mira-text)!important}
+.card h3{color:var(--mira-text)!important}
+.muted{color:var(--mira-muted)!important;opacity:1!important}
+input,select,textarea{width:100%;min-height:52px;padding:.85rem 1rem!important;border-radius:16px!important;border:1px solid var(--mira-line)!important;background:rgba(3,10,19,.48)!important;color:var(--mira-text)!important;font-size:1rem!important}
+textarea{min-height:112px;line-height:1.4}
+input::placeholder,textarea::placeholder{color:#6e829b!important}
+input:focus,select:focus,textarea:focus{outline:none!important;border-color:rgba(121,242,192,.5)!important;box-shadow:0 0 0 4px rgba(121,242,192,.08)!important}
+button{min-height:50px;padding:.82rem 1rem!important;border-radius:16px!important;border:1px solid var(--mira-line)!important;background:#172943!important;color:var(--mira-text)!important;font-weight:720!important;font-size:.95rem!important;letter-spacing:-.01em;box-shadow:none!important;transform:none!important}
+button:hover:not(:disabled){background:#1b3150!important;transform:none!important}
+button[data-mutation],button.primary-action,.primary-action{background:linear-gradient(135deg,#2f6df6,#397ff3)!important;border-color:rgba(105,167,255,.6)!important;color:white!important}
+button:disabled{opacity:.45!important;cursor:not-allowed}
+.actions,.mira-toolbar{display:flex!important;gap:.65rem!important;flex-wrap:wrap!important}
+.row{gap:.78rem!important}.split{gap:.78rem!important}
+details{border-top:1px solid var(--mira-line);margin-top:.8rem;padding-top:.8rem}summary{cursor:pointer;color:var(--mira-muted);font-weight:650;padding:.4rem 0}
+pre,.mira-code,#status,#providerStatus,#treeResult,#assetResult{white-space:pre-wrap;overflow-wrap:anywhere;background:rgba(2,7,14,.45)!important;border:1px solid var(--mira-line)!important;border-radius:16px!important;padding:.8rem!important;color:#b8c8dd!important;font-size:.78rem!important}
+
+/* Primary navigation: four deliberate destinations. */
+.mira-primary-nav{position:sticky;top:calc(67px + env(safe-area-inset-top));z-index:180;max-width:1240px;margin:.1rem auto 1rem;padding:.35rem;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.35rem;background:rgba(10,20,34,.76);backdrop-filter:blur(18px);border:1px solid var(--mira-line);border-radius:20px}
+.mira-primary-nav button{min-height:48px;background:transparent!important;border-color:transparent!important;color:var(--mira-muted)!important;display:flex;align-items:center;justify-content:center;gap:.55rem}
+.mira-primary-nav button[aria-selected="true"]{background:rgba(121,242,192,.1)!important;color:#eafff7!important;border-color:rgba(121,242,192,.18)!important}
+.mira-primary-nav svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* Home */
+.mira-home-hero{grid-column:1/-1;position:relative;overflow:hidden;min-height:220px;padding:1.4rem;border-radius:30px;border:1px solid rgba(105,167,255,.2);background:linear-gradient(135deg,rgba(39,78,141,.88),rgba(16,44,72,.86) 52%,rgba(16,75,70,.74));box-shadow:var(--mira-shadow)}
+.mira-home-hero::after{content:"";position:absolute;width:360px;height:360px;border-radius:50%;right:-120px;top:-170px;background:radial-gradient(circle,rgba(121,242,192,.22),transparent 68%)}
+.mira-home-eyebrow{font-size:.74rem;text-transform:uppercase;letter-spacing:.16em;font-weight:780;color:#b9e9ff}
+.mira-home-hero h2{font-size:clamp(2rem,5vw,3.5rem)!important;line-height:.98;margin:.55rem 0!important;letter-spacing:-.055em!important;max-width:720px}
+.mira-home-hero p{max-width:650px;color:#c9daee;font-size:1rem;line-height:1.5}
+.mira-home-hero .mira-hero-action{position:relative;z-index:1;margin-top:1rem;min-width:180px;background:#f5f9ff!important;color:#0a1730!important;border:none!important}
+.mira-quick-grid{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.8rem}
+.mira-quick-action{min-height:106px!important;padding:1rem!important;text-align:left!important;display:flex;flex-direction:column;justify-content:space-between;background:linear-gradient(180deg,rgba(19,38,62,.92),rgba(12,25,43,.95))!important;border:1px solid var(--mira-line)!important}
+.mira-quick-action svg{width:26px;height:26px;stroke:var(--mira-accent);fill:none;stroke-width:1.7}.mira-quick-action span{font-size:1.02rem}
+.mira-todo-card{grid-column:span 7}.mira-glance-card{grid-column:span 5}
+.mira-section-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:.7rem}.mira-section-head h2{margin:0!important}
+.mira-todo-list{display:grid;gap:.5rem}.mira-todo-item{display:flex;align-items:center;gap:.75rem;padding:.72rem .2rem;border-bottom:1px solid rgba(160,190,225,.08)}.mira-todo-item:last-child{border-bottom:0}.mira-todo-item input{width:22px!important;min-height:22px!important}.mira-todo-item span{flex:1}.mira-todo-item.done span{text-decoration:line-through;color:var(--mira-faint)}
+.mira-add-row{display:grid;grid-template-columns:1fr auto;gap:.55rem;margin-top:.8rem}.mira-add-row button{min-width:88px}
+.mira-upcoming-list{display:grid;gap:.55rem}.mira-upcoming-item{padding:.8rem;border:1px solid var(--mira-line);border-radius:16px;background:rgba(4,11,20,.3)}.mira-upcoming-item strong{display:block}.mira-upcoming-item small{color:var(--mira-muted)}
+
+/* Inventory progression. */
+.mira-inventory-toolbar{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:.8rem;margin-bottom:.15rem}.mira-inventory-toolbar h2{font-size:1.55rem;margin:0;letter-spacing:-.04em}.mira-inventory-toolbar button{min-width:150px}
+#panel-inventory>.card{grid-column:1/-1!important}
+#panel-inventory>.card:nth-of-type(1){order:1}#panel-inventory>.card:nth-of-type(2){order:2}#panel-inventory>.card:nth-of-type(3){order:3}
+#panel-inventory .mira-create-collapsed{display:none!important}#panel-inventory .mira-create-collapsed.mira-open{display:block!important}
+#panel-inventory #searchAssets{display:none!important}
+#panel-inventory .mira-filter-details{margin:.4rem 0 0;border:0;padding:0}#panel-inventory .mira-filter-details summary{display:inline-flex;align-items:center;padding:.55rem .75rem;border:1px solid var(--mira-line);border-radius:14px;color:var(--mira-muted)}
+#panel-inventory .mira-advanced-field{display:none!important}#panel-inventory details[open] .mira-advanced-field{display:block!important}
+#assetResult{display:none!important}
+
+/* More menu, not thirty equal tabs. */
+.mira-more-groups{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.mira-more-group{padding:1rem;border:1px solid var(--mira-line);border-radius:22px;background:rgba(13,25,42,.72)}.mira-more-group h2{font-size:.84rem!important;text-transform:uppercase;letter-spacing:.12em;color:var(--mira-muted)!important}.mira-menu-list{display:grid;gap:.3rem}.mira-menu-item{min-height:64px!important;display:grid!important;grid-template-columns:36px 1fr auto!important;align-items:center!important;gap:.65rem!important;background:transparent!important;border-color:transparent!important;text-align:left!important;padding:.55rem!important}.mira-menu-item:hover{background:rgba(255,255,255,.035)!important}.mira-menu-item svg{width:23px;height:23px;stroke:var(--mira-accent-2);fill:none;stroke-width:1.7}.mira-menu-item strong{display:block}.mira-menu-item small{display:block;color:var(--mira-muted);font-weight:500;margin-top:.12rem}.mira-chevron{color:var(--mira-faint);font-size:1.3rem}
+
+/* Migration becomes a progression, not a wall of buttons. */
+#panel-migration .mira-metric-grid{display:none!important}.mira-migration-flow{display:grid;gap:.75rem}.mira-migration-step{display:grid;grid-template-columns:42px 1fr auto;align-items:center;gap:.75rem;padding:.85rem;border:1px solid var(--mira-line);border-radius:18px;background:rgba(4,11,20,.26)}.mira-migration-step .step-number{width:38px;height:38px;border-radius:13px;display:grid;place-items:center;background:rgba(105,167,255,.1);color:#acd0ff;font-weight:800}.mira-migration-step strong{display:block}.mira-migration-step small{color:var(--mira-muted)}.mira-migration-step button{min-width:130px}.mira-migration-step.locked{opacity:.58}.mira-migration-step.current{border-color:rgba(121,242,192,.3);background:rgba(121,242,192,.045)}
+
+/* Technical material lives behind Advanced. */
+.mira-advanced-only{display:none!important}.mira-show-advanced .mira-advanced-only{display:block!important}
+.mira-technical-details{margin-top:.8rem}
+
+/* Toast feedback replaces invisible status text. */
+#miraToast{position:fixed;left:50%;bottom:calc(5.8rem + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(16px);z-index:6000;max-width:min(520px,calc(100vw - 32px));padding:.78rem 1rem;border-radius:16px;background:rgba(18,35,57,.96);border:1px solid rgba(121,242,192,.2);box-shadow:0 18px 50px rgba(0,0,0,.35);color:#eaf4ff;opacity:0;pointer-events:none;transition:.2s ease}#miraToast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media(max-width:760px){
+  header{padding-left:1rem!important;padding-right:1rem!important}.mira-shell-head{min-height:44px}.mira-brand-lockup{height:38px;max-width:74vw}.mira-account-dot{width:36px;height:36px;border-radius:13px}
+  main{padding:.8rem .85rem calc(6.8rem + env(safe-area-inset-bottom))!important}.panel{grid-template-columns:1fr!important;gap:.8rem!important}.card,.mira-todo-card,.mira-glance-card{grid-column:1/-1!important;border-radius:20px!important;padding:1rem!important}
+  .mira-primary-nav{position:fixed;left:.75rem;right:.75rem;bottom:calc(.65rem + env(safe-area-inset-bottom));top:auto;margin:0;z-index:5000;border-radius:23px;padding:.38rem;background:rgba(10,20,34,.94);box-shadow:0 20px 55px rgba(0,0,0,.5)}
+  .mira-primary-nav button{min-height:58px!important;padding:.42rem!important;display:grid!important;place-items:center!important;gap:.15rem!important;font-size:.68rem!important}.mira-primary-nav svg{width:22px;height:22px}.mira-primary-nav .nav-label{display:block}
+  .mira-home-hero{min-height:250px;border-radius:24px;padding:1.2rem}.mira-home-hero h2{font-size:2.25rem!important;max-width:92%}.mira-home-hero p{font-size:.93rem;max-width:92%}.mira-home-hero .mira-hero-action{width:100%}
+  .mira-quick-grid{grid-template-columns:repeat(3,1fr);gap:.55rem}.mira-quick-action{min-height:92px!important;padding:.7rem!important;border-radius:18px!important}.mira-quick-action span{font-size:.78rem}.mira-quick-action svg{width:24px;height:24px}
+  .mira-add-row{grid-template-columns:1fr 82px}
+  .mira-inventory-toolbar{align-items:flex-end}.mira-inventory-toolbar h2{font-size:1.35rem}.mira-inventory-toolbar button{min-width:118px}
+  .mira-more-groups{grid-template-columns:1fr}.mira-menu-item{min-height:66px!important}
+  .mira-migration-step{grid-template-columns:38px 1fr}.mira-migration-step button{grid-column:1/-1;width:100%}
+}
