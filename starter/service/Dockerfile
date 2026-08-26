@@ -14,6 +14,7 @@ COPY starter/service/app.py /app/app.py
 COPY starter/service/provider_extensions.py /app/provider_extensions.py
 COPY starter/service/platform_foundations.py /app/platform_foundations.py
 COPY starter/service/product_v1.py /app/product_v1.py
+COPY starter/service/automation_preferences.py /app/automation_preferences.py
 COPY starter/service/experience_v3.py /app/experience_v3.py
 COPY starter/service/inventory_hierarchy.py /app/inventory_hierarchy.py
 COPY starter/service/enrichment.py /app/enrichment.py
