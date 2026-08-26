@@ -6,7 +6,7 @@
   "build": {"frontendDist": "../../pwa"},
   "app": {
     "withGlobalTauri": true,
-    "windows": [{"title": "MIRA // MIRROR", "width": 1180, "height": 820, "minWidth": 760, "minHeight": 560, "resizable": true, "center": true}],
+    "windows": [{"title": "MIRA", "width": 1180, "height": 820, "minWidth": 760, "minHeight": 560, "resizable": true, "center": true}],
     "security": {
       "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: http: blob: data:; connect-src https: http://localhost:* http://127.0.0.1:*; object-src 'none'; frame-ancestors 'none'; base-uri 'none'"
     }
@@ -14,7 +14,8 @@
   "bundle": {
     "active": true,
     "createUpdaterArtifacts": false,
-    "shortDescription": "MIRA // MIRROR — Reflecting reality.",
-    "longDescription": "MIRA // MIRROR 1.0 Pilot is the cross-platform assistant and reality layer for inventory, evidence, receipts, integrations, migration, scanning, and operational state."
+    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.ico"],
+    "shortDescription": "MIRA — Reflecting reality.",
+    "longDescription": "MIRA is the cross-platform assistant backed by MIRROR, the reality layer for inventory, evidence, receipts, integrations, migration, scanning, and operational state."
   }
 }
