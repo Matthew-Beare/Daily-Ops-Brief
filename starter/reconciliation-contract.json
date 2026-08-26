@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "purpose": "Give every MIRA feature one durable, provider-neutral way to defer interpretation, classification, matching, verification, enrichment, and review without creating feature-specific scheduled jobs.",
+  "user_language": {
+    "queue_label": "Daily Cleanup",
+    "review_label": "Needs your attention",
+    "manual_action": "Clean up now",
+    "queued_copy": "Saved to MIRROR. MIRA will organize this during Daily Cleanup.",
+    "manual_only_copy": "Saved to MIRROR. AI cleanup is not connected, so anything uncertain will stay in Review until you handle it or connect MIRA later."
+  },
+  "work_states": ["queued", "processing", "needs_review", "failed_retryable", "quarantined", "complete"],
+  "processing_modes": {
+    "immediate_deterministic": "Run only deterministic/local work at ingress and never require model reasoning before the original is durable.",
+    "deferred_reconciliation": "Save first, then process during Daily Cleanup or an explicit MIRA cleanup run.",
+    "immediate_plus_verify_later": "Perform safe deterministic work immediately and queue later verification/reasoning.",
+    "manual_only": "Save and expose for user editing/review without model execution."
+  },
+  "defaults": {
+    "ai_required_ingress_mode": "deferred_reconciliation",
+    "daily_cleanup_enabled": true,
+    "daily_cleanup_local_time": "00:01",
+    "attach_to_existing_mira_cycle_when_present": true,
+    "oldest_first_with_priority_override": true,
+    "bounded_batch_required": true,
+    "max_no_progress_attempts": 3
+  },
+  "work_contract": {
+    "immutable_work_uuid": true,
+    "source_entity_reference_required": true,
+    "feature_namespace_required": true,
+    "work_type_required": true,
+    "priority_required": true,
+    "freshness_target_supported": true,
+    "processor_capabilities_required": true,
+    "allowed_mutations_required": true,
+    "stable_idempotency_key_required": true,
+    "claim_before_processing": true,
+    "readback_before_complete": true,
+    "dependencies_supported": true,
+    "processor_version_recorded": true,
+    "original_evidence_never_overwritten": true
+  },
+  "confidence": {
+    "field_level_supported": true,
+    "low_confidence_goes_to_review": true,
+    "high_confidence_may_auto_apply_only_with_feature_policy": true,
+    "conflicting_user_confirmed_value_never_auto_overwritten": true
+  },
+  "corrections": {
+    "user_confirmed_data_is_highest_authority": true,
+    "ai_may_propose_conflict_but_not_replace_user_confirmed_value": true,
+    "old_and_new_values_are_audited": true,
+    "correction_can_update_recognition_memory": true,
+    "undo_supported_by_new_audited_correction": true
+  },
+  "recognition_memory": {
+    "private_to_mirror": true,
+    "not_model_training": true,
+    "examples": ["merchant receipt signatures", "store number to location", "retailer SKU to product", "UPC or GTIN to product", "receipt layout hints", "confirmed abbreviation mappings"],
+    "confirmed_mapping_reused_before_external_research": true,
+    "stale_or_conflicting_mapping_requires_reverification": true
+  },
+  "historical_backfill": {
+    "uses_same_queue": true,
+    "oldest_first": true,
+    "bounded_batches": true,
+    "checkpoint_between_batches": true,
+    "parser_upgrade_can_selectively_requeue_original_evidence": true
+  },
+  "receipt_extension": {
+    "merchant_entity_required_when_resolved": true,
+    "merchant_location_entity_supported": true,
+    "store_number_address_city_region_postal_country_supported": true,
+    "upc_gtin_model_mpn_retailer_sku_can_prefill_inventory_identity": true,
+    "suggested_values_remain_editable": true
+  },
+  "paperless_future": {
+    "paperless_is_downstream_adapter_not_authority": true,
+    "original_mirror_evidence_preserved": true,
+    "reconciled_title_date_correspondent_tags_document_type_may_sync": true,
+    "paperless_ocr_may_be_an_extraction_processor": true,
+    "paperless_document_id_is_written_back_to_mirror": true
+  }
+}
