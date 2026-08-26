@@ -67,7 +67,7 @@
     loadScriptOnce("receipt-v1.js","mira-receipt-v1");
     loadScriptOnce("native-updater.js","mira-native-updater");
     loadScriptOnce("integrations-v1.js","mira-integrations-v1");
-    loadScriptOnce("sleek-shell.js","mira-sleek-shell-script",()=>globalThis.MiraSleekShell?.initialize());
+    loadScriptOnce("sleek-shell.js","mira-sleek-shell-script");
   }
 
   document.addEventListener("DOMContentLoaded", loadCommercialShell);
