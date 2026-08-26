@@ -56,8 +56,10 @@
   }
 
   function loadCommercialShell() {
+    if (globalThis.MirrorNative) document.documentElement.classList.add("mira-native-android");
     loadStyleOnce("commercial.css","mira-commercial");
     loadStyleOnce("sleek-shell.css","mira-sleek-shell");
+    if (globalThis.MirrorNative) loadStyleOnce("android-native.css","mira-android-native");
     loadScriptOnce("platform-ui.js","mira-platform-ui",()=>globalThis.MirrorPlatformUI?.initialize());
     loadScriptOnce("smart-capture.js","mira-smart-capture");
     loadScriptOnce("guided-migration.js","mira-guided-migration");
