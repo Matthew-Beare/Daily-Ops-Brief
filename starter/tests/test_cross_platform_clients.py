@@ -49,15 +49,17 @@ class CrossPlatformClientContractTests(unittest.TestCase):
         self.assertIn("mira-android-debug-apk", workflow)
         self.assertIn("app-debug.apk", workflow)
 
-    def test_asset_media_is_storage_neutral_and_gui_cli_compatible(self) -> None:
+    def test_asset_media_is_storage_neutral_and_gui_compatible(self) -> None:
         contract = self.load("asset-media-contract.json")
-        self.assertEqual("immutable asset UUID", contract["identity"]["asset_identity"])
-        self.assertTrue(contract["identity"]["backend_migration_preserves_both_ids"])
-        self.assertEqual("/v1/evidence", contract["write_contract"]["endpoint"])
-        self.assertIn("s3_compatible_object_storage", contract["storage_adapters"])
-        self.assertIn("google_drive", contract["storage_adapters"])
-        self.assertIn("show thumbnails", contract["client_behavior"]["gui"])
-        self.assertIn("download binary only on explicit command", contract["client_behavior"]["cli"])
+        self.assertEqual("immutable canonical asset identity", contract["identity"]["asset_uuid"])
+        self.assertEqual("immutable media identity", contract["identity"]["media_uuid"])
+        self.assertTrue(contract["universality"]["photo_is_never_part_of_asset_identity"])
+        self.assertTrue(contract["storage_portability"]["authority_stores_media_identity_and_metadata"])
+        self.assertTrue(contract["storage_portability"]["binary_storage_is_provider_adapter_defined"])
+        self.assertEqual("Google Drive", contract["storage_portability"]["google_native_default"])
+        self.assertTrue(contract["storage_portability"]["provider_migration_preserves_media_uuid_and_hash"])
+        self.assertIn("primary photo", contract["ui_contract"]["asset_card"])
+        self.assertTrue(contract["derived_variants"]["original_preserved"])
 
     def test_hardware_contract_supports_camera_scanners_rfid_and_printers_by_adapter(self) -> None:
         hardware = self.load("hardware-capture-contract.json")
@@ -74,7 +76,8 @@ class CrossPlatformClientContractTests(unittest.TestCase):
     def test_web_gui_has_asset_photo_and_lookup_surfaces(self) -> None:
         html = self.text("clients/pwa/index.html")
         app = self.text("clients/pwa/app.js")
-        self.assertIn("Asset photo", html)
+        self.assertIn("Photos & files", html)
+        self.assertIn("Take a picture", html)
         self.assertIn('accept="image/*"', html)
         self.assertIn("/v1/evidence", app)
         self.assertIn("photo_evidence", app)
