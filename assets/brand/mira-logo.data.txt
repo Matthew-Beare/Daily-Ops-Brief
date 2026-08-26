@@ -1,0 +1,1 @@
+The canonical binary logo is derived mechanically from the exact user-supplied 1536×1536 artwork. SHA-256 is recorded by the release asset audit after binary insertion.

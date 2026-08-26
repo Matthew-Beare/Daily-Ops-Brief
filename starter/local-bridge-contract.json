@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "purpose": "Allow stock Google-native MIRA to use LAN-only services without requiring a MIRROR server or exposing local service credentials to ChatGPT.",
+  "transport": {
+    "command_authority": "Google Workspace Integration Actions table",
+    "result_authority": "Google Workspace Integration Results table",
+    "poller": "explicitly enrolled MIRA Windows, Linux, or Android client on the local network",
+    "local_credentials": "stored only in OS-protected client storage; never written to Google or ChatGPT",
+    "polling_default_seconds": 30,
+    "offline_behavior": "actions remain pending with expiry; never duplicate completed idempotency keys"
+  },
+  "action_fields": [
+    "Action UUID",
+    "Integration UUID",
+    "Capability",
+    "Action Type",
+    "Payload JSON",
+    "Idempotency Key",
+    "Created At",
+    "Expires At",
+    "State",
+    "Claimed Device UUID"
+  ],
+  "result_fields": [
+    "Result UUID",
+    "Action UUID",
+    "Succeeded",
+    "Result JSON",
+    "Readback Verified",
+    "Completed At",
+    "Device UUID"
+  ],
+  "safety": {
+    "writes_require_explicit_integration_capability": true,
+    "local_secrets_never_leave_bridge_device": true,
+    "dangerous_actions_require_confirmation_policy": true,
+    "expired_actions_do_not_execute": true,
+    "completed_idempotency_keys_do_not_reexecute": true,
+    "external_services_are_never_canonical_authority_by_accident": true
+  }
+}

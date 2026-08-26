@@ -1,0 +1,32 @@
+{
+  email {$MIRROR_TLS_EMAIL}
+  admin off
+}
+
+{$MIRROR_DOMAIN} {
+  encode zstd gzip
+
+  header {
+    Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    X-Content-Type-Options "nosniff"
+    X-Frame-Options "DENY"
+    Referrer-Policy "no-referrer"
+    Permissions-Policy "camera=(self), microphone=(), geolocation=()"
+    -Server
+  }
+
+  request_body {
+    max_size 30MB
+  }
+
+  reverse_proxy mirror:8765 {
+    header_up X-Forwarded-Proto https
+    health_uri /v1/health
+    health_interval 30s
+  }
+
+  log {
+    output stdout
+    format json
+  }
+}

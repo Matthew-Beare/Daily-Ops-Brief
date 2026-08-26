@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 360" role="img" aria-labelledby="t d">
+  <title id="t">Hierarchical inventory location</title><desc id="d">Shop, loft, aisle, shelf and tote hierarchy showing an asset stored inside a tote.</desc>
+  <rect width="920" height="360" rx="28" fill="#0b0f17"/>
+  <text x="48" y="58" fill="#f8fafc" font-family="system-ui,sans-serif" font-size="28" font-weight="700">Locations behave like real storage</text>
+  <text x="48" y="88" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="16">A tote can be both an asset and a location. Move the tote and everything inside follows its resolved path.</text>
+  <g font-family="system-ui,sans-serif" font-size="16">
+    <rect x="52" y="130" width="120" height="50" rx="14" fill="#182235" stroke="#334155"/><text x="88" y="161" fill="#f8fafc" font-weight="700">Shop</text>
+    <path d="M172 155h48" stroke="#64748b" stroke-width="3"/><path d="m212 146 12 9-12 9" fill="none" stroke="#64748b" stroke-width="3"/>
+    <rect x="232" y="130" width="120" height="50" rx="14" fill="#182235" stroke="#334155"/><text x="268" y="161" fill="#f8fafc" font-weight="700">Loft</text>
+    <path d="M352 155h48" stroke="#64748b" stroke-width="3"/><path d="m392 146 12 9-12 9" fill="none" stroke="#64748b" stroke-width="3"/>
+    <rect x="412" y="130" width="120" height="50" rx="14" fill="#182235" stroke="#334155"/><text x="444" y="161" fill="#f8fafc" font-weight="700">Aisle 2</text>
+    <path d="M532 155h48" stroke="#64748b" stroke-width="3"/><path d="m572 146 12 9-12 9" fill="none" stroke="#64748b" stroke-width="3"/>
+    <rect x="592" y="130" width="120" height="50" rx="14" fill="#182235" stroke="#334155"/><text x="618" y="161" fill="#f8fafc" font-weight="700">Shelf 3</text>
+    <path d="M712 155h48" stroke="#64748b" stroke-width="3"/><path d="m752 146 12 9-12 9" fill="none" stroke="#64748b" stroke-width="3"/>
+    <rect x="772" y="130" width="100" height="50" rx="14" fill="#064e3b" stroke="#6ee7b7"/><text x="792" y="161" fill="#d1fae5" font-weight="700">Tote A</text>
+    <path d="M822 180v58" stroke="#6ee7b7" stroke-width="3"/><path d="m813 229 9 12 9-12" fill="none" stroke="#6ee7b7" stroke-width="3"/>
+    <rect x="704" y="245" width="168" height="62" rx="16" fill="#111827" stroke="#60a5fa"/><text x="724" y="271" fill="#bfdbfe" font-weight="700">19 mm socket</text><text x="724" y="293" fill="#94a3b8" font-size="13">direct location = Tote A</text>
+    <text x="52" y="236" fill="#cbd5e1">Move Tote A to Shelf 8 → only Tote A's parent changes.</text>
+    <text x="52" y="269" fill="#6ee7b7" font-weight="700">Query result:</text><text x="164" y="269" fill="#cbd5e1">Shop &gt; Loft &gt; Aisle 2 &gt; Shelf 3 &gt; Tote A</text>
+  </g>
+</svg>

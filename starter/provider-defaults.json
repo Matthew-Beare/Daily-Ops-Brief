@@ -1,0 +1,40 @@
+{
+  "provider_policy_version": 1,
+  "default_profile": "google_workspace",
+  "profiles": {
+    "google_workspace": {
+      "display_name": "Google Workspace",
+      "default": true,
+      "identity": "google_oidc",
+      "structured_state_candidates": ["google_sheets", "mirror_service_database"],
+      "evidence_candidates": ["google_drive", "mirror_service_object_store"],
+      "calendar": "google_calendar",
+      "mail": "gmail",
+      "oauth": "incremental_consent",
+      "broad_scopes_by_default": false
+    },
+    "microsoft_365": {
+      "display_name": "Microsoft 365",
+      "default": false,
+      "identity": "microsoft_oidc",
+      "structured_state_candidates": ["microsoft_lists", "excel_table", "mirror_service_database"],
+      "evidence_candidates": ["onedrive", "sharepoint", "mirror_service_object_store"],
+      "calendar": "outlook_calendar",
+      "mail": "outlook_mail",
+      "oauth": "incremental_consent",
+      "broad_scopes_by_default": false
+    },
+    "apple_manual": {
+      "display_name": "Apple / iCloud",
+      "default": false,
+      "identity": "optional_sign_in_with_apple_only",
+      "structured_state_candidates": ["mirror_service_database", "manual_numbers_import_export"],
+      "evidence_candidates": ["manual_icloud_drive_files_handoff", "mirror_service_object_store"],
+      "calendar": "ics_handoff_unless_verified_adapter_exists",
+      "mail": "manual_evidence_unless_verified_adapter_exists",
+      "oauth": "no_claim_of_general_icloud_drive_access",
+      "broad_scopes_by_default": false
+    }
+  },
+  "authority_rule": "one canonical authority per mutable data class; provider projections never silently become a second truth"
+}

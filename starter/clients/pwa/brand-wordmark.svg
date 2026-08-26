@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 112" role="img" aria-labelledby="title desc">
+  <title id="title">MIRA</title>
+  <desc id="desc">MIRA assistant wordmark with a hand mirror and a plain-language MIRROR subtitle.</desc>
+  <defs>
+    <linearGradient id="rim" x1="14" y1="12" x2="88" y2="104" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#79F2C0"/>
+      <stop offset="1" stop-color="#69A7FF"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="31" y1="20" x2="68" y2="69" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F4FBFF"/>
+      <stop offset="1" stop-color="#A9D7FF"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(5 1) rotate(-10 52 52)">
+    <ellipse cx="48" cy="40" rx="28" ry="30" fill="#10243A" stroke="url(#rim)" stroke-width="7"/>
+    <ellipse cx="48" cy="40" rx="19" ry="21" fill="url(#glass)"/>
+    <path d="M35 31c7-7 15-9 24-6" fill="none" stroke="#fff" stroke-opacity=".72" stroke-width="4" stroke-linecap="round"/>
+    <path d="M53 69l13 31" fill="none" stroke="url(#rim)" stroke-width="9" stroke-linecap="round"/>
+    <path d="M59 83l6 14" stroke="#EAF7FF" stroke-opacity=".52" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <path d="M91 15v10M86 20h10" stroke="#79F2C0" stroke-width="3" stroke-linecap="round"/>
+  <text x="112" y="55" fill="#F5F9FF" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="46" font-weight="780" letter-spacing="2">MIRA</text>
+  <text x="114" y="82" fill="#8EA2BE" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="15" font-weight="650" letter-spacing="1.2">ASSISTANT • MIRROR KEEPS YOUR DATA &amp; EVIDENCE</text>
+</svg>

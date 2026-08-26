@@ -1,0 +1,268 @@
+name: Publish Production Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing v-prefixed tag to publish
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: production-release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Require Windows and updater signing identities
+        shell: pwsh
+        env:
+          PFX_BASE64: ${{ secrets.MIRA_WINDOWS_PFX_BASE64 }}
+          PFX_PASSWORD: ${{ secrets.MIRA_WINDOWS_PFX_PASSWORD }}
+          UPDATER_PRIVATE_KEY: ${{ secrets.MIRA_TAURI_UPDATER_PRIVATE_KEY }}
+          UPDATER_PRIVATE_KEY_PASSWORD: ${{ secrets.MIRA_TAURI_UPDATER_PRIVATE_KEY_PASSWORD }}
+          UPDATER_PUBLIC_KEY: ${{ secrets.MIRA_TAURI_UPDATER_PUBLIC_KEY }}
+          UPDATER_ENDPOINT: ${{ secrets.MIRA_TAURI_UPDATER_ENDPOINT }}
+        run: |
+          $missing = @()
+          foreach ($name in @('PFX_BASE64','PFX_PASSWORD','UPDATER_PRIVATE_KEY','UPDATER_PUBLIC_KEY','UPDATER_ENDPOINT')) {
+            if ([string]::IsNullOrWhiteSpace((Get-Item "env:$name").Value)) { $missing += $name }
+          }
+          if ($missing.Count -gt 0) { throw "Production release blocked: missing $($missing -join ', ')" }
+          if (-not $env:UPDATER_ENDPOINT.StartsWith('https://')) { throw 'Production updater endpoint must use HTTPS.' }
+          $pfx = Join-Path $env:RUNNER_TEMP 'mira-code-signing.pfx'
+          [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:PFX_BASE64))
+          $password = ConvertTo-SecureString $env:PFX_PASSWORD -AsPlainText -Force
+          $cert = Import-PfxCertificate -FilePath $pfx -CertStoreLocation Cert:\CurrentUser\My -Password $password -Exportable:$false
+          if (-not $cert.Thumbprint) { throw 'Windows signing certificate import failed.' }
+          $override = @{ bundle = @{ createUpdaterArtifacts = $true; windows = @{ certificateThumbprint=$cert.Thumbprint; digestAlgorithm='sha256'; timestampUrl='https://timestamp.digicert.com' } } } | ConvertTo-Json -Depth 6
+          $config = Join-Path $env:RUNNER_TEMP 'tauri-production.json'
+          Set-Content $config $override -Encoding UTF8
+          "MIRA_WINDOWS_TAURI_SIGNING_CONFIG=$config" | Out-File $env:GITHUB_ENV -Append
+          "MIRA_WINDOWS_CERT_THUMBPRINT=$($cert.Thumbprint)" | Out-File $env:GITHUB_ENV -Append
+          "TAURI_SIGNING_PRIVATE_KEY=$env:UPDATER_PRIVATE_KEY" | Out-File $env:GITHUB_ENV -Append
+          "TAURI_SIGNING_PRIVATE_KEY_PASSWORD=$env:UPDATER_PRIVATE_KEY_PASSWORD" | Out-File $env:GITHUB_ENV -Append
+          "MIRA_TAURI_UPDATER_PUBLIC_KEY=$env:UPDATER_PUBLIC_KEY" | Out-File $env:GITHUB_ENV -Append
+          "MIRA_TAURI_UPDATER_ENDPOINT=$env:UPDATER_ENDPOINT" | Out-File $env:GITHUB_ENV -Append
+      - name: Install Tauri CLI
+        shell: pwsh
+        run: cargo install tauri-cli --version "^2" --locked
+      - name: Build signed Windows app and updater bundle
+        working-directory: starter/clients/desktop
+        shell: pwsh
+        run: cargo tauri build --bundles nsis --config $env:MIRA_WINDOWS_TAURI_SIGNING_CONFIG
+      - name: Build and sign Windows CLI
+        shell: pwsh
+        run: |
+          cargo build --manifest-path starter/clients/desktop/src-tauri/Cargo.toml --release --bin mira-cli
+          $signtool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin" -Filter signtool.exe -Recurse | Sort-Object FullName -Descending | Select-Object -First 1 -ExpandProperty FullName
+          if (-not $signtool) { throw 'signtool.exe not found' }
+          & $signtool sign /sha1 $env:MIRA_WINDOWS_CERT_THUMBPRINT /fd sha256 /tr https://timestamp.digicert.com /td sha256 starter/clients/desktop/src-tauri/target/release/mira-cli.exe
+          if ($LASTEXITCODE -ne 0) { throw 'CLI Authenticode signing failed' }
+      - name: Verify all Windows signatures
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem starter/clients/desktop/src-tauri/target/release/bundle/nsis/*-setup.exe | Select-Object -First 1
+          $updaterSig = Get-ChildItem starter/clients/desktop/src-tauri/target/release/bundle/nsis/*.sig | Select-Object -First 1
+          if (-not $installer -or -not $updaterSig) { throw 'Signed NSIS updater artifacts are missing.' }
+          foreach ($file in @($installer, (Get-Item starter/clients/desktop/src-tauri/target/release/mira-desktop.exe), (Get-Item starter/clients/desktop/src-tauri/target/release/mira-cli.exe))) {
+            $status = (Get-AuthenticodeSignature $file.FullName).Status
+            if ($status -ne 'Valid') { throw "$($file.Name) Authenticode status is $status" }
+          }
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Copy-Item $installer.FullName dist/
+          Copy-Item $updaterSig.FullName dist/
+          Copy-Item starter/clients/desktop/src-tauri/target/release/mira-cli.exe dist/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: production-windows
+          path: dist/*
+          if-no-files-found: error
+
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Require updater and Linux release signing identities
+        shell: bash
+        env:
+          UPDATER_PRIVATE_KEY: ${{ secrets.MIRA_TAURI_UPDATER_PRIVATE_KEY }}
+          UPDATER_PRIVATE_KEY_PASSWORD: ${{ secrets.MIRA_TAURI_UPDATER_PRIVATE_KEY_PASSWORD }}
+          UPDATER_PUBLIC_KEY: ${{ secrets.MIRA_TAURI_UPDATER_PUBLIC_KEY }}
+          UPDATER_ENDPOINT: ${{ secrets.MIRA_TAURI_UPDATER_ENDPOINT }}
+          GPG_PRIVATE_KEY: ${{ secrets.MIRA_LINUX_GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.MIRA_LINUX_GPG_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          for name in UPDATER_PRIVATE_KEY UPDATER_PUBLIC_KEY UPDATER_ENDPOINT GPG_PRIVATE_KEY; do
+            [[ -n "${!name:-}" ]] || { echo "Production release blocked: missing $name" >&2; exit 1; }
+          done
+          [[ "$UPDATER_ENDPOINT" == https://* ]] || { echo 'Updater endpoint must use HTTPS' >&2; exit 1; }
+          printf '%s' "$GPG_PRIVATE_KEY" | gpg --batch --import
+          cat >"$RUNNER_TEMP/tauri-production.json" <<'JSON'
+          {"bundle":{"createUpdaterArtifacts":true}}
+          JSON
+          echo "MIRA_LINUX_TAURI_SIGNING_CONFIG=$RUNNER_TEMP/tauri-production.json" >> "$GITHUB_ENV"
+          echo "TAURI_SIGNING_PRIVATE_KEY=$UPDATER_PRIVATE_KEY" >> "$GITHUB_ENV"
+          echo "TAURI_SIGNING_PRIVATE_KEY_PASSWORD=$UPDATER_PRIVATE_KEY_PASSWORD" >> "$GITHUB_ENV"
+          echo "MIRA_TAURI_UPDATER_PUBLIC_KEY=$UPDATER_PUBLIC_KEY" >> "$GITHUB_ENV"
+          echo "MIRA_TAURI_UPDATER_ENDPOINT=$UPDATER_ENDPOINT" >> "$GITHUB_ENV"
+          echo "MIRA_LINUX_GPG_PASSPHRASE=$GPG_PASSPHRASE" >> "$GITHUB_ENV"
+      - name: Install Linux desktop dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf libfuse2 rpm
+      - name: Install Tauri CLI
+        run: cargo install tauri-cli --version "^2" --locked
+      - name: Build signed Linux updater and packages
+        working-directory: starter/clients/desktop
+        run: cargo tauri build --bundles appimage,deb,rpm --config "$MIRA_LINUX_TAURI_SIGNING_CONFIG"
+      - name: Build Linux CLI and sign release manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo build --manifest-path starter/clients/desktop/src-tauri/Cargo.toml --release --bin mira-cli
+          mkdir -p dist
+          cp starter/clients/desktop/src-tauri/target/release/bundle/appimage/*.AppImage dist/
+          cp starter/clients/desktop/src-tauri/target/release/bundle/appimage/*.sig dist/
+          cp starter/clients/desktop/src-tauri/target/release/bundle/deb/*.deb dist/
+          cp starter/clients/desktop/src-tauri/target/release/bundle/rpm/*.rpm dist/
+          cp starter/clients/desktop/src-tauri/target/release/mira-cli dist/
+          (cd dist && sha256sum * > SHA256SUMS)
+          gpg --batch --yes --pinentry-mode loopback --passphrase "$MIRA_LINUX_GPG_PASSPHRASE" --armor --detach-sign dist/SHA256SUMS
+          gpg --verify dist/SHA256SUMS.asc dist/SHA256SUMS
+          test -n "$(find dist -name '*.AppImage.sig' -print -quit)"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: production-linux
+          path: dist/*
+          if-no-files-found: error
+
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v3
+      - run: sdkmanager "platforms;android-36" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.11.1"
+      - name: Require Android production signing identity
+        shell: bash
+        env:
+          STORE_B64: ${{ secrets.MIRA_ANDROID_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.MIRA_ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.MIRA_ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.MIRA_ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for name in STORE_B64 STORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do [[ -n "${!name:-}" ]] || { echo "Production release blocked: missing $name" >&2; exit 1; }; done
+          store="$RUNNER_TEMP/mira-release.keystore"
+          printf '%s' "$STORE_B64" | base64 --decode > "$store"
+          echo "MIRA_ANDROID_KEYSTORE_PATH=$store" >> "$GITHUB_ENV"
+          echo "MIRA_ANDROID_KEYSTORE_PASSWORD=$STORE_PASSWORD" >> "$GITHUB_ENV"
+          echo "MIRA_ANDROID_KEY_ALIAS=$KEY_ALIAS" >> "$GITHUB_ENV"
+          echo "MIRA_ANDROID_KEY_PASSWORD=$KEY_PASSWORD" >> "$GITHUB_ENV"
+      - name: Build signed APK and AAB
+        working-directory: starter/clients/android
+        run: gradle --no-daemon :app:assembleRelease :app:bundleRelease
+      - name: Verify and stage Android release
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          apk="$(find starter/clients/android/app/build/outputs/apk/release -name '*.apk' -type f | head -n1)"
+          aab="$(find starter/clients/android/app/build/outputs/bundle/release -name '*.aab' -type f | head -n1)"
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose "$apk"
+          jarsigner -verify -strict "$aab" | grep -qi 'jar verified'
+          cp "$apk" dist/mira-android-release.apk
+          cp "$aab" dist/mira-android-release.aab
+          (cd dist && sha256sum * > SHA256SUMS-ANDROID)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: production-android
+          path: dist/*
+          if-no-files-found: error
+
+  publish:
+    needs: [windows, linux, android]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: production-*
+          path: dist
+          merge-multiple: true
+      - name: Build signed-updater manifest
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="$RELEASE_TAG"
+          version="${tag#v}"
+          win="$(find dist -maxdepth 1 -name '*-setup.exe' -printf '%f\n' | head -n1)"
+          winsig="$(find dist -maxdepth 1 -name '*-setup.exe.sig' -printf '%f\n' | head -n1)"
+          linux="$(find dist -maxdepth 1 -name '*.AppImage' -printf '%f\n' | head -n1)"
+          linuxsig="$(find dist -maxdepth 1 -name '*.AppImage.sig' -printf '%f\n' | head -n1)"
+          test -n "$win" && test -n "$winsig" && test -n "$linux" && test -n "$linuxsig"
+          python3 - "$version" "$tag" "$win" "$winsig" "$linux" "$linuxsig" <<'PY'
+          import json, pathlib, sys
+          version, tag, win, winsig, linux, linuxsig = sys.argv[1:]
+          repo = pathlib.Path('.').resolve().name
+          import os
+          slug = os.environ['GITHUB_REPOSITORY']
+          base = f"https://github.com/{slug}/releases/download/{tag}"
+          payload = {
+              "version": version,
+              "notes": "Verified MIRA // MIRROR production release",
+              "platforms": {
+                  "windows-x86_64": {"url": f"{base}/{win}", "signature": pathlib.Path('dist', winsig).read_text(encoding='utf-8').strip()},
+                  "linux-x86_64": {"url": f"{base}/{linux}", "signature": pathlib.Path('dist', linuxsig).read_text(encoding='utf-8').strip()},
+              },
+          }
+          pathlib.Path('dist/latest.json').write_text(json.dumps(payload, indent=2) + '\n', encoding='utf-8')
+          PY
+          gh release view "$tag" >/dev/null 2>&1 || gh release create "$tag" --title "MIRA // MIRROR $tag" --notes "Production release. Reflecting reality. Artifacts are generated only after platform signing and verification gates pass."
+          gh release upload "$tag" dist/* --clobber
+      - name: Verify published updater metadata is reachable
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="https://github.com/${GITHUB_REPOSITORY}/releases/download/${RELEASE_TAG}/latest.json"
+          for i in {1..10}; do curl -fsSL "$url" -o /tmp/latest.json && break; sleep 2; done
+          python3 - <<'PY'
+          import json
+          data=json.load(open('/tmp/latest.json'))
+          assert data['version']
+          assert data['platforms']['windows-x86_64']['signature']
+          assert data['platforms']['linux-x86_64']['signature']
+          print('published updater manifest verified')
+          PY

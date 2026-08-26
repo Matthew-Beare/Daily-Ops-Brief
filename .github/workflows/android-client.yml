@@ -4,11 +4,17 @@ on:
   pull_request:
     paths:
       - "starter/clients/android/**"
+      - "starter/clients/pwa/**"
+      - "starter/clients/release.json"
+      - "starter/client-api-contract.json"
       - ".github/workflows/android-client.yml"
   push:
     branches: [main]
     paths:
       - "starter/clients/android/**"
+      - "starter/clients/pwa/**"
+      - "starter/clients/release.json"
+      - "starter/client-api-contract.json"
       - ".github/workflows/android-client.yml"
   workflow_dispatch:
 
@@ -25,16 +31,85 @@ jobs:
           distribution: temurin
           java-version: "17"
       - uses: android-actions/setup-android@v3
-      - name: Install Android SDK 34
-        run: sdkmanager "platforms;android-34" "build-tools;34.0.0"
+      - name: Install Android 16 SDK
+        run: sdkmanager "platforms;android-36" "build-tools;35.0.0"
       - uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: "8.9"
-      - name: Build debug companion APK
+          gradle-version: "8.11.1"
+      - name: Prepare production signing when release secrets are installed
+        id: signing
+        shell: bash
+        env:
+          SIGNING_STORE_B64: ${{ secrets.MIRA_ANDROID_KEYSTORE_BASE64 }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.MIRA_ANDROID_KEYSTORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.MIRA_ANDROID_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.MIRA_ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [[ -n "$SIGNING_STORE_B64" && -n "$SIGNING_STORE_PASSWORD" && -n "$SIGNING_KEY_ALIAS" && -n "$SIGNING_KEY_PASSWORD" ]]; then
+            store="$RUNNER_TEMP/mira-release.keystore"
+            printf '%s' "$SIGNING_STORE_B64" | base64 --decode > "$store"
+            echo "MIRA_ANDROID_KEYSTORE_PATH=$store" >> "$GITHUB_ENV"
+            echo "MIRA_ANDROID_KEYSTORE_PASSWORD=$SIGNING_STORE_PASSWORD" >> "$GITHUB_ENV"
+            echo "MIRA_ANDROID_KEY_ALIAS=$SIGNING_KEY_ALIAS" >> "$GITHUB_ENV"
+            echo "MIRA_ANDROID_KEY_PASSWORD=$SIGNING_KEY_PASSWORD" >> "$GITHUB_ENV"
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Build debug APK, release APK and release AAB
         working-directory: starter/clients/android
-        run: gradle --no-daemon :app:assembleDebug
-      - uses: actions/upload-artifact@v4
+        run: gradle --no-daemon :app:assembleDebug :app:assembleRelease :app:bundleRelease
+      - name: Verify release signature status
+        id: release
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk="$(find starter/clients/android/app/build/outputs/apk/release -maxdepth 1 -name '*.apk' -type f | head -n 1)"
+          aab="$(find starter/clients/android/app/build/outputs/bundle/release -maxdepth 1 -name '*.aab' -type f | head -n 1)"
+          test -n "$apk" && test -n "$aab"
+          cp "$apk" "$RUNNER_TEMP/mira-android-release.apk"
+          cp "$aab" "$RUNNER_TEMP/mira-android-release.aab"
+          apk_signed=false
+          aab_signed=false
+          if "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose "$apk" >/tmp/apksigner.txt 2>&1; then
+            apk_signed=true
+          fi
+          jarsigner -verify -strict "$aab" >/tmp/aabsigner.txt 2>&1 || true
+          if grep -qi 'jar verified' /tmp/aabsigner.txt && ! grep -qi 'jar is unsigned' /tmp/aabsigner.txt; then
+            aab_signed=true
+          fi
+          if [[ "${{ steps.signing.outputs.configured }}" == "true" && ( "$apk_signed" != "true" || "$aab_signed" != "true" ) ]]; then
+            cat /tmp/apksigner.txt || true
+            cat /tmp/aabsigner.txt || true
+            echo "Release signing secrets were configured but an Android release artifact failed signature verification." >&2
+            exit 1
+          fi
+          python3 - <<PY
+          import json
+          from pathlib import Path
+          Path("$RUNNER_TEMP/mira-android-release-status.json").write_text(json.dumps({
+              "product_version": "0.2.0",
+              "api_contract": "1.1",
+              "compile_sdk": 36,
+              "target_sdk": 36,
+              "production_signing_secrets_configured": "${{ steps.signing.outputs.configured }}" == "true",
+              "apk_signature_verified": "$apk_signed" == "true",
+              "aab_signature_verified": "$aab_signed" == "true"
+          }, indent=2) + "\n", encoding="utf-8")
+          PY
+      - name: Upload Android debug pilot APK
+        uses: actions/upload-artifact@v4
         with:
           name: mira-android-debug-apk
           if-no-files-found: error
           path: starter/clients/android/app/build/outputs/apk/debug/app-debug.apk
+      - name: Upload Android release candidates and signing status
+        uses: actions/upload-artifact@v4
+        with:
+          name: mira-android-release
+          if-no-files-found: error
+          path: |
+            ${{ runner.temp }}/mira-android-release.apk
+            ${{ runner.temp }}/mira-android-release.aab
+            ${{ runner.temp }}/mira-android-release-status.json

@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "defaults": {
+    "enabled": true,
+    "full_interval_days": 7,
+    "incremental_interval_days": 1,
+    "destination": "google_drive",
+    "retention_mode": "keep_until_user_changes",
+    "verify_readback": true,
+    "encrypt_provider_credentials": true
+  },
+  "boomer_labels": {
+    "full_interval_days": "How often should MIRA make a complete backup?",
+    "full_suggestion": "Recommended: once a week",
+    "incremental_interval_days": "How often should MIRA back up changes between full backups?",
+    "incremental_suggestion": "Recommended: once a day",
+    "destination": "Where should backups go?",
+    "destination_suggestion": "Recommended for stock MIRA: Google Drive"
+  },
+  "destinations": {
+    "google_drive": {"stock": true, "requires": "Google Workspace"},
+    "onedrive": {"stock": false, "requires": "Microsoft 365"},
+    "local": {"stock": false, "requires": "self-hosted mirror writable backup path"}
+  },
+  "safety": {
+    "incremental_claim_requires_complete_change_journal": true,
+    "fallback_when_incremental_not_provable": "create and label a full_fallback snapshot instead",
+    "successful_backup_requires_readback": true,
+    "backup_failure_never_deletes_last_good_backup": true,
+    "source_repository_backups_are_separate_from_runtime_state_backups": true
+  }
+}

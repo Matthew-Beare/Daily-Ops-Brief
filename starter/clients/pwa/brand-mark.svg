@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">MIRA hand mirror</title>
+  <desc id="desc">A friendly stylized hand mirror representing MIRA and the MIRROR data layer.</desc>
+  <defs>
+    <linearGradient id="rim" x1="28" y1="16" x2="96" y2="112" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#79F2C0"/>
+      <stop offset="1" stop-color="#69A7FF"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="42" y1="28" x2="82" y2="78" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F4FBFF"/>
+      <stop offset="1" stop-color="#A9D7FF"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="120" height="120" rx="32" fill="#09111F" stroke="#223650" stroke-width="3"/>
+  <g transform="rotate(-12 64 65)">
+    <ellipse cx="59" cy="48" rx="31" ry="34" fill="#10243A" stroke="url(#rim)" stroke-width="8"/>
+    <ellipse cx="59" cy="48" rx="22" ry="25" fill="url(#glass)"/>
+    <path d="M44 38c8-9 18-12 29-8" fill="none" stroke="#FFFFFF" stroke-opacity=".72" stroke-width="5" stroke-linecap="round"/>
+    <path d="M64 79l14 33c2 5-1 10-6 12-5 2-10-1-12-6L49 82" fill="#12283E" stroke="url(#rim)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M59 93l8 19" stroke="#EAF7FF" stroke-opacity=".55" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <path d="M98 24v12M92 30h12" stroke="#79F2C0" stroke-width="4" stroke-linecap="round"/>
+  <path d="M103 45v7M99.5 48.5h7" stroke="#69A7FF" stroke-width="3" stroke-linecap="round"/>
+</svg>

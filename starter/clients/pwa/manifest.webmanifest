@@ -1,19 +1,12 @@
 {
-  "name": "MIRA Capture",
+  "name": "MIRA",
   "short_name": "MIRA",
-  "description": "Cross-platform M.I.R.R.O.R. capture client for barcode, QR, evidence and future device workflows.",
+  "description": "MIRA with MIRROR — Reflecting reality. Cross-platform inventory, receipts, evidence, integrations, migration, reminders, and operational workflows.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#111111",
-  "theme_color": "#111111",
-  "categories": ["utilities", "productivity"],
-  "icons": [
-    {
-      "src": "icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
-  ]
+  "background_color": "#080c14",
+  "theme_color": "#080c14",
+  "categories": ["business", "utilities", "productivity"],
+  "icons": [{"src": "mira-logo.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"}]
 }

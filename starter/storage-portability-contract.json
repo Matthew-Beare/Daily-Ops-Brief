@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "contract_id": "mirror-storage-portability-v1",
+  "purpose": "Permit MIRROR to move between local, Linux-hosted, and managed database/storage environments without changing client behavior or canonical identity.",
+  "client_rule": "clients talk only to the MIRROR API and never know which database or evidence provider is active",
+  "canonical_identity": {
+    "uuid_format": "RFC 4122 UUID string",
+    "preserve_across_migration": true,
+    "provider_primary_keys_may_not_replace_uuid": true,
+    "rfid_barcode_qr_are_aliases_not_primary_identity": true
+  },
+  "structured_state_adapters": {
+    "sqlite": {"status": "implemented_single_node_starter"},
+    "postgresql": {"status": "adapter_contract_ready_not_yet_implemented"},
+    "sql_server": {"status": "adapter_contract_ready_not_yet_implemented"},
+    "google_sheets": {"status": "migration_and_projection_boundary_not_general_runtime_database"},
+    "microsoft_lists_excel": {"status": "projection_or_migration_boundary_not_general_runtime_database"}
+  },
+  "required_adapter_operations": [
+    "health",
+    "schema_version",
+    "transaction_or_compensated_mutation",
+    "query_bounded",
+    "get_by_uuid",
+    "upsert_by_uuid_idempotent",
+    "append_audit_event",
+    "readback_verify",
+    "canonical_export",
+    "canonical_import_dry_run",
+    "canonical_import_apply",
+    "migration_checkpoint"
+  ],
+  "migration_sequence": [
+    "freeze_or checkpoint source writes",
+    "canonical export with hashes and UUIDs",
+    "dry-run target mapping",
+    "apply target import preserving UUIDs",
+    "row/count/hash and relationship readback",
+    "switch server adapter",
+    "run client compatibility and domain smoke tests",
+    "retain rollback checkpoint until acceptance"
+  ],
+  "evidence_store_adapters": {
+    "local_filesystem": "implemented starter/cache",
+    "google_drive": "implemented verified replica",
+    "onedrive": "implemented verified replica",
+    "s3_compatible": "contract candidate"
+  },
+  "deployment_topologies": [
+    "single Docker host",
+    "Linux service",
+    "managed PostgreSQL plus object storage",
+    "future SQL Server deployment"
+  ],
+  "anti_lock_in": {
+    "docker_not_required_for_domain_features": true,
+    "linux_not_required_for_client_features": true,
+    "provider_secrets_not_embedded_in_clients": true,
+    "migration_never_renumbers_assets": true
+  }
+}
