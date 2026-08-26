@@ -1,0 +1,39 @@
+services:
+  mirror:
+    build:
+      context: ../..
+      dockerfile: starter/server/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${MIRROR_BIND:-127.0.0.1}:${MIRROR_PORT:-8080}:8080"
+    environment:
+      MIRROR_PUBLIC_BASE_URL: "${MIRROR_PUBLIC_BASE_URL:-http://localhost:8080}"
+      MIRROR_PROVIDER_DEFAULT: "${MIRROR_PROVIDER_DEFAULT:-google}"
+      MIRROR_STATE_BACKEND: "${MIRROR_STATE_BACKEND:-google}"
+      MIRROR_GOOGLE_CLIENT_ID: "${MIRROR_GOOGLE_CLIENT_ID:-}"
+      MIRROR_GOOGLE_CLIENT_SECRET: "${MIRROR_GOOGLE_CLIENT_SECRET:-}"
+      MIRROR_TOKEN_ENCRYPTION_KEY: "${MIRROR_TOKEN_ENCRYPTION_KEY:-}"
+      MIRROR_SESSION_SECURE: "${MIRROR_SESSION_SECURE:-false}"
+      MIRROR_POSTGRES_DSN: "${MIRROR_POSTGRES_DSN:-}"
+    volumes:
+      - mirror-data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/v1/health', timeout=3).read()"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  postgres:
+    image: postgres:17-alpine
+    profiles: ["postgres"]
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mirror
+      POSTGRES_PASSWORD: "${MIRROR_POSTGRES_PASSWORD:?set MIRROR_POSTGRES_PASSWORD}"
+      POSTGRES_DB: mirror
+    volumes:
+      - mirror-postgres:/var/lib/postgresql/data
+
+volumes:
+  mirror-data:
+  mirror-postgres:
