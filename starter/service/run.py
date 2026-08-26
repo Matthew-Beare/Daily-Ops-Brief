@@ -28,6 +28,7 @@ from product_v1 import install_product_v1
 from provider_extensions import register_provider_extensions
 from receipt_processing import install_receipt_processing
 from receipts import install_receipts
+from reconciliation import install_reconciliation
 from release_guard import install_release_guard
 from signed_media import install_signed_media
 
@@ -40,6 +41,7 @@ install_inventory_hierarchy(app, core_app)
 install_enrichment(app, core_app)
 install_receipts(app, core_app)
 install_receipt_processing(app, core_app)
+install_reconciliation(app, core_app)
 install_merchants(app, core_app)
 install_integrations(app, core_app)
 install_media(app, core_app)
