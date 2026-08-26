@@ -35,6 +35,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - name: Install Tauri CLI
         run: cargo install tauri-cli --version "^2" --locked
+      - name: Generate MIRA desktop icons from canonical SVG
+        working-directory: starter/clients/desktop
+        run: cargo tauri icon ../pwa/brand-mark.svg
       - name: Build Linux AppImage, Debian and RPM installers
         working-directory: starter/clients/desktop
         run: cargo tauri build --bundles appimage,deb,rpm
@@ -78,6 +81,10 @@ jobs:
       - name: Install Tauri CLI
         shell: pwsh
         run: cargo install tauri-cli --version "^2" --locked
+      - name: Generate MIRA desktop icons from canonical SVG
+        working-directory: starter/clients/desktop
+        shell: pwsh
+        run: cargo tauri icon ../pwa/brand-mark.svg
       - name: Prepare Windows production certificate when secrets are installed
         id: signing
         shell: pwsh
