@@ -29,8 +29,8 @@ class ClientSurfaceTests(unittest.TestCase):
         self.assertIn("BarcodeDetector", app)
         self.assertIn("capture.barcode_qr_scan", app)
         self.assertIn("idempotency_key", app)
-        self.assertIn("sync pending", html.lower())
-        self.assertIn("usb/bluetooth scanner", html.lower())
+        self.assertIn("sync waiting scans", html.lower())
+        self.assertIn("bluetooth/usb reader", html.lower())
         self.assertEqual("standalone", manifest["display"])
 
     def test_pwa_never_becomes_database_client_and_token_is_not_persisted(self) -> None:
