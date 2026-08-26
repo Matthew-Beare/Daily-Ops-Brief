@@ -1,0 +1,6 @@
+html.mira-android-native body{padding:0!important}
+html.mira-android-native header{padding-top:34px!important}
+html.mira-android-native .mira-primary-nav{bottom:30px!important}
+html.mira-android-native main{padding-bottom:118px!important}
+html.mira-android-native #miraToast{bottom:112px!important}
+@media(min-width:761px){html.mira-android-native .mira-primary-nav{bottom:auto!important}}
