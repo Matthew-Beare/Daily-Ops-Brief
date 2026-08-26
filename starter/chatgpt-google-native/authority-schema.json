@@ -1,5 +1,5 @@
 {
-  "schema_version": 4,
+  "schema_version": 5,
   "authority_name": "MIRA MIRROR Reality Record",
   "manifest_name": "MIRA MIRROR Authority Manifest.json",
   "identity_rule": "Asset IDs are permanent; scanned, typed, provider, merchant, media, and hardware-tag identifiers are aliases/bindings.",
@@ -11,10 +11,19 @@
     "Locations": ["location_uuid", "name", "location_type", "parent_location_uuid", "created_at", "updated_at"],
     "ContainerLinks": ["container_asset_uuid", "container_location_uuid", "created_at", "updated_at"],
     "Merchants": ["merchant_uuid", "canonical_name", "normalized_name", "official_domain", "aliases_json", "metadata_json", "created_at", "updated_at"],
+    "MerchantLocations": ["merchant_location_uuid", "merchant_uuid", "display_name", "store_number", "address_line1", "address_line2", "city", "region", "postal_code", "country", "latitude", "longitude", "metadata_json", "user_confirmed", "created_at", "updated_at"],
+    "ReceiptMerchantLocationLinks": ["receipt_uuid", "merchant_location_uuid", "confidence", "user_confirmed", "linked_at"],
     "Receipts": ["receipt_uuid", "merchant_uuid", "merchant_display", "purchase_at", "currency", "subtotal", "tax", "total", "evidence_drive_file_id", "raw_extract_json", "status", "created_at", "updated_at"],
     "ReceiptLines": ["receipt_line_uuid", "receipt_uuid", "line_index", "description", "retailer_sku", "quantity", "unit_price", "amount", "asset_uuid", "status", "candidate_json", "provenance_json", "created_at", "updated_at"],
     "ReceiptProcessing": ["receipt_uuid", "evidence_uuid", "evidence_sha256", "stage", "status", "source_kind", "extracted_text_sha256", "parser_version", "attempts", "next_attempt_at", "last_error", "claimed_by", "claimed_at", "created_at", "updated_at", "completed_at"],
     "Evidence": ["evidence_uuid", "asset_uuid", "receipt_uuid", "drive_file_id", "filename", "mime_type", "sha256", "role", "source", "provenance_url", "created_at"],
+    "ReconciliationWork": ["work_uuid", "feature_namespace", "source_type", "source_uuid", "work_type", "processing_mode", "status", "priority", "freshness_minutes", "capabilities_json", "allowed_mutations_json", "confidence_threshold", "idempotency_key", "attempts", "next_attempt_at", "claimed_by", "claimed_at", "processor_uuid", "processor_version", "result_json", "last_error", "created_at", "updated_at", "completed_at"],
+    "ReconciliationDependencies": ["work_uuid", "depends_on_work_uuid", "created_at"],
+    "FeatureProcessingPolicies": ["feature_namespace", "enabled", "processing_mode", "freshness", "capabilities_json", "allowed_mutations_json", "preferred_processor_uuid", "local_only", "max_cost_per_work", "confidence_threshold", "created_at", "updated_at"],
+    "AIProcessors": ["processor_uuid", "provider_kind", "display_name", "model_name", "execution_mode", "capabilities_json", "enabled", "metered", "local_only", "privacy_class", "priority", "health", "config_json", "created_at", "updated_at"],
+    "AIUsage": ["usage_uuid", "processor_uuid", "provider_kind", "model_name", "work_uuid", "feature_namespace", "input_units", "output_units", "cached_units", "estimated_cost", "currency", "price_snapshot_json", "created_at"],
+    "UserCorrections": ["correction_uuid", "entity_type", "entity_uuid", "field_name", "previous_value_json", "confirmed_value_json", "reason", "source", "created_at"],
+    "RecognitionProfiles": ["profile_uuid", "profile_type", "lookup_key", "value_json", "confidence", "user_confirmed", "source_entity_type", "source_entity_uuid", "created_at", "updated_at"],
     "AssetMeters": ["meter_uuid", "asset_uuid", "meter_type", "unit", "label", "created_at", "updated_at"],
     "MeterReadings": ["reading_uuid", "meter_uuid", "value", "observed_at", "source", "evidence_uuid", "created_at"],
     "MaintenanceEvents": ["maintenance_uuid", "asset_uuid", "service_type", "performed_at", "meter_uuid", "meter_value", "receipt_uuid", "receipt_line_uuid", "total_cost", "notes", "metadata_json", "created_at", "updated_at"],
@@ -59,6 +68,7 @@
   "receipt_rules": {
     "one_purchase_one_receipt_uuid": true,
     "receipt_links_to_merchant_uuid": true,
+    "receipt_may_link_to_stable_merchant_location_uuid": true,
     "unknown_merchants_are_created_as_stable_entities": true,
     "original_evidence_retained": true,
     "captured_status_is_pending_work": true,
@@ -74,12 +84,29 @@
     "allocation_mismatch_remains_open": true,
     "maintenance_consumables_may_prompt_for_asset_and_meter_reading": true
   },
+  "reconciliation_rules": {
+    "queue_is_generic_across_features": true,
+    "default_daily_cleanup_local_time": "00:01",
+    "existing_brief_or_control_cycle_should_absorb_cleanup": true,
+    "features_describe_work_and_freshness_not_scheduler_jobs": true,
+    "processor_routing_is_capability_based": true,
+    "multiple_processors_may_be_used_in_one_deployment": true,
+    "local_only_work_never_silently_falls_back_to_cloud": true,
+    "metered_api_processing_requires_explicit_configuration": true,
+    "paid_usage_records_price_snapshot": true,
+    "user_confirmed_values_outrank_ai_suggestions": true,
+    "low_confidence_results_go_to_review": true,
+    "original_evidence_is_immutable": true,
+    "work_is_claimed_and_read_back_before_completion": true
+  },
   "integration_rules": {
     "external_service_is_adapter_not_authority": true,
     "local_service_credentials_never_stored_in_google": true,
     "google_native_lan_actions_use_enrolled_local_bridge": true,
     "write_capabilities_are_opt_in": true,
-    "completed_actions_require_readback_when_supported": true
+    "completed_actions_require_readback_when_supported": true,
+    "openclaw_may_be_processor_or_orchestrator_but_not_authority": true,
+    "paperless_may_receive_reconciled_documents_but_not_replace_mirror_authority": true
   },
   "backup_rules": {
     "default_full_interval_days": 7,
