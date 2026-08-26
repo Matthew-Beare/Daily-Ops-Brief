@@ -1,80 +1,166 @@
 "use strict";
 
 (() => {
-  let stagedSnapshot = null;
+  let stagedSnapshotId = null;
+  let googleConnected = false;
 
-  function apiReady() { try { return Boolean(apiBase()); } catch (_) { return false; } }
-  function text(tag, className, value) { const node=document.createElement(tag); if(className) node.className=className; node.textContent=value; return node; }
-
-  function summaryPlan(plan) {
-    const safe = plan?.safe_rows?.length ?? plan?.safe_count ?? 0;
-    const review = plan?.needs_review?.length ?? plan?.review_count ?? 0;
-    const unknown = plan?.unknown_sheets?.length ?? 0;
-    return `Ready to import ${safe} safe row${safe===1?"":"s"}. ${review+unknown ? `${review+unknown} item${review+unknown===1?"":"s"} will wait for review.` : "Nothing ambiguous was found."}`;
+  async function connectionState() {
+    if (typeof apiBase !== "function" || !apiBase()) return false;
+    try {
+      const result = await apiJson("/v1/integrations/provider-health");
+      return Boolean(result.google_workspace?.connected);
+    } catch (_) {
+      return false;
+    }
   }
 
-  async function previewMagic(snapshotId) {
-    const result=await apiJson(`/v1/migrations/${encodeURIComponent(snapshotId)}/magic`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({apply:false})});
-    const summary=document.getElementById("migrationPlanSummary"); if(summary) summary.textContent=summaryPlan(result.plan||{});
-    const technical=document.getElementById("migrationMagicResult"); if(technical) technical.textContent=JSON.stringify(result.plan,null,2);
-    const apply=document.getElementById("migrationMagicApply"); if(apply){apply.disabled=!result.plan?.safe_to_apply;apply.textContent=result.plan?.fully_automatic?"Import now":"Import safe items";}
-    markStep(4,result.plan?.safe_to_apply?"ready":"locked");
-    return result;
+  function connectGoogle() {
+    if (typeof apiBase !== "function" || !apiBase()) {
+      setStatus("Finish setup first. MIRA needs a Google connection before it can import your spreadsheets.");
+      globalThis.MiraV1?.showOnboarding?.();
+      return;
+    }
+    const returnTo = `${apiBase()}/`;
+    const url = apiUrl(`/v1/migrations/google/auth/start?return_to=${encodeURIComponent(returnTo)}`);
+    if (globalThis.MirrorNative?.openExternal) globalThis.MirrorNative.openExternal(url);
+    else location.href = url;
+  }
+
+  function requireGoogle() {
+    if (googleConnected) return true;
+    setStatus("Connect Google first. MIRA will request read-only spreadsheet access and bring you back here.");
+    connectGoogle();
+    return false;
+  }
+
+  async function discover() {
+    if (!requireGoogle()) return;
+    const result = await apiJson("/v1/migrations/google/discover?page_size=250");
+    const select = document.getElementById("googleSheetSelect");
+    select.replaceChildren(new Option("Choose a spreadsheet", ""));
+    for (const sheet of result.spreadsheets || []) {
+      select.add(new Option(`${sheet.name}${sheet.modifiedTime ? ` • ${sheet.modifiedTime.slice(0, 10)}` : ""}`, sheet.id));
+    }
+    setStatus(`Found ${(result.spreadsheets || []).length} spreadsheet${(result.spreadsheets || []).length === 1 ? "" : "s"}. Choose one to preview.`);
+    updateSteps();
+  }
+
+  async function previewSelected() {
+    if (!requireGoogle()) return;
+    const select = document.getElementById("googleSheetSelect");
+    const fileId = select?.value;
+    if (!fileId) {
+      setStatus("Choose a spreadsheet first.");
+      select?.focus();
+      return;
+    }
+    const staged = await apiJson("/v1/migrations/google/stage-sheet", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ file_id: fileId }),
+    });
+    stagedSnapshotId = staged.snapshot_uuid;
+    const result = await apiJson(`/v1/migrations/${encodeURIComponent(stagedSnapshotId)}/magic`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ apply: false }),
+    });
+    const technical = document.getElementById("migrationMagicResult");
+    if (technical) technical.textContent = JSON.stringify(result.plan || result, null, 2);
+    const summary = document.getElementById("migrationPlanSummary");
+    if (summary) summary.textContent = "Preview ready. Nothing has been imported yet. MIRA will only apply records it can match safely.";
+    setStatus("Preview ready. Nothing has been imported yet.");
+    updateSteps();
   }
 
   async function applyMagic() {
-    if(!stagedSnapshot) throw new Error("Preview a spreadsheet first.");
-    const result=await apiJson(`/v1/migrations/${encodeURIComponent(stagedSnapshot)}/magic`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({apply:true})});
-    const needs=(result.result?.needs_review?.length||0)+(result.result?.unknown_sheets?.length||0);
-    const summary=document.getElementById("migrationPlanSummary"); if(summary) summary.textContent=needs?`Imported everything MIRA could verify. ${needs} item${needs===1?"":"s"} need your review.`:"Import complete. Everything was verified and applied safely.";
-    const technical=document.getElementById("migrationMagicResult"); if(technical) technical.textContent=JSON.stringify(result,null,2);
-    setStatus(needs?`Import complete. ${needs} item(s) need review; MIRA did not guess.`:"Import complete and verified.");
-    markStep(4,"done");
-  }
-
-  function markStep(number,state){const card=document.querySelector(`[data-migration-step='${number}']`);if(card)card.dataset.state=state;document.querySelectorAll("#migrationProgress span").forEach((bar,index)=>bar.classList.toggle("active",index<number&&(state!=="locked"||index<number-1)));}
-
-  function waitForSnapshot(stageButton) {
-    if(stageButton.dataset.guidedHook)return; stageButton.dataset.guidedHook="true";
-    stageButton.addEventListener("click",()=>{
-      let tries=0;const timer=setInterval(()=>{tries+=1;try{const raw=document.getElementById("migrationResult")?.textContent||"{}";const payload=JSON.parse(raw);if(payload.snapshot_uuid){clearInterval(timer);stagedSnapshot=payload.snapshot_uuid;markStep(3,"done");previewMagic(stagedSnapshot).catch(showError);}}catch(_){/* waiting */}if(tries>50)clearInterval(timer);},200);
+    if (!requireGoogle()) return;
+    if (!stagedSnapshotId) {
+      setStatus("Preview a spreadsheet before importing it.");
+      return;
+    }
+    const result = await apiJson(`/v1/migrations/${encodeURIComponent(stagedSnapshotId)}/magic`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ apply: true }),
     });
+    const unresolved = (result.result?.needs_review?.length || 0) + (result.result?.unknown_sheets?.length || 0);
+    setStatus(unresolved
+      ? `Imported everything MIRA could prove safely. ${unresolved} item${unresolved === 1 ? "" : "s"} still need your decision.`
+      : "Import complete. MIRA verified the new records and preserved existing item identities.");
+    const technical = document.getElementById("migrationMagicResult");
+    if (technical) technical.textContent = JSON.stringify(result, null, 2);
+    updateSteps(true);
   }
 
-  function improve() {
-    const panel=document.getElementById("panel-migration"); if(!panel||panel.dataset.progressive==="true")return;
-    const select=document.getElementById("googleSheetSelect"); const stage=select?.nextElementSibling; const toolbar=select?.previousElementSibling;
-    if(!select||!stage||!toolbar)return;
-    const google=select.closest(".card"); if(!google)return;
-    const buttons=[...toolbar.querySelectorAll("button")]; if(buttons.length<2)return;
-    const connect=buttons[0],discover=buttons[1];
-    panel.dataset.progressive="true"; waitForSnapshot(stage);
+  function makeStep(number, title, copy, buttonText, action) {
+    const row = document.createElement("div");
+    row.className = "mira-migration-step";
+    row.dataset.step = String(number);
+    const n = document.createElement("div"); n.className = "step-number"; n.textContent = String(number);
+    const body = document.createElement("div");
+    const strong = document.createElement("strong"); strong.textContent = title;
+    const small = document.createElement("small"); small.textContent = copy;
+    body.append(strong, small);
+    const button = document.createElement("button"); button.type = "button"; button.textContent = buttonText;
+    button.addEventListener("click", () => Promise.resolve(action()).catch((error) => setStatus(error?.message || String(error))));
+    row.append(n, body, button);
+    return row;
+  }
 
-    const heading=google.querySelector("h2"); if(heading) heading.textContent="Bring in your Google data";
-    const warning=google.querySelector(".mira-warning"); if(warning) warning.textContent="MIRA previews first and changes nothing until you press Import.";
-
-    const progress=document.createElement("div"); progress.id="migrationProgress"; progress.className="mira-progress"; for(let i=0;i<4;i++)progress.append(document.createElement("span"));
-    const makeStep=(number,title,copy)=>{const card=document.createElement("div");card.className="mira-step-card";card.dataset.migrationStep=String(number);card.append(text("div","mira-eyebrow",`Step ${number}`),text("h3","",title),text("p","muted",copy));return card;};
-    const one=makeStep(1,"Connect Google",apiReady()?"Give MIRA read-only access for migration.":"Finish setup first. This test app is not connected yet.");
-    connect.textContent=apiReady()?"Continue with Google":"Finish setup to connect Google"; connect.classList.add("primary-action"); one.append(connect);
-    const two=makeStep(2,"Find your spreadsheets","MIRA will list the Google Sheets you can import."); discover.textContent="Find spreadsheets"; discover.disabled=!apiReady(); two.append(discover);
-    const three=makeStep(3,"Choose and preview","Pick a spreadsheet. Previewing still does not import anything."); stage.textContent="Preview spreadsheet"; stage.classList.add("primary-action"); stage.disabled=true; three.append(select,stage);
-    const four=makeStep(4,"Import","Only verified rows are applied. Anything ambiguous waits for review."); four.dataset.state="locked"; const plan=text("div","mira-callout","Preview a spreadsheet to see what MIRA can import safely."); plan.id="migrationPlanSummary"; const apply=document.createElement("button");apply.id="migrationMagicApply";apply.className="primary-action";apply.disabled=true;apply.textContent="Import";apply.addEventListener("click",()=>applyMagic().catch(showError));four.append(plan,apply);
-
-    toolbar.remove();
-    const warningNode=warning||null; google.replaceChildren(); if(heading)google.append(heading);else google.append(text("h2","","Bring in your Google data")); if(warningNode)google.append(warningNode); google.append(progress,one,two,three,four);
-    const technical=document.createElement("details");technical.className="mira-advanced";technical.append(text("summary","","Advanced migration details"));const pre=document.createElement("pre");pre.id="migrationMagicResult";pre.className="mira-code";pre.textContent="No preview yet.";technical.append(pre);google.append(technical);
-
-    select.addEventListener("change",()=>{stage.disabled=!select.value;markStep(3,select.value?"ready":"locked");});
-    const optionObserver=new MutationObserver(()=>{if(select.options.length>1){markStep(2,"done");select.disabled=false;}});optionObserver.observe(select,{childList:true});
-    markStep(1,apiReady()?"ready":"locked"); markStep(2,apiReady()?"ready":"locked"); markStep(3,"locked");
-
-    [...panel.querySelectorAll(".card")].forEach((card)=>{
-      const title=card.querySelector("h2")?.textContent||"";
-      if(title.includes("JSON")||title.includes("legacy export")){const details=document.createElement("details");details.className="mira-advanced";details.append(text("summary","","Advanced: import a technical export"));[...card.children].slice(1).forEach(child=>details.append(child));card.replaceChildren(details);}
-      if(title==="Migration result"){card.style.display="none";}
+  function updateSteps(imported = false) {
+    const select = document.getElementById("googleSheetSelect");
+    let current = 1;
+    if (googleConnected) current = 2;
+    if (googleConnected && select?.options.length > 1) current = 3;
+    if (stagedSnapshotId) current = 4;
+    document.querySelectorAll(".mira-migration-step").forEach((row) => {
+      const number = Number(row.dataset.step);
+      row.classList.toggle("current", number === current);
+      row.classList.toggle("locked", number > current);
+      if (imported && number === 4) row.classList.add("current");
     });
+    const connection = document.getElementById("migrationConnectionState");
+    if (connection) connection.textContent = googleConnected ? "Google connected" : "Google is not connected yet";
   }
 
-  const observer=new MutationObserver(improve);observer.observe(document.documentElement,{childList:true,subtree:true});improve();
+  async function improve() {
+    const panel = document.getElementById("panel-migration");
+    if (!panel || panel.dataset.progressive === "true") return;
+    const select = document.getElementById("googleSheetSelect");
+    if (!select) return;
+    panel.dataset.progressive = "true";
+    googleConnected = await connectionState();
+
+    const oldCards = [...panel.querySelectorAll(":scope > .card")];
+    oldCards.forEach((card) => card.remove());
+
+    const card = document.createElement("div");
+    card.className = "card wide";
+    const title = document.createElement("h2"); title.textContent = "Bring in your Google data";
+    const intro = document.createElement("p"); intro.className = "muted"; intro.textContent = "One step at a time. MIRA previews first and does not change your inventory until you press Import.";
+    const connection = document.createElement("div"); connection.id = "migrationConnectionState"; connection.className = "mira-callout";
+    const flow = document.createElement("div"); flow.className = "mira-migration-flow";
+    flow.append(
+      makeStep(1, "Connect Google", "One-time read-only access for finding and previewing spreadsheets.", googleConnected ? "Connected" : "Connect Google", () => googleConnected ? setStatus("Google is already connected.") : connectGoogle()),
+      makeStep(2, "Find your spreadsheets", "MIRA lists the spreadsheets your Google account can read.", "Find spreadsheets", discover),
+      makeStep(3, "Choose and preview", "Pick one below. Previewing still does not import anything.", "Preview", previewSelected),
+      makeStep(4, "Import what is safe", "MIRA applies unambiguous records and leaves uncertain matches alone.", "Import safely", applyMagic)
+    );
+
+    const picker = document.createElement("div"); picker.className = "row"; picker.append(select);
+    const plan = document.createElement("div"); plan.id = "migrationPlanSummary"; plan.className = "mira-callout"; plan.textContent = "Start by connecting Google. If you skipped onboarding, MIRA will take you to the missing step.";
+    const advanced = document.createElement("details");
+    const advancedSummary = document.createElement("summary"); advancedSummary.textContent = "Advanced migration details";
+    const technical = document.createElement("pre"); technical.id = "migrationMagicResult"; technical.className = "mira-code"; technical.textContent = "No preview yet.";
+    advanced.append(advancedSummary, technical);
+    card.append(title, intro, connection, flow, picker, plan, advanced);
+    panel.append(card);
+    select.addEventListener("change", updateSteps);
+    updateSteps();
+  }
+
+  const observer = new MutationObserver(() => improve().catch(() => {}));
+  observer.observe(document.documentElement, { childList: true, subtree: true });
+  document.addEventListener("DOMContentLoaded", () => setTimeout(() => improve().catch(() => {}), 100));
 })();
