@@ -26,6 +26,7 @@ from oauth_hardening import install_oauth_hardening
 from platform_foundations import install_platform_foundations
 from product_v1 import install_product_v1
 from provider_extensions import register_provider_extensions
+from receipt_processing import install_receipt_processing
 from receipts import install_receipts
 from release_guard import install_release_guard
 from signed_media import install_signed_media
@@ -38,6 +39,7 @@ install_experience_v3(app, core_app)
 install_inventory_hierarchy(app, core_app)
 install_enrichment(app, core_app)
 install_receipts(app, core_app)
+install_receipt_processing(app, core_app)
 install_merchants(app, core_app)
 install_integrations(app, core_app)
 install_media(app, core_app)
@@ -99,7 +101,7 @@ async def mirror_api_auth(request: Request, call_next):
 
     if not expected:
         return JSONResponse(
-            {"detail": "mirror API authentication is required but no bootstrap admin credential is configured and the supplied device credential was not valid"},
+            {"detail": "MIRROR API authentication is required but no bootstrap admin credential is configured and the supplied device credential was not valid"},
             status_code=503,
         )
     return JSONResponse({"detail": "valid MIRROR bootstrap or enrolled-device bearer token required"}, status_code=401)
