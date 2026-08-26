@@ -68,6 +68,7 @@
     loadScriptOnce("native-updater.js","mira-native-updater");
     loadScriptOnce("integrations-v1.js","mira-integrations-v1");
     loadScriptOnce("sleek-shell.js","mira-sleek-shell-script");
+    loadScriptOnce("onboarding-polish.js","mira-onboarding-polish");
   }
 
   document.addEventListener("DOMContentLoaded", loadCommercialShell);
