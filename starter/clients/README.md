@@ -1,62 +1,53 @@
 # M.I.R.R.O.R. client surfaces
 
-The baseline client is one installable **Progressive Web App (PWA)** shared by Android, Windows, Linux and ordinary web browsers. Native helpers are deliberately small and exist only where the operating system exposes capabilities a browser cannot reliably provide.
+M.I.R.R.O.R. uses one versioned service/API contract across **web, Windows, Linux and Android**. The user interface is shared wherever practical; operating-system helpers exist only for capabilities the browser cannot reliably provide.
 
-## Baseline PWA
+## Web / PWA
 
-`clients/pwa/` is the first usable client surface. It provides:
+`clients/pwa/` is the shared GUI. It provides camera barcode/QR capture where `BarcodeDetector` is available, manual capture, USB/Bluetooth keyboard-wedge scanning, offline idempotent scan queueing, asset-photo capture/preview/upload, asset lookup/photo gallery, and foreground speech preview.
 
-- camera barcode/QR capture through the browser `BarcodeDetector` API when the browser/device supports it;
-- manual identifier entry;
-- keyboard-wedge USB/Bluetooth barcode scanner entry, because those scanners normally type the decoded code followed by Enter;
-- idempotent scan-command envelopes for the M.I.R.R.O.R. service API;
-- local pending-sync queue when the API is unavailable;
-- installable PWA metadata and static offline shell;
-- foreground Text-to-Speech preview for testing speech wording.
+It is installable as a PWA and can also be served as the normal web interface. Camera access requires a secure context and is runtime capability-tested rather than assumed.
 
-Camera access and service workers require a secure browser context, normally HTTPS or localhost. The PWA never receives database credentials and never treats a locally decoded barcode as canonical product identity. The service/core validates and resolves the scan.
+## Windows and Linux desktop
+
+`clients/desktop/` is a Tauri shell that embeds the same PWA assets and builds native Windows and Linux GUI binaries. The same Rust package also builds `mira-cli` for terminal/SSH/script use.
+
+The GUI shows asset images when authorized. The CLI deliberately stays textual: it shows Evidence UUID, MIME/hash/caption/provenance metadata and can explicitly download a selected image.
+
+Linux can additionally host the always-on M.I.R.R.O.R. service, provider adapters, `systemd` scheduling, local-model runtime and hardware bridges. Windows remains a fully supported interactive client and may host local adapters where useful.
 
 ## Android
 
-Use the PWA for normal UI and camera barcode/QR scanning. A thin native Android companion is the target for capabilities that require native/background privileges:
+The PWA remains the shared visual/capture surface. The native Android companion supplies the capabilities mobile browsers cannot reliably guarantee:
 
-- reliable background appointment notifications;
-- Android Text-to-Speech generation after a due spoken-reminder intent arrives;
-- audio routing through whatever output Android has selected, including supported Bluetooth hearing aids/headsets;
-- NFC tag observations;
-- future local hardware bridges when useful.
+- background appointment notifications;
+- Android Text-to-Speech at reminder due time;
+- Android-selected audio routing, including compatible Bluetooth hearing aids/headsets;
+- exact/fallback alarm scheduling with device verification;
+- NFC/native hardware hooks.
 
-M.I.R.R.O.R. sends reminder text, timing, reminder UUID and privacy/detail policy. **Android's selected Text-to-Speech engine generates the actual voice locally.** The server does not generate an audio file and does not force a Bluetooth route.
+**Android's selected Text-to-Speech engine generates the actual voice locally.** M.I.R.R.O.R. supplies the canonical reminder text/timing/privacy policy; it does not render an audio file or claim direct control of the Bluetooth route.
 
-The PWA `speechSynthesis` control is only a foreground preview/test. It is not evidence of reliable background spoken delivery.
+CI builds an installable debug APK for testing. A public production/release APK later requires a deployment signing key kept outside Git.
 
-## Windows and Linux
+## Cameras, barcode scanners, RFID and printers
 
-Use the same PWA as the normal user interface. It can be installed from a supporting Chromium-family browser and opened like an application.
+Hardware compatibility is capability/transport based; see `../hardware-capture-contract.json`.
 
-USB/Bluetooth scanners that operate as keyboard-wedge/HID devices work with the scan input without a special driver inside M.I.R.R.O.R. Camera scanning works where the browser exposes camera + `BarcodeDetector` support.
+- built-in/USB UVC cameras may work through browser/WebView `MediaDevices` when exposed by the runtime;
+- Android native camera is a separate adapter path;
+- 1D laser, CCD and 2D imagers work immediately when they present as USB/Bluetooth HID keyboard-wedge scanners;
+- serial/USB-CDC scanners use a local-agent adapter on Windows/Linux;
+- NFC/HF/UHF RFID feeds the shared identifier/presence event model and never silently moves an asset from one passive read;
+- normal printers use browser/OS printing; Linux CUPS and Windows spooler are baseline transports;
+- thermal label printers may use normal drivers or explicit ZPL/EPL/TSPL/raw-TCP/USB adapters.
 
-A future optional desktop/local agent is for OS/hardware duties, not a second business application. Examples:
+Printer type, scanner brand or storage provider never becomes canonical identity.
 
-- serial/USB reader SDK bridge;
-- UHF RFID reader bridge;
-- local file-watch/evidence import when explicitly enabled;
-- native tray/background notifications;
-- local model runtime adapter;
-- private service discovery.
+## Asset media
 
-Linux is also the preferred self-hosted always-on service/adapter host. `systemd` timers provide deployment-owned scheduling while the PWA remains the UI.
-
-## RFID/NFC
-
-RFID is an adapter into the same immutable asset/location model, not a separate inventory database. See `../rfid-asset-tracking-contract.json`.
-
-- Android NFC can submit near-field observations through the native companion.
-- USB/serial/HID/network readers can submit observations through a Linux/desktop agent.
-- EPC Gen2/UHF repeated reads are presence evidence and are deduplicated/bounded.
-- a single passive read never silently moves an asset;
-- only an explicitly configured, corroborated zone-transition policy may promote presence evidence to a canonical location event, and that write still requires idempotency + readback.
+Asset pictures are Evidence objects linked to immutable Asset UUIDs under `../asset-media-contract.json`. Drive, OneDrive/SharePoint, filesystem-backed evidence and S3-compatible object storage are interchangeable adapters. Moving from Drive to private object storage does not renumber the asset or its Evidence UUID.
 
 ## Security boundary
 
-All clients talk to the versioned service API in `../client-api-contract.json`. They do not connect directly to PostgreSQL, Google Sheets, Microsoft Lists, object storage or another canonical authority. Provider credentials stay server/adapter-side.
+All clients talk to `../client-api-contract.json`. They do not connect directly to PostgreSQL, Google Sheets, Microsoft Lists, Drive or object storage. Database/provider credentials remain server-side. Client tokens are scoped, and long-lived credentials require an OS secret-store adapter rather than source files or browser-local plaintext.
