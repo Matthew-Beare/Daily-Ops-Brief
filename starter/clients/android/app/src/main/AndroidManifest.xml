@@ -17,9 +17,11 @@
 
     <application
         android:allowBackup="false"
+        android:icon="@drawable/mira_launcher"
+        android:roundIcon="@drawable/mira_launcher"
         android:label="MIRA"
         android:usesCleartextTraffic="false"
-        android:theme="@android:style/Theme.Material.Light.NoActionBar">
+        android:theme="@style/Theme.Mira">
         <activity android:name=".MainActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
