@@ -1,10 +1,11 @@
 "use strict";
 
-const CACHE = "mirror-client-shell-v8";
+const CACHE = "mirror-client-shell-v9";
 const SHELL = [
   "./", "./index.html", "./app.js", "./client-hardening.js", "./platform-ui.js", "./product-v1.js",
-  "./smart-capture.js", "./guided-migration.js", "./ble-proximity.js", "./receipt-v1.js", "./native-updater.js", "./integrations-v1.js", "./commercial.css",
-  "./manifest.webmanifest", "./icon.svg", "./tutorial-google.svg", "./tutorial-github.svg", "./tutorial-conflict.svg", "./tutorial-hierarchy.svg"
+  "./smart-capture.js", "./guided-migration.js", "./ble-proximity.js", "./receipt-v1.js", "./native-updater.js", "./integrations-v1.js",
+  "./commercial.css", "./sleek-shell.css", "./sleek-shell.js",
+  "./manifest.webmanifest", "./icon.svg", "./brand-mark.svg", "./tutorial-google.svg", "./tutorial-github.svg", "./tutorial-conflict.svg", "./tutorial-hierarchy.svg"
 ];
 
 self.addEventListener("install", (event) => {
