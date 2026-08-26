@@ -13,7 +13,7 @@ class FullInventoryUiTests(unittest.TestCase):
     def test_shared_gui_exposes_inventory_ingress_relocation_and_labels(self):
         html = self.text("clients/pwa/index.html")
         app = self.text("clients/pwa/app.js")
-        for phrase in ("Find inventory", "Create asset", "Create category", "Create location", "Files & photos", "Print QR label", "Print Code 128 label"):
+        for phrase in ("Inventory", "Add item", "Add category", "Add location", "Photos & files", "Print QR label", "Print barcode"):
             self.assertIn(phrase, html)
         for command in ("inventory.asset.create", "inventory.asset.update", "inventory.asset.relocate", "inventory.identifier.assign"):
             self.assertIn(command, app)
@@ -37,12 +37,13 @@ class FullInventoryUiTests(unittest.TestCase):
         self.assertIn("ReminderScheduler.schedule", activity)
         self.assertIn("openExternal", activity)
 
-    def test_google_workspace_is_visible_default_and_apple_is_not_fake(self):
+    def test_cloud_provider_choices_are_real_and_apple_is_not_faked(self):
         html = self.text("clients/pwa/index.html")
-        self.assertIn("Google Workspace is the default", html)
-        self.assertIn("Enable Google Drive + Sheets + Calendar", html)
-        self.assertIn("Enable OneDrive + Calendar", html)
-        self.assertIn("does not fake general iCloud Drive API access", html)
+        defaults = self.text("provider-defaults.json")
+        self.assertIn("Continue with Google", html)
+        self.assertIn("Use Microsoft 365", html)
+        self.assertIn('"default_profile": "google_workspace"', defaults)
+        self.assertIn("no_claim_of_general_icloud_drive_access", defaults)
 
 
 if __name__ == "__main__":
