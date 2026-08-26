@@ -42,7 +42,7 @@ import com.google.android.gms.auth.api.identity.AuthorizationClient;
 import com.google.android.gms.auth.api.identity.AuthorizationRequest;
 import com.google.android.gms.auth.api.identity.AuthorizationResult;
 import com.google.android.gms.auth.api.identity.Identity;
-import com.google.android.gms.common.Scope;
+import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
 import com.google.mlkit.vision.barcode.common.Barcode;
@@ -200,9 +200,6 @@ public final class MainActivity extends Activity {
         requested.add("openid");
         requested.add("email");
         requested.add("profile");
-        // Cloud MIRA writes its own evidence through drive.file and also needs read-only
-        // Drive metadata discovery so an app installed later can find the same MIRROR
-        // workbook/manifest that MIRA may already have initialized through ChatGPT.
         requested.add("https://www.googleapis.com/auth/drive.file");
         requested.add("https://www.googleapis.com/auth/drive.metadata.readonly");
         String raw = capabilities == null ? "" : capabilities;
@@ -509,7 +506,6 @@ public final class MainActivity extends Activity {
             String script = "window.onMirrorNativeBleObservation && window.onMirrorNativeBleObservation(" + JSONObject.quote(payload.toString()) + ")";
             runOnUiThread(() -> webView.evaluateJavascript(script, null));
         } catch (Exception ignored) {
-            // One malformed advertisement must not terminate the scan.
         }
     }
 

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#07101d">
-  <meta name="color-scheme" content="dark">
+  <meta name="color-scheme" content="dark light">
   <title>MIRA — Reflecting reality</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="mira-logo.png" type="image/png">
@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="sleek-v2.css">
   <link rel="stylesheet" href="brand-final.css">
   <link rel="stylesheet" href="android-fixes.css">
+  <link rel="stylesheet" href="theme-v1.css">
   <style>
     *{box-sizing:border-box}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.panel{display:none}.panel.active{display:grid}.row{display:grid}.split{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}.actions{display:flex;flex-wrap:wrap}.asset-list{display:grid;gap:.5rem;max-height:540px;overflow:auto}.asset-row{width:100%;text-align:left}.photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:.5rem}.photos img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:14px}video,#photoPreview{width:100%;max-height:360px;object-fit:contain;border-radius:16px}#photoPreview[hidden],video[hidden]{display:none}
   </style>
@@ -31,130 +32,20 @@
   </header>
   <main>
     <section id="panel-inventory" class="panel active">
-      <div class="card">
-        <h2>Inventory</h2>
-        <div class="row">
-          <input id="assetSearch" placeholder="Search your stuff" autocomplete="off">
-          <select id="filterCategory"><option value="">All categories</option></select>
-          <select id="filterLocation"><option value="">All locations</option></select>
-          <button id="searchAssets">Search</button>
-        </div>
-        <div id="assetList" class="asset-list"></div>
-      </div>
-      <div class="card">
-        <h2>Add item</h2>
-        <div class="row">
-          <input id="newAssetName" placeholder="What is it?">
-          <textarea id="newAssetDescription" placeholder="Model, notes or anything useful"></textarea>
-          <select id="newAssetCategory"><option value="">Choose category later</option></select>
-          <select id="newAssetLocation"><option value="">Choose location later</option></select>
-          <textarea id="newAssetMetadata" placeholder="Optional advanced details"></textarea>
-          <button id="createAsset" data-mutation>Save item</button>
-        </div>
-      </div>
-      <div class="card wide">
-        <h2>Item details</h2>
-        <div class="split">
-          <label>Name<input id="editAssetName"></label>
-          <label>Category<select id="editAssetCategory"><option value="">No category</option></select></label>
-          <label>Location<select id="editAssetLocation"><option value="">No location</option></select></label>
-        </div>
-        <label>Description<textarea id="editAssetDescription"></textarea></label>
-        <label>Advanced details<textarea id="editAssetMetadata"></textarea></label>
-        <div class="actions">
-          <button id="saveAsset" data-mutation>Save changes</button>
-          <button id="relocateAsset" data-mutation>Move item</button>
-          <button id="printQr">Print QR label</button>
-          <button id="printBarcode">Print barcode</button>
-        </div>
-        <div id="assetIdentifiers"></div>
-        <div id="assetPhotos" class="photos"></div>
-        <pre id="assetResult"></pre>
-      </div>
+      <div class="card"><h2>Inventory</h2><div class="row"><input id="assetSearch" placeholder="Search your stuff" autocomplete="off"><select id="filterCategory"><option value="">All categories</option></select><select id="filterLocation"><option value="">All locations</option></select><button id="searchAssets">Search</button></div><div id="assetList" class="asset-list"></div></div>
+      <div class="card"><h2>Add item</h2><div class="row"><input id="newAssetName" placeholder="What is it?"><textarea id="newAssetDescription" placeholder="Model, notes or anything useful"></textarea><select id="newAssetCategory"><option value="">Choose category later</option></select><select id="newAssetLocation"><option value="">Choose location later</option></select><textarea id="newAssetMetadata" placeholder="Optional advanced details"></textarea><button id="createAsset" data-mutation>Save item</button></div></div>
+      <div class="card wide"><h2>Item details</h2><div class="split"><label>Name<input id="editAssetName"></label><label>Category<select id="editAssetCategory"><option value="">No category</option></select></label><label>Location<select id="editAssetLocation"><option value="">No location</option></select></label></div><label>Description<textarea id="editAssetDescription"></textarea></label><label>Advanced details<textarea id="editAssetMetadata"></textarea></label><div class="actions"><button id="saveAsset" data-mutation>Save changes</button><button id="relocateAsset" data-mutation>Move item</button><button id="printQr">Print QR label</button><button id="printBarcode">Print barcode</button></div><div id="assetIdentifiers"></div><div id="assetPhotos" class="photos"></div><pre id="assetResult"></pre></div>
     </section>
 
-    <section id="panel-scan" class="panel">
-      <div class="card wide">
-        <h2>Scan something</h2>
-        <p class="muted">Use the camera, tap an NFC tag, or scan with a Bluetooth/USB reader. MIRA will tell you what it recognizes and what to do next.</p>
-        <video id="camera" playsinline muted hidden></video>
-        <div class="actions"><button id="startCamera" class="primary-action">Open scanner</button><button id="stopCamera" disabled>Stop</button></div>
-        <form id="scanForm" class="row">
-          <label>Code<input id="scanValue" autocomplete="off" placeholder="Or type / scan a code here"></label>
-          <label>Code type<select id="symbology"><option value="UNKNOWN">Auto / unknown</option><option value="QR_CODE">QR</option><option value="UPC_A">UPC-A</option><option value="EAN_13">EAN-13</option><option value="EAN_8">EAN-8</option><option value="CODE_128">Code 128</option></select></label>
-          <button type="submit">Use this code</button>
-        </form>
-        <p id="lastScan" class="muted">Nothing scanned yet.</p>
-        <div class="actions"><button id="assignScan" data-mutation>Attach code to selected item</button><button id="syncPending">Sync waiting scans</button><button id="exportPending">Advanced export</button></div>
-        <p id="queueCount" class="muted"></p>
-      </div>
-    </section>
+    <section id="panel-scan" class="panel"><div class="card wide"><h2>Scan something</h2><p class="muted">Use the camera, tap an NFC tag, or scan with a Bluetooth/USB reader. MIRA will tell you what it recognizes and what to do next.</p><video id="camera" playsinline muted hidden></video><div class="actions"><button id="startCamera" class="primary-action">Open scanner</button><button id="stopCamera" disabled>Stop</button></div><form id="scanForm" class="row"><label>Code<input id="scanValue" autocomplete="off" placeholder="Or type / scan a code here"></label><label>Code type<select id="symbology"><option value="UNKNOWN">Auto / unknown</option><option value="QR_CODE">QR</option><option value="UPC_A">UPC-A</option><option value="EAN_13">EAN-13</option><option value="EAN_8">EAN-8</option><option value="CODE_128">Code 128</option></select></label><button type="submit">Use this code</button></form><p id="lastScan" class="muted">Nothing scanned yet.</p><div class="actions"><button id="assignScan" data-mutation>Attach code to selected item</button><button id="syncPending">Sync waiting scans</button><button id="exportPending">Advanced export</button></div><p id="queueCount" class="muted"></p></div></section>
 
-    <section id="panel-organize" class="panel">
-      <div class="card">
-        <h2>Add category</h2>
-        <div class="row"><input id="categoryName" placeholder="e.g. Sockets"><select id="categoryParent"><option value="">Top level</option></select><button id="createCategory" data-mutation>Add category</button></div>
-      </div>
-      <div class="card">
-        <h2>Add location</h2>
-        <div class="row"><input id="locationName" placeholder="e.g. Tote A"><select id="locationParent"><option value="">Top level</option></select><select id="locationType"><option value="site">Site</option><option value="room">Room</option><option value="aisle">Aisle</option><option value="shelf">Shelf</option><option value="bin">Bin</option><option value="vehicle">Vehicle</option><option value="container">Container</option><option value="storage">Storage</option></select><button id="createLocation" data-mutation>Add location</button></div>
-      </div>
-      <div class="card wide"><h2>Your organization</h2><pre id="treeResult"></pre></div>
-    </section>
+    <section id="panel-organize" class="panel"><div class="card"><h2>Add category</h2><div class="row"><input id="categoryName" placeholder="e.g. Sockets"><select id="categoryParent"><option value="">Top level</option></select><button id="createCategory" data-mutation>Add category</button></div></div><div class="card"><h2>Add location</h2><div class="row"><input id="locationName" placeholder="e.g. Tote A"><select id="locationParent"><option value="">Top level</option></select><select id="locationType"><option value="site">Site</option><option value="room">Room</option><option value="aisle">Aisle</option><option value="shelf">Shelf</option><option value="bin">Bin</option><option value="vehicle">Vehicle</option><option value="container">Container</option><option value="storage">Storage</option></select><button id="createLocation" data-mutation>Add location</button></div></div><div class="card wide"><h2>Your organization</h2><pre id="treeResult"></pre></div></section>
 
-    <section id="panel-evidence" class="panel">
-      <div class="card wide">
-        <h2>Photos & files</h2>
-        <p class="muted">Select an item, then add pictures, receipts, manuals or other files. MIRA saves them in MIRROR and verifies the link before showing success.</p>
-        <div id="dropzone" class="dropzone">Drop files here</div>
-        <div class="row">
-          <label>What is this?<select id="evidenceRole"><option value="attachment">File</option><option value="primary">Main photo</option><option value="gallery">Photo</option><option value="serial_or_model_label">Serial/model label</option><option value="condition">Condition photo</option><option value="receipt">Receipt</option><option value="manual">Manual</option><option value="location_context">Location photo</option></select></label>
-          <input id="evidenceFiles" type="file" multiple>
-          <button id="uploadEvidence" data-mutation>Add files</button>
-        </div>
-      </div>
-      <div class="card">
-        <h2>Take a picture</h2>
-        <label>Photo<input id="photoFile" type="file" accept="image/*" capture="environment"></label>
-        <img id="photoPreview" alt="Selected item preview" hidden>
-        <button id="uploadPhoto" data-mutation>Add photo</button>
-      </div>
-      <div class="card"><h2>Attached to this item</h2><div id="evidenceList"></div></div>
-    </section>
+    <section id="panel-evidence" class="panel"><div class="card wide"><h2>Photos & files</h2><p class="muted">Select an item, then add pictures, receipts, manuals or other files. MIRA saves them in MIRROR and verifies the link before showing success.</p><div id="dropzone" class="dropzone">Drop files here</div><div class="row"><label>What is this?<select id="evidenceRole"><option value="attachment">File</option><option value="primary">Main photo</option><option value="gallery">Photo</option><option value="serial_or_model_label">Serial/model label</option><option value="condition">Condition photo</option><option value="receipt">Receipt</option><option value="manual">Manual</option><option value="location_context">Location photo</option></select></label><input id="evidenceFiles" type="file" multiple><button id="uploadEvidence" data-mutation>Add files</button></div></div><div class="card"><h2>Take a picture</h2><label>Photo<input id="photoFile" type="file" accept="image/*" capture="environment"></label><img id="photoPreview" alt="Selected item preview" hidden><button id="uploadPhoto" data-mutation>Add photo</button></div><div class="card"><h2>Attached to this item</h2><div id="evidenceList"></div></div></section>
 
-    <section id="panel-providers" class="panel">
-      <div class="card wide">
-        <h2>Cloud account</h2>
-        <p>For most people, Google Workspace or Microsoft 365 is where MIRROR keeps the shared data used by ChatGPT and the MIRA app.</p>
-        <div id="miraProviderFriendlyStatus" class="muted">No cloud account connected yet.</div>
-        <pre id="providerStatus" hidden></pre>
-        <div class="actions">
-          <button id="googleIdentity" class="primary-action">Continue with Google</button>
-          <button id="microsoftIdentity">Use Microsoft 365</button>
-        </div>
-        <details>
-          <summary>Optional account permissions</summary>
-          <p class="muted">Only enable these when you want MIRA to use the feature.</p>
-          <div class="actions">
-            <button id="googleWorkspace">Google Calendar access</button>
-            <button id="googleGmail">Gmail reading</button>
-            <button id="microsoftWorkspace">OneDrive & Calendar</button>
-          </div>
-        </details>
-      </div>
-    </section>
+    <section id="panel-providers" class="panel"><div class="card wide"><h2>Cloud account</h2><p>For most people, Google Workspace or Microsoft 365 is where MIRROR keeps the shared data used by ChatGPT and the MIRA app.</p><div id="miraProviderFriendlyStatus" class="muted">No cloud account connected yet.</div><pre id="providerStatus" hidden></pre><div class="actions"><button id="googleIdentity" class="primary-action">Continue with Google</button><button id="microsoftIdentity">Use Microsoft 365</button></div><details><summary>Optional account permissions</summary><p class="muted">Only enable these when you want MIRA to use the feature.</p><div class="actions"><button id="googleWorkspace">Google Calendar access</button><button id="googleGmail">Gmail reading</button><button id="microsoftWorkspace">OneDrive & Calendar</button></div></details></div></section>
 
-    <section id="panel-system" class="panel">
-      <div class="card">
-        <h2>Advanced self-hosted connection</h2>
-        <div class="row"><label>MIRROR server address<input id="apiBase" inputmode="url" placeholder="https://mirror.example"></label><label>Device access key<input id="token" type="password" autocomplete="off" placeholder="Advanced self-hosted setup"></label><button id="saveSettings">Save connection</button><button id="checkSystem">Check connection</button></div>
-      </div>
-      <div class="card">
-        <h2>Voice preview</h2>
-        <div class="row"><label>Test phrase<input id="speechText" value="You have an appointment in one hour."></label><button id="speakTest">Speak test</button></div>
-      </div>
-      <div class="card wide"><h2>Diagnostics</h2><pre id="status" role="status" aria-live="polite"></pre></div>
-    </section>
+    <section id="panel-system" class="panel"><div class="card"><h2>Advanced self-hosted connection</h2><div class="row"><label>MIRROR server address<input id="apiBase" inputmode="url" placeholder="https://mirror.example"></label><label>Device access key<input id="token" type="password" autocomplete="off" placeholder="Advanced self-hosted setup"></label><button id="saveSettings">Save connection</button><button id="checkSystem">Check connection</button></div></div><div class="card"><h2>Voice preview</h2><div class="row"><label>Test phrase<input id="speechText" value="You have an appointment in one hour."></label><button id="speakTest">Speak test</button></div></div><div class="card wide"><h2>Diagnostics</h2><pre id="status" role="status" aria-live="polite"></pre></div></section>
   </main>
   <script>if(window.MirrorNative)document.documentElement.classList.add('mira-android-native');</script>
   <script src="app.js" defer></script>
@@ -173,5 +64,6 @@
   <script src="integrations-v1.js" defer></script>
   <script src="dashboard-v2.js" defer></script>
   <script src="brand-final.js" defer></script>
+  <script src="theme-v1.js" defer></script>
 </body>
 </html>
