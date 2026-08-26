@@ -31,10 +31,37 @@ jobs:
       - name: Install Linux desktop dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf libfuse2 rpm
       - uses: dtolnay/rust-toolchain@stable
-      - name: Build Linux GUI and CLI
-        run: cargo build --manifest-path starter/clients/desktop/src-tauri/Cargo.toml --release --bins
+      - name: Install Tauri CLI
+        run: cargo install tauri-cli --version "^2" --locked
+      - name: Build Linux AppImage, Debian and RPM installers
+        working-directory: starter/clients/desktop
+        run: cargo tauri build --bundles appimage,deb,rpm
+      - name: Build Linux CLI
+        run: cargo build --manifest-path starter/clients/desktop/src-tauri/Cargo.toml --release --bin mira-cli
+      - name: Write Linux package signing readiness
+        shell: bash
+        env:
+          LINUX_SIGNING_KEY: ${{ secrets.MIRA_LINUX_GPG_PRIVATE_KEY }}
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          Path('/tmp/mira-linux-release-status.json').write_text(json.dumps({
+              'production_package_signing_configured': bool(os.environ.get('LINUX_SIGNING_KEY')),
+              'note': 'AppImage/deb/rpm build outputs are produced here. Production channel publishing must add verified GPG/repository signatures before release.'
+          }, indent=2) + '\n', encoding='utf-8')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mira-linux-installers
+          if-no-files-found: error
+          path: |
+            starter/clients/desktop/src-tauri/target/release/bundle/appimage/*.AppImage
+            starter/clients/desktop/src-tauri/target/release/bundle/deb/*.deb
+            starter/clients/desktop/src-tauri/target/release/bundle/rpm/*.rpm
+            /tmp/mira-linux-release-status.json
       - uses: actions/upload-artifact@v4
         with:
           name: mira-linux-clients
@@ -48,9 +75,88 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - name: Build Windows GUI and CLI
+      - name: Install Tauri CLI
         shell: pwsh
-        run: cargo build --manifest-path starter/clients/desktop/src-tauri/Cargo.toml --release --bins
+        run: cargo install tauri-cli --version "^2" --locked
+      - name: Prepare Windows production certificate when secrets are installed
+        id: signing
+        shell: pwsh
+        env:
+          PFX_BASE64: ${{ secrets.MIRA_WINDOWS_PFX_BASE64 }}
+          PFX_PASSWORD: ${{ secrets.MIRA_WINDOWS_PFX_PASSWORD }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ([string]::IsNullOrWhiteSpace($env:PFX_BASE64) -or [string]::IsNullOrWhiteSpace($env:PFX_PASSWORD)) {
+            "configured=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+            exit 0
+          }
+          $pfx = Join-Path $env:RUNNER_TEMP 'mira-code-signing.pfx'
+          [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:PFX_BASE64))
+          $password = ConvertTo-SecureString $env:PFX_PASSWORD -AsPlainText -Force
+          $cert = Import-PfxCertificate -FilePath $pfx -CertStoreLocation Cert:\CurrentUser\My -Password $password -Exportable:$false
+          if (-not $cert.Thumbprint) { throw 'Windows signing certificate import did not return a thumbprint.' }
+          $override = @{
+            bundle = @{
+              windows = @{
+                certificateThumbprint = $cert.Thumbprint
+                digestAlgorithm = 'sha256'
+                timestampUrl = 'https://timestamp.digicert.com'
+              }
+            }
+          } | ConvertTo-Json -Depth 6
+          $overridePath = Join-Path $env:RUNNER_TEMP 'tauri-windows-signing.json'
+          Set-Content -Path $overridePath -Value $override -Encoding UTF8
+          "MIRA_WINDOWS_TAURI_SIGNING_CONFIG=$overridePath" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "MIRA_WINDOWS_CERT_THUMBPRINT=$($cert.Thumbprint)" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "configured=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+      - name: Build Windows NSIS installer
+        working-directory: starter/clients/desktop
+        shell: pwsh
+        run: |
+          if ($env:MIRA_WINDOWS_TAURI_SIGNING_CONFIG) {
+            cargo tauri build --bundles nsis --config $env:MIRA_WINDOWS_TAURI_SIGNING_CONFIG
+          } else {
+            cargo tauri build --bundles nsis
+          }
+      - name: Build Windows CLI
+        shell: pwsh
+        run: cargo build --manifest-path starter/clients/desktop/src-tauri/Cargo.toml --release --bin mira-cli
+      - name: Sign Windows CLI when production certificate is configured
+        if: steps.signing.outputs.configured == 'true'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $signtool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin" -Filter signtool.exe -Recurse | Sort-Object FullName -Descending | Select-Object -First 1 -ExpandProperty FullName
+          if (-not $signtool) { throw 'signtool.exe was not found on the Windows runner.' }
+          & $signtool sign /sha1 $env:MIRA_WINDOWS_CERT_THUMBPRINT /fd sha256 /tr https://timestamp.digicert.com /td sha256 starter/clients/desktop/src-tauri/target/release/mira-cli.exe
+          if ($LASTEXITCODE -ne 0) { throw 'signtool failed to sign mira-cli.exe' }
+      - name: Verify Windows Authenticode status
+        id: verify
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $installer = Get-ChildItem starter/clients/desktop/src-tauri/target/release/bundle/nsis/*-setup.exe | Select-Object -First 1
+          $gui = Get-Item starter/clients/desktop/src-tauri/target/release/mira-desktop.exe
+          $cli = Get-Item starter/clients/desktop/src-tauri/target/release/mira-cli.exe
+          $records = @{}
+          foreach ($entry in @{installer=$installer; gui=$gui; cli=$cli}.GetEnumerator()) {
+            $signature = Get-AuthenticodeSignature $entry.Value.FullName
+            $records[$entry.Key] = @{ path=$entry.Value.Name; status=$signature.Status.ToString(); signer=if($signature.SignerCertificate){$signature.SignerCertificate.Subject}else{$null} }
+          }
+          $configured = '${{ steps.signing.outputs.configured }}' -eq 'true'
+          if ($configured) {
+            foreach ($key in @('installer','gui','cli')) {
+              if ($records[$key].status -ne 'Valid') { throw "Production signing was configured but $key Authenticode status was $($records[$key].status)." }
+            }
+          }
+          @{ production_signing_configured=$configured; signatures=$records } | ConvertTo-Json -Depth 5 | Set-Content "$env:RUNNER_TEMP/mira-windows-release-status.json" -Encoding UTF8
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mira-windows-installer
+          if-no-files-found: error
+          path: |
+            starter/clients/desktop/src-tauri/target/release/bundle/nsis/*-setup.exe
+            ${{ runner.temp }}/mira-windows-release-status.json
       - uses: actions/upload-artifact@v4
         with:
           name: mira-windows-clients

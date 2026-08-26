@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "stock_mode": "google_native",
+  "modes": {
+    "google_native": {
+      "display_name": "MIRA with Google Workspace",
+      "stock": true,
+      "google_required": true,
+      "linux_required": false,
+      "docker_required": false,
+      "server_required": false,
+      "canonical_runtime_authority": "user-owned Google Workspace files/tables",
+      "evidence_default": "Google Drive",
+      "source_control_required_for_stock_use": false,
+      "source_control_required_for_executable_custom_features": true,
+      "self_hosted_service_access": "optional enrolled local bridge from Windows, Linux, or Android client",
+      "failure_when_google_missing": "Action Required — Connect Google Workspace before MIRA can create or mutate stock runtime state."
+    },
+    "self_hosted": {
+      "display_name": "MIRA with self-hosted mirror",
+      "stock": false,
+      "google_required": false,
+      "linux_required": false,
+      "docker_required": false,
+      "server_required": true,
+      "supported_server_runtimes": ["Docker", "Podman", "native Python service"],
+      "canonical_runtime_authority": "configured MIRROR authority adapter",
+      "evidence_defaults": ["local", "Google Drive", "OneDrive"],
+      "self_hosted_service_access": "direct verified adapters on the service network"
+    }
+  },
+  "invariant": "The two modes share domain identities, feature contracts, settings semantics, import/export formats, integration capability names, and client release compatibility. Switching authority must preserve immutable UUIDs and provenance."
+}

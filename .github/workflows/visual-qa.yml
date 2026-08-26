@@ -1,0 +1,56 @@
+name: Visual QA
+
+on:
+  pull_request:
+    paths:
+      - "starter/clients/pwa/**"
+      - "starter/visual-qa/**"
+      - ".github/workflows/visual-qa.yml"
+  push:
+    branches: [main]
+    paths:
+      - "starter/clients/pwa/**"
+      - "starter/visual-qa/**"
+      - ".github/workflows/visual-qa.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  shared-ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: starter/visual-qa/package.json
+      - name: Install browser test dependencies
+        working-directory: starter/visual-qa
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Serve the exact shared client bundle
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 --directory starter/clients/pwa >/tmp/mira-visual-server.log 2>&1 &
+          echo $! >/tmp/mira-visual-server.pid
+          for i in {1..20}; do curl -fsS http://127.0.0.1:4173/index.html >/dev/null && exit 0; sleep 1; done
+          cat /tmp/mira-visual-server.log
+          exit 1
+      - name: Run responsive UI assertions and capture screenshots
+        working-directory: starter/visual-qa
+        run: npm test
+      - name: Upload real product screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mira-visual-qa-${{ github.sha }}
+          if-no-files-found: warn
+          path: |
+            starter/visual-qa/artifacts/*.png
+            starter/visual-qa/test-results/**
+      - name: Show server log on failure
+        if: failure()
+        run: cat /tmp/mira-visual-server.log || true

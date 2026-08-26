@@ -4,101 +4,183 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#12151b">
-  <title>MIRA</title>
+  <title>MIRA // MIRROR 1.0</title>
   <link rel="manifest" href="manifest.webmanifest">
   <style>
     :root { font-family: Inter, ui-sans-serif, system-ui, sans-serif; color-scheme: light dark; }
     * { box-sizing: border-box; }
     body { margin: 0; background: Canvas; color: CanvasText; }
-    header { padding: 1.25rem max(1rem, calc((100vw - 1120px)/2)); border-bottom: 1px solid color-mix(in srgb, CanvasText 15%, transparent); }
-    header h1 { margin: 0; font-size: 1.55rem; }
-    header p { margin: .3rem 0 0; opacity: .7; }
-    main { max-width: 1120px; margin: 0 auto; padding: 1rem; display: grid; grid-template-columns: repeat(auto-fit,minmax(320px,1fr)); gap: 1rem; }
+    header { padding: 1rem max(1rem, calc((100vw - 1280px)/2)); border-bottom: 1px solid color-mix(in srgb, CanvasText 15%, transparent); position: sticky; top: 0; background: Canvas; z-index: 3; }
+    header h1 { margin: 0; font-size: 1.5rem; }
+    header p { margin: .25rem 0 0; opacity: .72; }
+    nav { max-width: 1280px; margin: .7rem auto 0; display: flex; gap: .45rem; flex-wrap: wrap; }
+    nav button[aria-selected="true"] { outline: 2px solid currentColor; }
+    main { max-width: 1280px; margin: 0 auto; padding: 1rem; }
+    .panel { display: none; grid-template-columns: repeat(auto-fit,minmax(320px,1fr)); gap: 1rem; }
+    .panel.active { display: grid; }
     .card { border: 1px solid color-mix(in srgb, CanvasText 15%, transparent); border-radius: 14px; padding: 1rem; background: color-mix(in srgb, Canvas 96%, CanvasText 4%); box-shadow: 0 8px 24px color-mix(in srgb, CanvasText 8%, transparent); }
     .wide { grid-column: 1 / -1; }
     h2 { font-size: 1.05rem; margin: 0 0 .75rem; }
     .row { display: grid; gap: .65rem; margin: .65rem 0; }
+    .split { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: .65rem; }
     .actions { display: flex; flex-wrap: wrap; gap: .55rem; }
     label { display: grid; gap: .3rem; font-size: .9rem; }
-    input, button, select { font: inherit; padding: .72rem; border-radius: 9px; border: 1px solid color-mix(in srgb, CanvasText 22%, transparent); }
+    input, button, select, textarea { font: inherit; padding: .72rem; border-radius: 9px; border: 1px solid color-mix(in srgb, CanvasText 22%, transparent); }
+    textarea { min-height: 90px; resize: vertical; }
     button { cursor: pointer; font-weight: 600; }
+    button:disabled { cursor: not-allowed; opacity: .45; }
     video, #photoPreview { width: 100%; max-height: 360px; object-fit: contain; background: #000; border-radius: 10px; }
     #photoPreview[hidden], video[hidden] { display: none; }
     .muted { opacity: .7; }
+    .asset-list { display: grid; gap: .5rem; max-height: 540px; overflow: auto; }
+    .asset-row { text-align: left; display: grid; gap: .2rem; width: 100%; }
+    .asset-row strong { font-size: .95rem; }
+    .asset-row small { opacity: .68; }
+    .dropzone { border: 2px dashed color-mix(in srgb, CanvasText 30%, transparent); border-radius: 12px; padding: 1.2rem; text-align: center; }
+    .dropzone.drag { border-style: solid; }
+    .pill { display: inline-block; border: 1px solid color-mix(in srgb, CanvasText 20%, transparent); border-radius: 99px; padding: .2rem .5rem; margin: .1rem; font-size: .8rem; }
     #status { min-height: 3rem; white-space: pre-wrap; overflow-wrap: anywhere; }
-    #assetResult { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .85rem; max-height: 260px; overflow: auto; }
+    #assetResult { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .82rem; max-height: 280px; overflow: auto; }
     .photos { display: grid; grid-template-columns: repeat(auto-fill,minmax(120px,1fr)); gap: .5rem; margin-top: .5rem; }
     .photos img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; border: 1px solid color-mix(in srgb, CanvasText 15%, transparent); }
+    .danger { border-color: currentColor; }
   </style>
 </head>
 <body>
   <header>
-    <h1>MIRA</h1>
-    <p>M.I.R.R.O.R. capture and asset client. Same API on web, Windows, Linux and Android.</p>
+    <h1>MIRA // MIRROR</h1>
+    <p>Reality, reconciled. • 1.0 Pilot</p>
+    <nav aria-label="Primary">
+      <button data-tab="inventory" aria-selected="true">Inventory</button>
+      <button data-tab="scan">Scan</button>
+      <button data-tab="organize">Organize</button>
+      <button data-tab="evidence">Files & photos</button>
+      <button data-tab="providers">Providers</button>
+      <button data-tab="system">System</button>
+    </nav>
   </header>
   <main>
-    <section class="card">
-      <h2>Connection</h2>
-      <div class="row">
-        <label>API base URL<input id="apiBase" inputmode="url" placeholder="https://mirror.example/api"></label>
-        <label>Session access token<input id="token" type="password" autocomplete="off" placeholder="Not stored persistently"></label>
-        <button id="saveSettings" type="button">Save API address</button>
+    <section id="panel-inventory" class="panel active">
+      <div class="card">
+        <h2>Find inventory</h2>
+        <div class="row">
+          <input id="assetSearch" placeholder="Search name, description or UUID">
+          <select id="filterCategory"><option value="">All categories</option></select>
+          <select id="filterLocation"><option value="">All locations</option></select>
+          <button id="searchAssets">Search</button>
+        </div>
+        <div id="assetList" class="asset-list"></div>
+      </div>
+      <div class="card">
+        <h2>Create asset</h2>
+        <div class="row">
+          <input id="newAssetName" placeholder="Asset name">
+          <textarea id="newAssetDescription" placeholder="Description, model, notes"></textarea>
+          <select id="newAssetCategory"><option value="">No category</option></select>
+          <select id="newAssetLocation"><option value="">No location</option></select>
+          <textarea id="newAssetMetadata" placeholder='Optional metadata JSON, e.g. {"brand":"Tekton","size":"19 mm"}'></textarea>
+          <button id="createAsset" data-mutation>Create asset + UUID</button>
+        </div>
+      </div>
+      <div class="card wide">
+        <h2>Selected asset</h2>
+        <div class="split">
+          <label>Name<input id="editAssetName"></label>
+          <label>Category<select id="editAssetCategory"><option value="">No category</option></select></label>
+          <label>Location<select id="editAssetLocation"><option value="">No location</option></select></label>
+        </div>
+        <label>Description<textarea id="editAssetDescription"></textarea></label>
+        <label>Metadata JSON<textarea id="editAssetMetadata"></textarea></label>
+        <div class="actions">
+          <button id="saveAsset" data-mutation>Save edits</button>
+          <button id="relocateAsset" data-mutation>Relocate to selected location</button>
+          <button id="printQr">Print QR label</button>
+          <button id="printBarcode">Print Code 128 label</button>
+        </div>
+        <div id="assetIdentifiers"></div>
+        <div id="assetPhotos" class="photos"></div>
+        <pre id="assetResult"></pre>
       </div>
     </section>
 
-    <section class="card">
-      <h2>Barcode / QR</h2>
-      <video id="camera" playsinline muted hidden></video>
-      <div class="actions">
-        <button id="startCamera" type="button">Start camera scanner</button>
-        <button id="stopCamera" type="button" disabled>Stop camera</button>
+    <section id="panel-scan" class="panel">
+      <div class="card wide">
+        <h2>Barcode / QR</h2>
+        <video id="camera" playsinline muted hidden></video>
+        <div class="actions"><button id="startCamera">Start camera scanner</button><button id="stopCamera" disabled>Stop camera</button></div>
+        <form id="scanForm" class="row">
+          <label>Scan or type identifier<input id="scanValue" autocomplete="off" placeholder="USB/Bluetooth scanner can type here"></label>
+          <label>Symbology<select id="symbology"><option value="UNKNOWN">Unknown / manual</option><option value="QR_CODE">QR</option><option value="UPC_A">UPC-A</option><option value="EAN_13">EAN-13</option><option value="EAN_8">EAN-8</option><option value="CODE_128">Code 128</option></select></label>
+          <button type="submit">Submit scan</button>
+        </form>
+        <p id="lastScan" class="muted">No unmatched scan waiting.</p>
+        <div class="actions"><button id="assignScan" data-mutation>Assign last scan to selected asset</button><button id="syncPending">Sync pending captures</button><button id="exportPending">Export pending JSON</button></div>
+        <p id="queueCount" class="muted"></p>
       </div>
-      <form id="scanForm" class="row">
-        <label>Scan or type identifier<input id="scanValue" autocomplete="off" autofocus placeholder="USB/Bluetooth scanner can type here"></label>
-        <label>Symbology<select id="symbology"><option value="UNKNOWN">Unknown / manual</option><option value="QR_CODE">QR</option><option value="UPC_A">UPC-A</option><option value="EAN_13">EAN-13</option><option value="EAN_8">EAN-8</option><option value="CODE_128">Code 128</option></select></label>
-        <button type="submit">Queue / submit scan</button>
-      </form>
     </section>
 
-    <section class="card">
-      <h2>Asset photo</h2>
-      <div class="row">
-        <label>Asset UUID<input id="photoAssetUuid" autocomplete="off" placeholder="Immutable asset UUID"></label>
-        <label>Photo role<select id="photoRole"><option value="primary">Primary</option><option value="gallery">Gallery</option><option value="serial_or_model_label">Serial / model label</option><option value="condition">Condition</option><option value="location_context">Location context</option></select></label>
+    <section id="panel-organize" class="panel">
+      <div class="card">
+        <h2>Create category</h2>
+        <div class="row"><input id="categoryName" placeholder="e.g. Tekton"><select id="categoryParent"><option value="">Top level</option></select><button id="createCategory" data-mutation>Create category</button></div>
+      </div>
+      <div class="card">
+        <h2>Create location</h2>
+        <div class="row"><input id="locationName" placeholder="e.g. Bin 7"><select id="locationParent"><option value="">Top level</option></select><select id="locationType"><option value="site">Site</option><option value="room">Room</option><option value="aisle">Aisle</option><option value="shelf">Shelf</option><option value="bin">Bin</option><option value="vehicle">Vehicle</option><option value="container">Container</option><option value="storage">Storage</option></select><button id="createLocation" data-mutation>Create location</button></div>
+      </div>
+      <div class="card wide"><h2>Hierarchy</h2><pre id="treeResult"></pre></div>
+    </section>
+
+    <section id="panel-evidence" class="panel">
+      <div class="card wide">
+        <h2>Files & photos</h2>
+        <p class="muted">Select an asset first. Drag and drop images, receipts, manuals, PDFs or other evidence here. Each file is hashed, retained and linked to the immutable asset UUID.</p>
+        <div id="dropzone" class="dropzone">Drop files here</div>
+        <div class="row">
+          <label>Evidence role<select id="evidenceRole"><option value="attachment">Attachment</option><option value="primary">Primary photo</option><option value="gallery">Gallery photo</option><option value="serial_or_model_label">Serial/model label</option><option value="condition">Condition</option><option value="receipt">Receipt</option><option value="manual">Manual</option><option value="location_context">Location context</option></select></label>
+          <input id="evidenceFiles" type="file" multiple>
+          <button id="uploadEvidence" data-mutation>Upload selected files</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Asset photo</h2>
         <label>Image<input id="photoFile" type="file" accept="image/*" capture="environment"></label>
         <img id="photoPreview" alt="Selected asset preview" hidden>
-        <button id="uploadPhoto" type="button">Upload and link photo</button>
-        <small class="muted">The image becomes evidence linked to the asset UUID. Storage may be Drive today or object storage later without changing asset identity.</small>
+        <button id="uploadPhoto" data-mutation>Upload photo to selected asset</button>
+      </div>
+      <div class="card"><h2>Linked evidence</h2><div id="evidenceList"></div></div>
+    </section>
+
+    <section id="panel-providers" class="panel">
+      <div class="card wide">
+        <h2>Cloud providers</h2>
+        <p>Google Workspace is the default. Permissions are requested incrementally instead of asking for the keys to the kingdom on first boot.</p>
+        <pre id="providerStatus" class="muted"></pre>
+        <div class="actions">
+          <button id="googleIdentity">Continue with Google</button>
+          <button id="googleWorkspace">Enable Google Drive + Sheets + Calendar</button>
+          <button id="googleGmail">Enable Gmail read</button>
+          <button id="microsoftIdentity">Sign in with Microsoft</button>
+          <button id="microsoftWorkspace">Enable OneDrive + Calendar</button>
+        </div>
+        <p class="muted">Apple/iCloud remains an explicit Files/ICS portability path unless a verified adapter exists. MIRROR does not fake general iCloud Drive API access.</p>
       </div>
     </section>
 
-    <section class="card">
-      <h2>Asset lookup</h2>
-      <div class="row">
-        <label>Asset UUID<input id="assetLookupUuid" autocomplete="off" placeholder="Immutable asset UUID"></label>
-        <button id="loadAsset" type="button">Load asset</button>
+    <section id="panel-system" class="panel">
+      <div class="card">
+        <h2>Connection</h2>
+        <div class="row"><label>API base URL<input id="apiBase" inputmode="url" placeholder="https://mirror.example"></label><label>Session access token<input id="token" type="password" autocomplete="off" placeholder="Not stored persistently"></label><button id="saveSettings">Save API address</button><button id="checkSystem">Check compatibility</button></div>
       </div>
-      <div id="assetPhotos" class="photos"></div>
-      <pre id="assetResult"></pre>
-    </section>
-
-    <section class="card">
-      <h2>Spoken reminder test</h2>
-      <div class="row">
-        <label>Foreground speech preview<input id="speechText" value="You have an appointment in one hour."></label>
-        <button id="speakTest" type="button">Speak test on this device</button>
-        <small class="muted">Preview only. Reliable background spoken reminders require the native Android companion.</small>
+      <div class="card">
+        <h2>Spoken reminder test</h2>
+        <div class="row"><label>Foreground speech preview<input id="speechText" value="You have an appointment in one hour."></label><button id="speakTest">Speak test on this device</button><small class="muted">Preview only. Reliable background spoken reminders use the native Android bridge.</small></div>
       </div>
+      <div class="card wide"><h2>Status</h2><pre id="status" role="status" aria-live="polite"></pre></div>
     </section>
-
-    <section class="card">
-      <h2>Pending captures</h2>
-      <div class="actions"><button id="syncPending" type="button">Sync pending captures</button><button id="exportPending" type="button">Export pending JSON</button></div>
-      <p id="queueCount" class="muted"></p>
-    </section>
-
-    <section class="card wide"><h2>Status</h2><pre id="status" role="status" aria-live="polite"></pre></section>
   </main>
   <script src="app.js" defer></script>
+  <script src="client-hardening.js" defer></script>
+  <script src="product-v1.js" defer></script>
 </body>
 </html>

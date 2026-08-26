@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "authority_rule": "Integrations expose capabilities; they do not become MIRROR canonical authority unless an explicit authority migration is approved.",
+  "connection_modes": {
+    "direct_https": "MIRROR can reach the service over a verified HTTPS endpoint.",
+    "self_hosted_mirror": "A self-hosted MIRROR instance reaches the service on the trusted local network.",
+    "local_bridge": "A Google-native MIRA client reaches a LAN-only service and exposes only approved scoped capabilities back to the ChatGPT/Google authority."
+  },
+  "services": {
+    "paperless_ngx": {
+      "display_name": "Paperless-ngx",
+      "category": "documents",
+      "default_connection_mode": "local_bridge",
+      "auth": ["api_token", "oidc"],
+      "health_path": "/api/documents/?page_size=1",
+      "capabilities": ["documents.search", "documents.read", "documents.ingest", "documents.metadata.update"],
+      "default_enabled_capabilities": ["documents.search", "documents.read", "documents.ingest"],
+      "write_requires_readback": true,
+      "notes": "Negotiate a supported Paperless REST API version and verify the asynchronous ingestion task before recording a document as accepted."
+    },
+    "home_assistant": {
+      "display_name": "Home Assistant",
+      "category": "automation",
+      "default_connection_mode": "local_bridge",
+      "auth": ["bearer_token"],
+      "health_path": "/api/",
+      "capabilities": ["home.state.read", "home.events.read", "home.service.call", "home.shopping_list.read", "home.shopping_list.write", "home.media.control"],
+      "default_enabled_capabilities": ["home.state.read", "home.events.read"],
+      "write_requires_readback": true,
+      "notes": "State-changing service calls are opt-in per capability. Home Assistant remains an automation adapter, not canonical MIRROR state."
+    },
+    "plex": {
+      "display_name": "Plex Media Server",
+      "category": "media",
+      "default_connection_mode": "local_bridge",
+      "auth": ["plex_token"],
+      "health_path": "/identity",
+      "capabilities": ["media.library.read", "media.search", "media.devices.read", "media.playback.control"],
+      "default_enabled_capabilities": ["media.library.read", "media.search", "media.devices.read"],
+      "write_requires_readback": true,
+      "notes": "Playback control requires an explicitly selected Plex player/target; MIRA never guesses a television."
+    },
+    "sonarr": {
+      "display_name": "Sonarr",
+      "category": "media_automation",
+      "default_connection_mode": "local_bridge",
+      "auth": ["api_key"],
+      "health_path": "/api/v3/system/status",
+      "capabilities": ["media.series.read", "media.series.search", "media.series.request"],
+      "default_enabled_capabilities": ["media.series.read", "media.series.search"],
+      "write_requires_readback": true
+    },
+    "radarr": {
+      "display_name": "Radarr",
+      "category": "media_automation",
+      "default_connection_mode": "local_bridge",
+      "auth": ["api_key"],
+      "health_path": "/api/v3/system/status",
+      "capabilities": ["media.movies.read", "media.movies.search", "media.movies.request"],
+      "default_enabled_capabilities": ["media.movies.read", "media.movies.search"],
+      "write_requires_readback": true
+    },
+    "node_red": {
+      "display_name": "Node-RED",
+      "category": "workflow",
+      "default_connection_mode": "local_bridge",
+      "auth": ["bearer_token", "credential_exchange"],
+      "health_path": "/auth/login",
+      "capabilities": ["workflow.status.read", "workflow.flows.read", "workflow.deploy"],
+      "default_enabled_capabilities": ["workflow.status.read", "workflow.flows.read"],
+      "dangerous_capabilities": ["workflow.deploy"],
+      "write_requires_readback": true,
+      "notes": "Node-RED Admin API must be authenticated before enrollment. Flow deployment is an advanced explicit capability, never a default."
+    },
+    "mqtt": {
+      "display_name": "MQTT broker",
+      "category": "event_transport",
+      "default_connection_mode": "local_bridge",
+      "auth": ["username_password", "client_certificate"],
+      "capabilities": ["mqtt.subscribe", "mqtt.publish"],
+      "default_enabled_capabilities": ["mqtt.subscribe"],
+      "write_requires_readback": false,
+      "notes": "MQTT is a transport, never authority. Publish requires an explicit topic allowlist, QoS, retain policy, and TLS whenever the broker leaves a trusted local network."
+    },
+    "generic_http": {
+      "display_name": "Other HTTP service",
+      "category": "advanced",
+      "default_connection_mode": "local_bridge",
+      "auth": ["bearer_token", "api_key", "basic"],
+      "capabilities": ["http.read", "http.action"],
+      "default_enabled_capabilities": ["http.read"],
+      "dangerous_capabilities": ["http.action"],
+      "write_requires_readback": true
+    },
+    "solar_telemetry": {
+      "display_name": "Solar / energy telemetry",
+      "category": "future",
+      "default_connection_mode": "local_bridge",
+      "auth": [],
+      "capabilities": ["energy.telemetry.read", "energy.events.read"],
+      "default_enabled_capabilities": [],
+      "status": "reserved_contract_only",
+      "notes": "Reserved so future Victron/Home Assistant/MQTT/Modbus adapters can map into a stable energy model without inventing a new integration architecture."
+    }
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "purpose": "Reserve a hardware profile for a handheld MIRROR RFID inventory wand. A Baofeng-style handheld chassis may be repurposed as the enclosure, battery, keypad/trigger and ergonomic shell; the device function is inventory scanning, not radio configuration.",
+  "hardware_concept": {
+    "device_role": "handheld_rfid_inventory_wand",
+    "baofeng_or_similar_chassis_may_be_donor": true,
+    "radio_transmit_required": false,
+    "radio_receive_required": false,
+    "frequency_programming_required": false,
+    "original_radio_electronics_may_be_replaced_or_bypassed": true,
+    "dedicated_rfid_reader_and_controller_expected": true,
+    "reuse_candidates": [
+      "enclosure",
+      "battery_pack_or_battery_form_factor",
+      "keypad_or_side_buttons",
+      "push_to_talk_button_as_scan_trigger",
+      "speaker_or_buzzer_location",
+      "status_led_window",
+      "belt_clip",
+      "handheld_ergonomics"
+    ]
+  },
+  "capabilities": {
+    "required": [
+      "rfid.scan",
+      "rfid.tag.resolve",
+      "inventory.session.capture",
+      "offline.event.queue",
+      "scan.confirmation"
+    ],
+    "optional": [
+      "nfc.scan",
+      "barcode.scan",
+      "qr.scan",
+      "ble.transport",
+      "usb.transport",
+      "wifi.transport",
+      "haptic.confirmation",
+      "audio.confirmation",
+      "display.feedback"
+    ]
+  },
+  "event_contract": {
+    "uses_existing_rfid_asset_tracking_contract": true,
+    "scan_event_must_have_stable_event_id": true,
+    "reader_identity_recorded": true,
+    "session_identity_recorded": true,
+    "tag_identifier_recorded": true,
+    "resolved_asset_uuid_recorded_when_known": true,
+    "location_uuid_may_be_bound_to_scan_session": true,
+    "timestamp_required": true,
+    "duplicate_event_deduplication_required": true
+  },
+  "inventory_behavior": {
+    "unknown_tag_creates_reviewable_resolution_event": true,
+    "known_tag_resolves_to_existing_asset": true,
+    "passive_read_never_silently_moves_asset": true,
+    "movement_requires_configured_inventory_workflow_or_user_confirmation": true,
+    "offline_scans_reconcile_idempotently_when_connection_returns": true,
+    "readback_or_audit_result_required_after_mutation": true
+  },
+  "ui": {
+    "show_reader_name_and_connection_state": true,
+    "show_current_inventory_session": true,
+    "show_last_scan_asset_photo_when_available": true,
+    "show_large_success_or_review_required_feedback": true,
+    "boomer_safe_pairing_and_enrollment": true
+  },
+  "development_status": {
+    "architecture_reserved": true,
+    "electrical_design_complete": false,
+    "reader_module_selected": false,
+    "firmware_implemented": false,
+    "physical_baofeng_conversion_implemented": false
+  }
+}

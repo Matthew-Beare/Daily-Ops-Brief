@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 360" role="img" aria-labelledby="t d">
+  <title id="t">MIRA update conflict walkthrough</title><desc id="d">Diagram showing an update pauses safely, explains the conflict, and resumes after a verified repair.</desc>
+  <rect width="920" height="360" rx="28" fill="#0b0f17"/>
+  <text x="48" y="58" fill="#f8fafc" font-family="system-ui,sans-serif" font-size="28" font-weight="700">When an update collides with your custom feature</text>
+  <text x="48" y="88" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="16">MIRA stops instead of guessing. Your current working version stays untouched.</text>
+  <g font-family="system-ui,sans-serif">
+    <rect x="48" y="130" width="230" height="164" rx="18" fill="#111827" stroke="#7c5b16"/><text x="72" y="164" fill="#fde68a" font-size="17" font-weight="700">1. Update pauses</text><text x="72" y="199" fill="#cbd5e1" font-size="15">Nothing is overwritten.</text><text x="72" y="224" fill="#cbd5e1" font-size="15">MIRA lists only the files</text><text x="72" y="249" fill="#cbd5e1" font-size="15">that actually need a choice.</text>
+    <path d="M295 211h42" stroke="#64748b" stroke-width="3"/><path d="m330 202 12 9-12 9" fill="none" stroke="#64748b" stroke-width="3"/>
+    <rect x="356" y="130" width="230" height="164" rx="18" fill="#111827" stroke="#334155"/><text x="380" y="164" fill="#f8fafc" font-size="17" font-weight="700">2. MIRA explains it</text><text x="380" y="199" fill="#cbd5e1" font-size="15">Keep yours • use new •</text><text x="380" y="224" fill="#cbd5e1" font-size="15">combine both. No terminal</text><text x="380" y="249" fill="#cbd5e1" font-size="15">knowledge required.</text><text x="380" y="276" fill="#60a5fa" font-size="14">Ask ChatGPT for each decision.</text>
+    <path d="M603 211h42" stroke="#64748b" stroke-width="3"/><path d="m638 202 12 9-12 9" fill="none" stroke="#64748b" stroke-width="3"/>
+    <rect x="664" y="130" width="208" height="164" rx="18" fill="#111827" stroke="#14532d"/><text x="688" y="164" fill="#6ee7b7" font-size="17" font-weight="700">3. Tests prove it</text><text x="688" y="199" fill="#cbd5e1" font-size="15">Repair branch runs normal</text><text x="688" y="224" fill="#cbd5e1" font-size="15">checks. Green → update</text><text x="688" y="249" fill="#cbd5e1" font-size="15">resumes. Red → stays paused.</text><text x="688" y="278" fill="#6ee7b7" font-size="14" font-weight="700">Fail closed, not destructive.</text>
+  </g>
+</svg>

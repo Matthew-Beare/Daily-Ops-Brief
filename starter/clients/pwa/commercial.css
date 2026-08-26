@@ -1,0 +1,184 @@
+:root {
+  --mira-bg: #0b0f17;
+  --mira-surface: #111827;
+  --mira-surface-2: #182235;
+  --mira-border: rgba(148, 163, 184, .18);
+  --mira-text: #e8eef7;
+  --mira-muted: #94a3b8;
+  --mira-accent: #6ee7b7;
+  --mira-accent-2: #60a5fa;
+  --mira-danger: #fca5a5;
+  --mira-radius: 16px;
+  color-scheme: dark;
+}
+
+html { background: var(--mira-bg); }
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(96, 165, 250, .10), transparent 28rem),
+    radial-gradient(circle at 92% 15%, rgba(110, 231, 183, .08), transparent 26rem),
+    var(--mira-bg) !important;
+  color: var(--mira-text) !important;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+}
+
+header {
+  background: rgba(11, 15, 23, .88) !important;
+  border-bottom: 1px solid var(--mira-border) !important;
+  backdrop-filter: blur(18px);
+  box-shadow: 0 10px 32px rgba(0,0,0,.18);
+}
+header h1 {
+  font-size: 1.35rem !important;
+  font-weight: 750;
+  letter-spacing: -.025em;
+}
+header h1::after {
+  content: "  •  Reality, reconciled";
+  color: var(--mira-muted);
+  font-size: .72rem;
+  font-weight: 500;
+  letter-spacing: .02em;
+}
+header p { color: var(--mira-muted); font-size: .9rem; }
+
+nav { gap: .35rem !important; }
+nav button {
+  background: transparent;
+  color: var(--mira-muted);
+  border: 1px solid transparent;
+  padding: .52rem .78rem;
+  border-radius: 999px;
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+nav button:hover { background: rgba(148,163,184,.08); color: var(--mira-text); }
+nav button[aria-selected="true"] {
+  outline: none !important;
+  color: #07130f;
+  background: linear-gradient(135deg, var(--mira-accent), #a7f3d0);
+  border-color: rgba(167,243,208,.8);
+  box-shadow: 0 5px 18px rgba(110,231,183,.16);
+}
+
+main { padding-top: 1.35rem !important; padding-bottom: 4rem !important; }
+.panel { gap: .9rem !important; }
+.card {
+  background: linear-gradient(180deg, rgba(24,34,53,.92), rgba(17,24,39,.96)) !important;
+  border: 1px solid var(--mira-border) !important;
+  border-radius: var(--mira-radius) !important;
+  box-shadow: 0 14px 38px rgba(0,0,0,.18) !important;
+}
+.card h2 {
+  font-size: .96rem !important;
+  letter-spacing: .015em;
+  color: #f8fafc;
+}
+.card h3 { margin: .2rem 0 .65rem; font-size: .88rem; color: #dbeafe; }
+
+input, select, textarea {
+  color: var(--mira-text);
+  background: rgba(7, 12, 21, .62);
+  border-color: var(--mira-border) !important;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: rgba(96,165,250,.65) !important;
+  box-shadow: 0 0 0 3px rgba(96,165,250,.12);
+  background: rgba(7,12,21,.82);
+}
+input::placeholder, textarea::placeholder { color: #64748b; }
+button {
+  background: #24324a;
+  color: #edf5ff;
+  border-color: rgba(148,163,184,.16) !important;
+  transition: transform .12s ease, background .12s ease, opacity .12s ease;
+}
+button:hover:not(:disabled) { background: #2d3d59; transform: translateY(-1px); }
+button:active:not(:disabled) { transform: translateY(0); }
+button[data-mutation], .primary-action {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  border-color: rgba(96,165,250,.6) !important;
+}
+button[data-mutation]:hover:not(:disabled), .primary-action:hover:not(:disabled) { background: linear-gradient(135deg, #1d4ed8, #2563eb); }
+
+.muted { color: var(--mira-muted) !important; opacity: 1 !important; }
+.pill {
+  background: rgba(96,165,250,.08);
+  border-color: rgba(96,165,250,.22) !important;
+  color: #bfdbfe;
+}
+.asset-row { background: rgba(7,12,21,.45); border-color: transparent !important; }
+.asset-row:hover { background: rgba(30,41,59,.75); }
+.asset-row small { color: var(--mira-muted); }
+.dropzone { background: rgba(7,12,21,.38); border-color: rgba(96,165,250,.28) !important; }
+.dropzone.drag { background: rgba(37,99,235,.10); border-color: #60a5fa !important; }
+
+#status, #providerStatus, #treeResult {
+  background: rgba(2,6,23,.55);
+  border: 1px solid rgba(148,163,184,.12);
+  border-radius: 12px;
+  padding: .75rem;
+}
+
+.mira-metric-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr)); gap: .65rem; }
+.mira-metric {
+  padding: .8rem;
+  border: 1px solid var(--mira-border);
+  border-radius: 12px;
+  background: rgba(7,12,21,.45);
+}
+.mira-metric strong { display: block; font-size: 1.05rem; color: #f8fafc; }
+.mira-metric small { color: var(--mira-muted); }
+.mira-callout {
+  border: 1px solid rgba(110,231,183,.22);
+  background: rgba(16,185,129,.07);
+  border-radius: 12px;
+  padding: .8rem;
+  color: #d1fae5;
+}
+.mira-warning {
+  border: 1px solid rgba(251,191,36,.22);
+  background: rgba(245,158,11,.07);
+  border-radius: 12px;
+  padding: .8rem;
+  color: #fef3c7;
+}
+.mira-list { display: grid; gap: .55rem; }
+.mira-list-item {
+  padding: .72rem .8rem;
+  background: rgba(7,12,21,.45);
+  border: 1px solid var(--mira-border);
+  border-radius: 11px;
+}
+.mira-list-item strong { display: block; margin-bottom: .2rem; }
+.mira-list-item small { color: var(--mira-muted); }
+.mira-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  border: 1px solid var(--mira-border);
+  border-radius: 999px;
+  padding: .18rem .48rem;
+  font-size: .72rem;
+  color: #cbd5e1;
+  background: rgba(15,23,42,.68);
+}
+.mira-badge.ok { color: #a7f3d0; border-color: rgba(110,231,183,.25); }
+.mira-badge.warn { color: #fde68a; border-color: rgba(251,191,36,.25); }
+.mira-toolbar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.mira-checkboxes { display: flex; flex-wrap: wrap; gap: .7rem; }
+.mira-checkboxes label { display: flex; align-items: center; gap: .35rem; color: #cbd5e1; }
+.mira-checkboxes input { width: auto; }
+.mira-code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .78rem; }
+
+@media (max-width: 700px) {
+  header { position: static !important; }
+  header h1::after { display: none; }
+  nav { overflow-x: auto; flex-wrap: nowrap !important; padding-bottom: .25rem; }
+  nav button { white-space: nowrap; }
+  .panel { grid-template-columns: 1fr !important; }
+  main { padding: .8rem !important; }
+  .card { padding: .85rem !important; border-radius: 14px !important; }
+}

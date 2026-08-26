@@ -1,0 +1,79 @@
+{
+  "schema_version": 2,
+  "authority_name": "MIRA MIRROR Reality Record",
+  "manifest_name": "MIRA MIRROR Authority Manifest.json",
+  "identity_rule": "UUIDs are immutable; scanned, typed, provider, merchant, media, and radio identifiers are aliases/bindings",
+  "tables": {
+    "Settings": ["setting_key", "value_json", "updated_at", "updated_by"],
+    "Assets": ["asset_uuid", "name", "description", "category_uuid", "location_uuid", "status", "metadata_json", "created_at", "updated_at"],
+    "Identifiers": ["identifier_uuid", "asset_uuid", "namespace", "value", "source", "provenance_url", "created_at", "retired_at"],
+    "Categories": ["category_uuid", "name", "parent_category_uuid", "created_at", "updated_at"],
+    "Locations": ["location_uuid", "name", "location_type", "parent_location_uuid", "created_at", "updated_at"],
+    "ContainerLinks": ["container_asset_uuid", "container_location_uuid", "created_at", "updated_at"],
+    "Merchants": ["merchant_uuid", "canonical_name", "normalized_name", "official_domain", "aliases_json", "metadata_json", "created_at", "updated_at"],
+    "Receipts": ["receipt_uuid", "merchant_uuid", "merchant_display", "purchase_at", "currency", "subtotal", "tax", "total", "evidence_drive_file_id", "raw_extract_json", "status", "created_at", "updated_at"],
+    "ReceiptLines": ["receipt_line_uuid", "receipt_uuid", "line_index", "description", "retailer_sku", "quantity", "unit_price", "amount", "asset_uuid", "status", "candidate_json", "provenance_json", "created_at", "updated_at"],
+    "Evidence": ["evidence_uuid", "asset_uuid", "receipt_uuid", "drive_file_id", "filename", "mime_type", "sha256", "role", "source", "provenance_url", "created_at"],
+    "AssetMeters": ["meter_uuid", "asset_uuid", "meter_type", "unit", "label", "created_at", "updated_at"],
+    "MeterReadings": ["reading_uuid", "meter_uuid", "value", "observed_at", "source", "evidence_uuid", "created_at"],
+    "MaintenanceEvents": ["maintenance_uuid", "asset_uuid", "service_type", "performed_at", "meter_uuid", "meter_value", "receipt_uuid", "receipt_line_uuid", "total_cost", "notes", "metadata_json", "created_at", "updated_at"],
+    "Media": ["media_uuid", "media_type", "title", "year", "metadata_json", "created_at", "updated_at"],
+    "MediaIdentifiers": ["namespace", "value", "media_uuid", "created_at"],
+    "MediaProviderBindings": ["media_uuid", "integration_uuid", "provider_item_id", "provider_json", "last_verified_at"],
+    "IntegrationInstances": ["integration_uuid", "service_type", "display_name", "connection_mode", "capabilities_json", "state", "bridge_device_uuid", "created_at", "updated_at"],
+    "IntegrationActions": ["action_uuid", "integration_uuid", "capability", "action_type", "payload_json", "idempotency_key", "created_at", "expires_at", "state", "claimed_device_uuid"],
+    "IntegrationResults": ["result_uuid", "action_uuid", "succeeded", "result_json", "readback_verified", "completed_at", "device_uuid"],
+    "BackupPolicy": ["singleton", "enabled", "full_interval_days", "incremental_interval_days", "destination", "retention_mode", "updated_at"],
+    "BackupRuns": ["backup_uuid", "requested_type", "effective_type", "destination", "status", "sha256", "size_bytes", "provider_locator", "readback_verified", "detail_json", "started_at", "completed_at"],
+    "FeatureRequests": ["request_uuid", "title", "request_text", "acceptance_json", "target_surfaces_json", "status", "source", "created_at", "updated_at"],
+    "OrderEvents": ["event_uuid", "order_uuid", "event_type", "provider", "external_reference", "payload_json", "observed_at", "created_at"],
+    "Audit": ["event_uuid", "event_type", "target_uuid", "actor", "payload_json", "created_at"]
+  },
+  "identifier_namespaces": {
+    "serial": "manufacturer serial number",
+    "mpn": "manufacturer part number",
+    "model": "model designation",
+    "retailer:<retailer>:sku": "retailer-specific item/SKU number",
+    "gtin": "GTIN-8/12/13/14 including UPC/EAN forms",
+    "qr": "QR value",
+    "code128": "Code 128 value",
+    "rfid:nfc_uid": "phone-readable NFC UID",
+    "rfid:hf_uid": "HF RFID UID",
+    "rfid:epc_gen2": "UHF EPC Gen2 identifier from compatible reader",
+    "rfid:ble_beacon": "stable BLE beacon/service identity",
+    "radio:manufacturer_serial": "radio serial number",
+    "radio:configuration_profile": "versioned programming/configuration profile identity"
+  },
+  "location_rules": {
+    "hierarchical": true,
+    "physical_container_may_be_asset_and_location": true,
+    "container_children_inherit_resolved_path": true,
+    "moving_container_changes_container_location_parent_not_child_asset_location_ids": true
+  },
+  "receipt_rules": {
+    "one_purchase_one_receipt_uuid": true,
+    "receipt_links_to_merchant_uuid": true,
+    "unknown_merchants_are_created_as_stable_entities": true,
+    "original_evidence_retained": true,
+    "official_retailer_search_first": true,
+    "external_results_are_candidates_until_reconciled": true,
+    "high_confidence_unique_official_match_may_auto_apply": true,
+    "ambiguous_match_requires_review": true,
+    "allocation_mismatch_remains_open": true,
+    "maintenance_consumables_may_prompt_for_asset_and_meter_reading": true
+  },
+  "integration_rules": {
+    "external_service_is_adapter_not_authority": true,
+    "local_service_credentials_never_stored_in_google": true,
+    "google_native_lan_actions_use_enrolled_local_bridge": true,
+    "write_capabilities_are_opt_in": true,
+    "completed_actions_require_readback_when_supported": true
+  },
+  "backup_rules": {
+    "default_full_interval_days": 7,
+    "default_incremental_interval_days": 1,
+    "default_destination": "google_drive",
+    "successful_backup_requires_readback": true,
+    "never_claim_incremental_without_complete_change_journal": true
+  }
+}

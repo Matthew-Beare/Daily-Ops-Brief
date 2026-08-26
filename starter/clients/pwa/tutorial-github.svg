@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 360" role="img" aria-labelledby="t d">
+  <title id="t">Connect GitHub when custom source is first needed</title><desc id="d">Diagram showing GitHub is optional for stock MIRA, account creation if needed, then scoped app authorization.</desc>
+  <rect width="920" height="360" rx="28" fill="#0b0f17"/>
+  <text x="48" y="58" fill="#f8fafc" font-family="system-ui,sans-serif" font-size="28" font-weight="700">GitHub is only needed for custom source</text>
+  <text x="48" y="88" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="16">Stock MIRA works without GitHub. Feature Studio introduces it when executable code must be versioned.</text>
+  <g font-family="system-ui,sans-serif">
+    <rect x="48" y="128" width="248" height="170" rx="18" fill="#111827" stroke="#334155"/><text x="72" y="163" fill="#6ee7b7" font-size="17" font-weight="700">No custom code yet?</text><text x="72" y="198" fill="#cbd5e1" font-size="15">Skip GitHub.</text><text x="72" y="222" fill="#cbd5e1" font-size="15">Inventory, receipts, settings,</text><text x="72" y="246" fill="#cbd5e1" font-size="15">calendar and Google still work.</text><rect x="72" y="266" width="96" height="28" rx="14" fill="#064e3b"/><text x="91" y="285" fill="#d1fae5" font-size="13" font-weight="700">Optional</text>
+    <path d="M313 211h42" stroke="#64748b" stroke-width="3"/><path d="m348 202 12 9-12 9" fill="none" stroke="#64748b" stroke-width="3"/>
+    <rect x="374" y="128" width="222" height="170" rx="18" fill="#111827" stroke="#334155"/><text x="398" y="163" fill="#f8fafc" font-size="17" font-weight="700">Need custom code?</text><text x="398" y="198" fill="#cbd5e1" font-size="15">MIRA explains Git in plain</text><text x="398" y="222" fill="#cbd5e1" font-size="15">English and opens signup if</text><text x="398" y="246" fill="#cbd5e1" font-size="15">you do not have an account.</text><rect x="398" y="264" width="150" height="30" rx="15" fill="#24324a"/><text x="414" y="284" fill="#edf5ff" font-size="13" font-weight="700">Create GitHub account</text>
+    <path d="M613 211h42" stroke="#64748b" stroke-width="3"/><path d="m648 202 12 9-12 9" fill="none" stroke="#64748b" stroke-width="3"/>
+    <rect x="674" y="128" width="198" height="170" rx="18" fill="#111827" stroke="#334155"/><text x="698" y="163" fill="#f8fafc" font-size="17" font-weight="700">Authorize MIRA</text><text x="698" y="198" fill="#cbd5e1" font-size="15">Choose the Personal</text><text x="698" y="222" fill="#cbd5e1" font-size="15">Production repository and</text><text x="698" y="246" fill="#cbd5e1" font-size="15">grant scoped permissions.</text><text x="698" y="278" fill="#6ee7b7" font-size="14" font-weight="700">No password sharing.</text>
+  </g>
+</svg>

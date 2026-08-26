@@ -1,0 +1,90 @@
+{
+  "schema_version": 3,
+  "contract_id": "mira-chatgpt-companion-v3",
+  "purpose": "Allow stock MIRA to run inside ChatGPT with connected Google Workspace as the user's reality/storage layer without requiring Linux, Docker, a VPS, a homelab, a separate MIRROR server, or an OpenAI API key.",
+  "runtime_modes": {
+    "chatgpt_google_native": {
+      "default_for_nontechnical_users": true,
+      "user_managed_server_required": false,
+      "linux_required": false,
+      "docker_required": false,
+      "openai_api_key_required": false,
+      "google_workspace_required": true,
+      "google_apps": ["Google Drive", "Google Sheets", "Gmail", "Google Calendar"],
+      "mutable_authority": "user-owned MIRROR authorities in Google Workspace",
+      "evidence_authority": "user-owned Google Drive files with immutable MIRROR UUID and provenance references",
+      "settings_authority": "MIRROR Settings table in the user's Google Workspace authority",
+      "stock_use_requires_github": false
+    },
+    "hosted_mirror": {
+      "default_for_nontechnical_users": false,
+      "user_managed_server_required": true,
+      "server_is_optional_product_lane": true,
+      "settings_authority": "MIRROR server settings API",
+      "use_cases": ["standalone native clients", "advanced self-hosting", "institutional deployment", "offline/local authority"]
+    }
+  },
+  "model_access": {
+    "embedded_openai_model_backend": false,
+    "openai_api_key_required_for_companion": false,
+    "chat_surface": "ChatGPT",
+    "preferred_distribution": "MIRA plugin/skill using the user's approved Google apps where available",
+    "fallback_custom_app_transport": "OpenAI Apps SDK / MCP when a remote application backend is actually required",
+    "no_claim_that_chatgpt_subscription_supplies_external_api_compute": true
+  },
+  "google_native_tools": [
+    "settings.read",
+    "settings.update",
+    "inventory.query",
+    "inventory.asset.read",
+    "inventory.asset.create",
+    "inventory.asset.relocate",
+    "inventory.identifier.bind",
+    "location.resolve",
+    "receipt.capture",
+    "receipt.reconcile",
+    "evidence.link",
+    "feature.requests.list",
+    "feature.requests.create",
+    "migration.discover",
+    "migration.stage",
+    "migration.apply_verified"
+  ],
+  "feature_delivery": {
+    "request_origin": "MIRA client or ChatGPT",
+    "default_target_surfaces": ["web", "windows", "linux", "android"],
+    "all_supported_surfaces_required_by_default": true,
+    "platform_specific_exception_is_engineering_only": true,
+    "stock_configuration_change_requires_github": false,
+    "executable_or_policy_source_change_requires_git": true,
+    "github_account_is_guided_when_first_needed": true,
+    "durable_source_for_executable_code": "Git",
+    "implementation": "branch plus tested code changes",
+    "promotion": "PR, CI, merge, generated distributions",
+    "safe_update_default": "automatic or one press after release verification",
+    "human_intervention": "required only when custom source, policy, identity, or migration ambiguity cannot be reconciled safely",
+    "unreviewed_dynamic_code_execution_in_customer_runtime": false
+  },
+  "settings": {
+    "client_and_chatgpt_bidirectional": true,
+    "single_authority_per_deployment": true,
+    "google_native_authority": "MIRROR Settings table",
+    "hosted_authority": "MIRROR server settings API",
+    "chatgpt_writes_are_scoped_and_audited": true,
+    "clients_must_read_back_after_change": true
+  },
+  "identity": {
+    "canonical_identity": "immutable asset UUID",
+    "aliases": ["serial", "manufacturer_part_number", "model", "retailer_sku", "gtin", "upc", "ean", "qr", "code128", "nfc_uid", "hf_uid", "uhf_epc", "ble_beacon"],
+    "location_hierarchy": true,
+    "physical_container_can_be_both_asset_and_location": true
+  },
+  "security": {
+    "chatgpt_never_receives_database_passwords": true,
+    "google_native_mode_uses_user_granted_google_permissions": true,
+    "git_write_requires_explicitly_connected_source_control_capability": true,
+    "feature_requests_never_execute_unreviewed_code": true,
+    "source_control_conflicts_fail_closed": true,
+    "receipt_and_web_enrichment_never_become_canonical_without provenance": true
+  }
+}

@@ -1,0 +1,62 @@
+services:
+  mirror:
+    build:
+      context: ../..
+      dockerfile: starter/service/Dockerfile
+    restart: unless-stopped
+    environment:
+      MIRROR_AUTH_MODE: required
+      MIRROR_ACCESS_TOKEN: ${MIRROR_ACCESS_TOKEN:?set bootstrap admin token}
+      MIRROR_TOKEN_KEY: ${MIRROR_TOKEN_KEY:?set OAuth token encryption key}
+      MIRROR_PUBLIC_BASE_URL: https://${MIRROR_DOMAIN:?set public hostname}
+      MIRROR_CORS_ORIGINS: https://${MIRROR_DOMAIN}
+      MIRROR_EVIDENCE_PROVIDER: ${MIRROR_EVIDENCE_PROVIDER:-auto}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URI: https://${MIRROR_DOMAIN}/v1/auth/google/callback
+      MICROSOFT_CLIENT_ID: ${MICROSOFT_CLIENT_ID:-}
+      MICROSOFT_CLIENT_SECRET: ${MICROSOFT_CLIENT_SECRET:-}
+      MICROSOFT_REDIRECT_URI: https://${MIRROR_DOMAIN}/v1/auth/microsoft/callback
+    volumes:
+      - mirror-data:/data
+    expose:
+      - "8765"
+    networks:
+      - private
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+
+  caddy:
+    image: caddy:2.10.2-alpine
+    restart: unless-stopped
+    depends_on:
+      - mirror
+    environment:
+      MIRROR_DOMAIN: ${MIRROR_DOMAIN:?set public hostname}
+      MIRROR_TLS_EMAIL: ${MIRROR_TLS_EMAIL:?set certificate contact email}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile.example:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - private
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  mirror-data:
+  caddy-data:
+  caddy-config:
+
+networks:
+  private:
+    internal: false
