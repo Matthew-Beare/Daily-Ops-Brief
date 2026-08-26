@@ -17,8 +17,8 @@
 
     <application
         android:allowBackup="false"
-        android:icon="@drawable/mira_launcher"
-        android:roundIcon="@drawable/mira_launcher"
+        android:icon="@drawable/mira_logo"
+        android:roundIcon="@drawable/mira_logo"
         android:label="MIRA"
         android:usesCleartextTraffic="false"
         android:theme="@style/Theme.Mira">
