@@ -1,0 +1,216 @@
+schema_version: 1
+updated_at: "2026-08-26T20:05:00-04:00"
+authority: git
+status_values:
+  - active
+  - implemented_in_pr_unmerged
+  - required_verify_existing
+  - phase1_required_partial
+  - phase1_required
+  - accepted
+  - deferred
+
+features:
+  - id: MIRROR-F001
+    name: Core reconciliation architecture
+    layer: MIRROR
+    phase: native_mira_v1
+    status: implemented_in_pr_unmerged
+    pr: 31
+    branch: feature/full-client-parity-google-workspace-v1
+    platforms: [core, chatgpt, android]
+    dependencies: []
+    acceptance:
+      - Reconciliation decisions are deterministic for equivalent inputs.
+      - Canonical identity and provenance are preserved.
+      - Ambiguous conflicts are surfaced instead of silently guessed.
+      - Retry paths are idempotent where mutation can be repeated.
+    evidence_paths:
+      - starter/reconciliation-contract.json
+      - starter/service/reconciliation.py
+      - starter/tests/test_reconciliation_architecture.py
+
+  - id: MIRROR-F002
+    name: Hardened Google-native reconciliation v2
+    layer: MIRROR
+    phase: native_mira_v1
+    status: active
+    pr: 31
+    branch: feature/full-client-parity-google-workspace-v1
+    platforms: [core, chatgpt, android]
+    dependencies: [MIRROR-F001]
+    acceptance:
+      - Google-native reconciliation preserves canonical identity and provenance.
+      - Duplicate or repeated execution is idempotent.
+      - Partial provider failures do not corrupt canonical state.
+      - Conflicts and ambiguity stop or queue safely rather than silently selecting a winner.
+      - Relevant regression and failure-path tests pass.
+    notes: "Previous session was interrupted during the hardened Google-native reconciliation v2 write before write success was confirmed. Resume by auditing the branch, not by redoing already-landed work."
+
+  - id: MIRA-F003
+    name: Daily Cleanup contracts
+    layer: MIRA_MIRROR
+    phase: native_mira_v1
+    status: implemented_in_pr_unmerged
+    pr: 31
+    branch: feature/full-client-parity-google-workspace-v1
+    platforms: [chatgpt, core, android]
+    dependencies: [MIRROR-F001]
+    acceptance:
+      - Cleanup produces explicit reviewable actions.
+      - Cleanup obeys authority and reconciliation contracts.
+      - Repeated cleanup execution does not duplicate canonical changes.
+
+  - id: MIRA-F004
+    name: Hybrid AI routing
+    layer: MIRA
+    phase: native_mira_v1
+    status: implemented_in_pr_unmerged
+    pr: 31
+    branch: feature/full-client-parity-google-workspace-v1
+    platforms: [chatgpt, core]
+    dependencies: []
+    acceptance:
+      - AI routing is explicit and policy-driven.
+      - AI assistance does not override canonical authority semantics.
+      - Failure or unavailable-model paths degrade safely.
+
+  - id: MIRA-F005
+    name: Manual / no-AI mode
+    layer: MIRA
+    phase: native_mira_v1
+    status: implemented_in_pr_unmerged
+    pr: 31
+    branch: feature/full-client-parity-google-workspace-v1
+    platforms: [chatgpt, core, android]
+    dependencies: []
+    acceptance:
+      - Required workflows remain usable without AI execution.
+      - Manual mode uses the same canonical contracts as AI-assisted mode.
+      - No feature silently enables external model execution when manual/no-AI mode is selected.
+
+  - id: MIRROR-F006
+    name: Receipt and evidence queue
+    layer: MIRROR
+    phase: native_mira_v1
+    status: implemented_in_pr_unmerged
+    pr: 31
+    branch: feature/full-client-parity-google-workspace-v1
+    platforms: [core, chatgpt, android]
+    dependencies: [MIRROR-F001]
+    acceptance:
+      - Receipt/evidence ingestion preserves source provenance.
+      - Duplicate ingestion does not create duplicate canonical records.
+      - Interrupted processing can resume safely.
+      - Ambiguous extraction is queued for review rather than fabricated.
+    evidence_paths:
+      - starter/receipt-processing-contract.json
+      - starter/clients/pwa/receipt-queue-cloud-v1.js
+      - starter/service/receipt_processing.py
+
+  - id: MIRA-F007
+    name: Shared product UI foundation
+    layer: MIRA
+    phase: native_mira_v1
+    status: implemented_in_pr_unmerged
+    pr: 31
+    branch: feature/full-client-parity-google-workspace-v1
+    platforms: [chatgpt, android, web]
+    dependencies: []
+    acceptance:
+      - Native-v1 workflows expose consistent terminology and state.
+      - Error and reconciliation states are visible to users.
+      - UI does not claim provider capabilities that are not actually available.
+
+  - id: MIRROR-F008
+    name: LyfeOS / MIRROR Control Cycle update
+    layer: MIRA_MIRROR
+    phase: native_mira_v1
+    status: implemented_in_pr_unmerged
+    pr: 31
+    branch: feature/full-client-parity-google-workspace-v1
+    platforms: [chatgpt, core]
+    dependencies: [MIRROR-F001]
+    acceptance:
+      - Control Cycle reads current authority state before mutable operational conclusions.
+      - Planned actions are distinguishable from completed actions.
+      - Reconciliation outcomes feed subsequent cycle state.
+
+  - id: MIRA-F009
+    name: Ops Brief
+    layer: MIRA
+    phase: native_mira_v1
+    status: required_verify_existing
+    platforms: [chatgpt, android]
+    dependencies: [MIRROR-F008]
+    triggers:
+      manual: "$ops brief"
+      scheduled:
+        timezone: America/New_York
+        times: ["02:45", "14:45"]
+        exact_count_per_day: 2
+    forbidden_schedule_variants:
+      - "03:00 legacy"
+      - "Pacific or device-local reinterpretation"
+      - "UTC-fixed shift"
+      - "noon/midnight"
+      - "duplicate/diagnostic/child/retry schedules"
+    acceptance:
+      - Manual `$ops brief` executes the canonical brief pipeline on demand.
+      - Exactly two scheduled briefs run daily at 02:45 and 14:45 America/New_York.
+      - No legacy or duplicate Ops Brief schedules remain active.
+      - Mutable operational facts are queried from canonical authorities before conclusions.
+      - Mode-specific filtering is contract-driven and regression tested.
+    notes: "First-class Native MIRA v1 feature. Implementation state must be verified against code/automation state before being marked accepted."
+
+  - id: MIRA-F010
+    name: Android companion Native v1
+    layer: MIRA
+    phase: native_mira_v1
+    status: phase1_required_partial
+    pr: 31
+    branch: feature/full-client-parity-google-workspace-v1
+    platforms: [android]
+    dependencies: [MIRROR-F001]
+    acceptance:
+      - Build/install path passes CI and required device-level verification.
+      - Authentication and reconnection are reliable.
+      - Android reads and mutates the same canonical MIRROR state as ChatGPT.
+      - Notifications/reminders and local TTS are duplicate-safe where used.
+      - Required background behavior survives app/device restart.
+      - Required Native-v1 capture and reconciliation surfaces work end to end.
+
+  - id: MIRA-F011
+    name: ChatGPT + Google-native stock runtime
+    layer: MIRA_MIRROR
+    phase: native_mira_v1
+    status: phase1_required_partial
+    pr: 31
+    branch: feature/full-client-parity-google-workspace-v1
+    platforms: [chatgpt, core]
+    dependencies: [MIRROR-F001, MIRROR-F002]
+    acceptance:
+      - A normal user does not require Linux, Docker, a homelab, VPS, or separate MIRROR server.
+      - Google-native tools provide the stock reality/storage path.
+      - Bootstrap, authority access, and recovery are understandable to a nontechnical user.
+      - Provider registration/signing/device behavior are not inferred from CI alone.
+
+  - id: MIRA-F012
+    name: Windows client
+    layer: MIRA
+    phase: post_native_v1
+    status: deferred
+    platforms: [windows]
+    dependencies: [NATIVE-MIRA-V1-GATE]
+    acceptance:
+      - Implements existing platform-neutral contracts without redesigning MIRROR semantics.
+
+  - id: MIRA-F013
+    name: Linux client
+    layer: MIRA
+    phase: post_native_v1
+    status: deferred
+    platforms: [linux]
+    dependencies: [NATIVE-MIRA-V1-GATE]
+    acceptance:
+      - Implements existing platform-neutral contracts without redesigning MIRROR semantics.
