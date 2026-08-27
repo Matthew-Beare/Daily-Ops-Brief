@@ -4,35 +4,42 @@ Git is authoritative for active MIRROR development state. This file must identif
 
 ## Active packet
 
-- **Packet ID:** `G0-001`
-- **Name:** Install resumable audit/control-plane checkpoint
-- **Class:** governance
-- **Status:** active
+- **Packet ID:** `G0-002`
+- **Name:** Feature Audit Slice 1 — Core runtime + Brief/Time/Operational State
+- **Class:** audit
+- **Status:** ready
 - **Branch:** `governance/audit-control-plane-v1`
-- **Base SHA:** `2c2824c70ddc3268c25333063eb61428817a5bf4`
-- **Objective:** Make the upcoming full feature audit resumable and protect all existing live user data before any MIRA 2.0 product work begins.
+- **Base SHA:** `2f19034f2b3aac724b79a5412140b213bbf56197`
+- **Related source:** legacy feature-ledger category A plus newer matching `main`, tests, PR #31, and relevant branch evidence
+- **Objective:** Reconstruct the first bounded slice of the canonical feature registry with stable semantic IDs, complete descriptions, dependency relationships, acceptance criteria, and honest verification state. Do not implement product behavior.
 
-## Non-negotiable data boundary
+## Protected production boundary
 
-Existing Google spreadsheets, Drive artifacts, briefs, schedules, and other live MIRA/MIRROR state are **legacy production**. They are read-only during the audit and MIRA 2.0 development unless a later migration packet explicitly authorizes a bounded change with backup, rollback, and provider readback.
+Existing Google spreadsheets, Drive artifacts, briefs, schedules, and other live MIRA/MIRROR state are **legacy production**. They remain read-only during G0 and MIRA 2.0 development. No audit packet may write, rename, repurpose, migrate, or clean up those artifacts.
 
-New development must use a separate MIRA 2.0 sandbox/reality namespace. Creating that Google sandbox is a later bounded packet; it must not overwrite, rename, repurpose, or silently migrate legacy production artifacts.
+New implementation work will later use a separate MIRA 2.0 sandbox/reality namespace under a dedicated packet with provider readback.
 
-## Acceptance criteria
+## Acceptance criteria for G0-002
 
-1. `ROADMAP.md`, `FEATURES.md`, `BACKLOG.md`, `CURRENT_WORK.md`, and `project/WORK_PACKET_POLICY.md` exist in Git.
-2. The customer/developer ownership model is documented.
-3. Backlog ordering is dependency/value driven, not FIFO.
-4. The feature audit is explicitly split into bounded resumable packets.
-5. Legacy Google production data is protected by an explicit no-touch boundary.
-6. Every future packet has a durable exact resume point before implementation begins.
-7. This packet changes no live Google data and no executable product behavior.
+1. Audit every category-A legacy feature and any newer feature that belongs to the same core/ops domain.
+2. Assign each recovered capability a permanent semantic feature ID.
+3. Give each feature a full description, decision state, delivery state, milestone, dependencies, enables, acceptance criteria, evidence, and constraints.
+4. Reconcile duplicates/superseded wording without deleting historical evidence.
+5. Do not upgrade implementation status merely because code or CI exists; distinguish test/integration/live proof.
+6. Add newly discovered unfinished work to `BACKLOG.md` with dependency metadata.
+7. Commit the completed slice and update this file to the first exact unaudited item in `G0-003` before switching slices.
+8. Touch no live Google production data and implement no unrelated product feature.
 
-## Completed
+## Previous checkpoint
 
-- Chosen the current clean `main` baseline as the audit base.
-- Identified the existing forensic feature ledger and generated feature-catalog machinery as audit inputs rather than disposable work.
-- Identified PR #31 as a frozen integration/reference source to be triaged, not merged wholesale.
+`G0-001` completed on branch commit `2f19034f2b3aac724b79a5412140b213bbf56197`:
+
+- installed `ROADMAP.md`, `FEATURES.md`, `BACKLOG.md`, `CURRENT_WORK.md`, and `project/WORK_PACKET_POLICY.md`;
+- documented the customer/product-owner versus assistant/developer ownership model;
+- made backlog priority dependency/value driven rather than FIFO;
+- split the full audit into bounded recovery-safe slices;
+- established the legacy-production no-touch rule and separate MIRA 2.0 sandbox requirement;
+- remotely read back the control files from GitHub.
 
 ## Blockers
 
@@ -40,15 +47,15 @@ None.
 
 ## Exact next action
 
-Commit this control-plane checkpoint, verify it remotely, then advance `CURRENT_WORK.md` to `G0-002` and begin **Feature Audit Slice 1: governance/core runtime + Brief/Time/Operational State (legacy ledger category A plus any newer matching PR #31 features)**. Do not implement product features while auditing.
+Open `docs/feature-ledger-2026-08-24.md` at **category A: Brief engine, time, tasking, and operational state**. Enumerate every row into stable semantic IDs, then compare that domain against current `main`, tests, and PR #31 to recover newer/changed capabilities. The first unprocessed source is the first category-A row: **Exactly two briefs at 2:45 AM and 2:45 PM `America/New_York`**.
 
 ## Resume protocol
 
 On any new session or recovery:
 
 1. Read `CURRENT_WORK.md` first.
-2. Confirm the recorded branch and head SHA still exist remotely.
-3. Read the referenced packet acceptance criteria and exact next action.
-4. Continue only that packet unless a dependency required for acceptance is discovered.
+2. Confirm the recorded branch/head exists remotely.
+3. Continue from the exact next action, not from memory or a broad project summary.
+4. Continue only the active packet unless a dependency required for acceptance is discovered.
 5. New customer ideas go to `BACKLOG.md` by default; they do not expand the active packet.
-6. If the customer explicitly reprioritizes, first checkpoint the current packet and record its exact resume point, then switch scope.
+6. If the customer explicitly reprioritizes, first checkpoint the displaced packet and record its exact resume point, then switch scope.
