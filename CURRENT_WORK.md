@@ -4,50 +4,58 @@ Git is authoritative for active MIRROR development state. This file must identif
 
 ## Active packet
 
-- **Packet ID:** `G0-002`
-- **Name:** Feature Audit Slice 1 — Core runtime + Brief/Time/Operational State
-- **Class:** audit
-- **Status:** ready
+- **Packet ID:** `SEC-001`
+- **Name:** Restore clean public-history baseline before feature audit
+- **Class:** integrity/security blocker
+- **Status:** active
 - **Branch:** `governance/audit-control-plane-v1`
-- **Base SHA:** `2f19034f2b3aac724b79a5412140b213bbf56197`
-- **Related source:** legacy feature-ledger category A plus newer matching `main`, tests, PR #31, and relevant branch evidence
-- **Objective:** Reconstruct the first bounded slice of the canonical feature registry with stable semantic IDs, complete descriptions, dependency relationships, acceptance criteria, and honest verification state. Do not implement product behavior.
+- **Current branch head before this checkpoint:** `5fca1ae737375f088e10e2920e716f6db86b47fe`
+- **Blocked packet:** `G0-002` Feature Audit Slice 1
+- **Objective:** Resolve the reachable-history public-source audit failure discovered by PR #34 without broad/destructive history rewriting, then merge the governance control plane and resume the feature audit.
+
+## Why priority changed
+
+PR #34 CI failed at `python3 scripts/audit_public_source.py . --history` because reachable commit `95d46eedc8fd2c05dae8e3256c019af6412236ec` contains:
+
+1. a concrete personal email address in `starter/clients/desktop/src-tauri/tauri.conf.json`;
+2. a numeric sequence in `starter/clients/pwa/brand-mark.svg` flagged as a possible full payment-card number;
+3. a numeric sequence in `starter/clients/pwa/icon.svg` flagged as a possible full payment-card number.
+
+This failure predates the governance files. Under the green-before-growth and integrity rules, it is a blocker and therefore outranks the queued feature audit.
 
 ## Protected production boundary
 
-Existing Google spreadsheets, Drive artifacts, briefs, schedules, and other live MIRA/MIRROR state are **legacy production**. They remain read-only during G0 and MIRA 2.0 development. No audit packet may write, rename, repurpose, migrate, or clean up those artifacts.
+Existing Google spreadsheets, Drive artifacts, briefs, schedules, and other live MIRA/MIRROR state remain **legacy production** and read-only. `SEC-001` is Git/repository work only and must not touch Google production data.
 
-New implementation work will later use a separate MIRA 2.0 sandbox/reality namespace under a dedicated packet with provider readback.
+## Acceptance criteria for SEC-001
 
-## Acceptance criteria for G0-002
+1. Inspect the exact offending historical content and classify each finding as true sensitive data or scanner false positive.
+2. Choose the least destructive remediation that makes the repository publication boundary honest; do not rewrite broad history merely to silence CI unless no safe alternative exists and the customer explicitly approves that irreversible step.
+3. Preserve rollback/recovery evidence for any history-sensitive operation.
+4. Re-run the required CI on PR #34's exact final head and require success before merge.
+5. Merge PR #34 only after required checks are green and remotely read back `main`.
+6. Update this file back to `G0-002` with its exact first unaudited feature row after merge.
+7. Touch no live Google production data and add no unrelated product features.
 
-1. Audit every category-A legacy feature and any newer feature that belongs to the same core/ops domain.
-2. Assign each recovered capability a permanent semantic feature ID.
-3. Give each feature a full description, decision state, delivery state, milestone, dependencies, enables, acceptance criteria, evidence, and constraints.
-4. Reconcile duplicates/superseded wording without deleting historical evidence.
-5. Do not upgrade implementation status merely because code or CI exists; distinguish test/integration/live proof.
-6. Add newly discovered unfinished work to `BACKLOG.md` with dependency metadata.
-7. Commit the completed slice and update this file to the first exact unaudited item in `G0-003` before switching slices.
-8. Touch no live Google production data and implement no unrelated product feature.
+## Completed evidence
 
-## Previous checkpoint
-
-`G0-001` completed on branch commit `2f19034f2b3aac724b79a5412140b213bbf56197`:
-
-- installed `ROADMAP.md`, `FEATURES.md`, `BACKLOG.md`, `CURRENT_WORK.md`, and `project/WORK_PACKET_POLICY.md`;
-- documented the customer/product-owner versus assistant/developer ownership model;
-- made backlog priority dependency/value driven rather than FIFO;
-- split the full audit into bounded recovery-safe slices;
-- established the legacy-production no-touch rule and separate MIRA 2.0 sandbox requirement;
-- remotely read back the control files from GitHub.
+- G0-001 control-plane files were created and remotely read back.
+- PR #34 was opened from `governance/audit-control-plane-v1` to `main`.
+- PR #34 CI run `33029356048` failed at the history audit before later CI stages.
+- The failure was traced to reachable commit `95d46eedc8fd2c05dae8e3256c019af6412236ec`, not to the new governance files.
+- `BACKLOG.md` now records `SEC-001` as the active blocker and `DEV-001` as waiting on it.
 
 ## Blockers
 
-None.
+The current required CI cannot pass until the reachable-history findings are correctly remediated or the scanner is narrowly corrected for verified false positives.
 
 ## Exact next action
 
-Open `docs/feature-ledger-2026-08-24.md` at **category A: Brief engine, time, tasking, and operational state**. Enumerate every row into stable semantic IDs, then compare that domain against current `main`, tests, and PR #31 to recover newer/changed capabilities. The first unprocessed source is the first category-A row: **Exactly two briefs at 2:45 AM and 2:45 PM `America/New_York`**.
+Inspect the three offending paths at commit `95d46eedc8fd2c05dae8e3256c019af6412236ec` and compare them with the current versions plus `scripts/audit_public_source.py` detection rules. Determine separately whether the email is real sensitive history and whether each SVG numeric string is genuinely card-like data or a deterministic image/vector false positive. Do **not** begin `G0-002` until `SEC-001` is resolved and PR #34 is green/merged.
+
+## Displaced packet resume point
+
+`G0-002` resumes at the first legacy-ledger category-A row: **Exactly two briefs at 2:45 AM and 2:45 PM `America/New_York`**. Its acceptance criteria were previously checkpointed and remain unchanged.
 
 ## Resume protocol
 
