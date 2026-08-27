@@ -17,7 +17,8 @@ New customer ideas are captured here by default and do not expand `CURRENT_WORK.
 
 | Work ID | Class | Related features | Work | Dependencies | Status / disposition |
 |---|---|---|---|---|---|
-| `DEV-001` | BLOCKER | `DEV-*` | Complete G0 authoritative feature audit in bounded slices and assign stable semantic IDs. | `G0-001` control-plane checkpoint | active roadmap |
+| `SEC-001` | BLOCKER | `DEV-*`, publication integrity | Resolve reachable-history public-source audit failure from commit `95d46eedc8fd`: concrete personal email in old desktop config plus two SVG numeric strings flagged as possible payment-card numbers. Determine true leak vs false positive, remediate without broad history destruction, and restore required CI before governance PR merge. | none | **active blocker discovered by PR #34 CI** |
+| `DEV-001` | BLOCKER | `DEV-*` | Complete G0 authoritative feature audit in bounded slices and assign stable semantic IDs. | control-plane PR #34 merged and baseline CI green | waiting on `SEC-001` |
 | `DEV-002` | PREREQUISITE | `DEV-*` | Add machine-readable dependency metadata and validation for feature IDs, cycles, status transitions, and packet references. | full G0 registry | queued for G1 |
 | `DATA-001` | BLOCKER | `CORE-*` | Preserve all existing Google spreadsheets, Drive artifacts, briefs, schedules, and live MIRA state as read-only legacy production during MIRA 2.0 development. | none | invariant |
 | `DATA-002` | PREREQUISITE | `CORE-*`, `PROVIDER-*` | Create a separate MIRA 2.0 Google sandbox/reality namespace and prove by provider readback that no legacy artifact was overwritten, renamed, or repurposed. | G0 audit + control-plane rules | queued for G1 |
