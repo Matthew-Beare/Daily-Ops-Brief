@@ -1,15 +1,21 @@
-version: 4.3.0
+version: 4.3.1
 canonical_timezone: America/New_York
 canonical_skill: skill/ops-brief-policy/SKILL.md
 runtime_engine: skill/ops-brief-policy/scripts/ops_policy.py
 authority_registry: "private deployment state; public source stores no live resource IDs"
+
+branding:
+  product_name: "MIRA"
+  user_facing_rule: "Refer to the product, assistant, control cycle, briefs, and normal database-backed behavior simply as MIRA. Do not co-brand normal user-facing output as MIRA | MIRROR."
+  internal_database_name: "MIRROR"
+  internal_database_usage: "Implementation, schema, debugging, migration, or database-specific technical contexts only; normal user-facing language still says MIRA or MIRA database."
 
 compatibility:
   purpose: "Legacy machine-readable entry point retained after main reconciliation."
   authority: "The canonical executable policy is the skill/runtime above; this file is a compact compatibility snapshot, not a second source of truth."
 
 control_cycle:
-  title: "LyfeOS Control Cycle"
+  title: "MIRA Control Cycle"
   delivery_context: "standalone; each run starts from the saved prompt"
   times_et: ["02:45", "14:45"]
   production_clock_source: "runtime_system_clock; invoke slot-check without --now"
