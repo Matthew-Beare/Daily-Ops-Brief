@@ -1,0 +1,1 @@
+Binary logo payload is stored in assets/brand/mira-logo.png. This text marker exists only to make the canonical brand location explicit to source audits.

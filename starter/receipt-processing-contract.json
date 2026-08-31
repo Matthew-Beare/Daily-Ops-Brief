@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "purpose": "Capture receipts into MIRROR immediately, process deterministic fields without OpenAI API calls, and leave ambiguous identity/reconciliation work for MIRA using the same durable record.",
+  "model_cost_rule": {
+    "openai_api_required": false,
+    "openai_api_key_required": false,
+    "chatgpt_plus_is_not_external_api_compute": true,
+    "receipt_capture_must_not_wait_for_model_reasoning": true
+  },
+  "stages": [
+    "captured",
+    "ocr",
+    "parsed",
+    "reconcile",
+    "complete"
+  ],
+  "capture_invariant": [
+    "store original receipt evidence",
+    "verify provider/file readback and content hash",
+    "create exactly one receipt identity for one purchase",
+    "link evidence to receipt",
+    "queue receipt processing",
+    "only then report receipt captured"
+  ],
+  "processing": {
+    "email_receipts": "Use message text/HTML and structured order data directly when available; OCR is unnecessary.",
+    "image_or_pdf_receipts": "Use on-device, local, provider-native, or self-hosted OCR when available. OCR produces candidate text, never canonical product identity by itself.",
+    "deterministic_parser": "Extract merchant/date/total/line descriptions/SKU-like identifiers before model reconciliation.",
+    "mira_reconciliation": "A scheduled or interactive MIRA run may inspect pending MIRROR rows, search official retailer sources first, apply unique high-confidence matches, and leave ambiguity for user review.",
+    "failure_behavior": "Keep the original receipt and processing row open; never discard evidence because parsing or research failed."
+  },
+  "scheduling": {
+    "queue_is_durable_in_mirror": true,
+    "processing_does_not_require_a_separate_openai_api_worker": true,
+    "existing_mira_orchestration_may_drain_queue": true,
+    "do_not_create_duplicate_per_receipt_automations": true,
+    "interactive_mira_may_process_pending_work_immediately": true
+  },
+  "state_convergence": {
+    "mira_app_and_chatgpt_read_same_mirror_receipt": true,
+    "processor_writes_are_read_back_before_success": true,
+    "ambiguous_candidates_keep_provenance": true
+  }
+}

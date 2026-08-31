@@ -1,0 +1,179 @@
+name: mirror Docker Service
+
+on:
+  pull_request:
+    paths:
+      - "starter/service/**"
+      - "starter/clients/pwa/**"
+      - "starter/clients/release.json"
+      - "starter/client-api-contract.json"
+      - "starter/chatgpt-companion-contract.json"
+      - "starter/storage-portability-contract.json"
+      - ".github/workflows/docker-service.yml"
+  push:
+    branches: [main]
+    paths:
+      - "starter/service/**"
+      - "starter/clients/pwa/**"
+      - "starter/clients/release.json"
+      - "starter/client-api-contract.json"
+      - "starter/chatgpt-companion-contract.json"
+      - "starter/storage-portability-contract.json"
+      - ".github/workflows/docker-service.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -f starter/service/Dockerfile -t mirror-service:test .
+      - name: Start service in production-auth mode
+        run: docker run -d --name mirror-service-test -e MIRROR_ACCESS_TOKEN=ci-test-token -p 8765:8765 mirror-service:test
+      - name: Require healthy startup
+        shell: bash
+        run: |
+          set -euo pipefail
+          base=http://127.0.0.1:8765
+          ready=false
+          for i in {1..30}; do
+            if curl -fsS "$base/v1/health" >/tmp/health.json 2>/dev/null; then
+              ready=true
+              break
+            fi
+            if ! docker inspect -f '{{.State.Running}}' mirror-service-test 2>/dev/null | grep -qx true; then
+              echo 'MIRROR container exited during startup.' >&2
+              docker inspect mirror-service-test >&2 || true
+              docker logs mirror-service-test >&2 || true
+              exit 1
+            fi
+            sleep 1
+          done
+          if [ "$ready" != true ]; then
+            echo 'MIRROR did not become healthy within 30 seconds.' >&2
+            docker inspect mirror-service-test >&2 || true
+            docker logs mirror-service-test >&2 || true
+            exit 1
+          fi
+          grep -q '"status":"ready"' /tmp/health.json
+      - name: Smoke customer inventory, compatibility, settings, features, RFID, evidence and migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          base=http://127.0.0.1:8765
+          auth='Authorization: Bearer ci-test-token'
+          api='X-Mirror-Api-Version: 1.1'
+          client='X-Mirror-Client: mira-ci/0.2.0'
+
+          curl -fsS "$base/" | grep -q 'MIRA // MIRROR'
+          curl -fsS "$base/v1/product/info" >/tmp/product.json
+          test "$(jq -r '.brand' /tmp/product.json)" = 'MIRA // MIRROR'
+          test "$(jq -r '.edition' /tmp/product.json)" = '1.0 Pilot'
+          test "$(jq -r '.tagline' /tmp/product.json)" = 'Reality, reconciled.'
+
+          curl -fsS "$base/v1/compatibility?client_api=1.1&client_version=0.2.0" >/tmp/compat.json
+          test "$(jq -r '.mutation_allowed' /tmp/compat.json)" = true
+          test "$(jq -r '.minimum_client_version' /tmp/compat.json)" = 0.2.0
+          test "$(curl -sS -o /tmp/stale.json -w '%{http_code}' -H "$auth" -H "$api" -H 'X-Mirror-Client: mira-ci/0.1.0' -H 'Content-Type: application/json' -d '{}' "$base/v1/features/requests")" = "426"
+
+          test "$(curl -sS -o /tmp/unauthorized.json -w '%{http_code}' -H 'Content-Type: application/json' -H "$api" -H "$client" \
+            -d '{"command_id":"unauthorized","command_type":"inventory.category.create","actor_id":"ci","submitted_at":"2000-01-01T00:00:00Z","idempotency_key":"unauthorized","payload":{"name":"Must Not Write"}}' \
+            "$base/v1/commands")" = "401"
+
+          curl -fsS -H "$auth" "$base/v1/settings" >/tmp/settings.json
+          test "$(jq -r '.settings["providers.google"]' /tmp/settings.json)" = true
+          test "$(jq -r '.settings["updates.safe_automatic"]' /tmp/settings.json)" = true
+          curl -fsS -X PATCH -H "$auth" -H "$api" -H "$client" -H 'Content-Type: application/json' \
+            -d '{"settings":{"features.rfid_nfc":true,"features.home_assistant":true}}' "$base/v1/settings" >/tmp/settings-write.json
+          test "$(jq -r '.readback_verified' /tmp/settings-write.json)" = true
+          test "$(jq -r '.settings["features.rfid_nfc"]' /tmp/settings-write.json)" = true
+          test "$(jq -r '.settings["features.home_assistant"]' /tmp/settings-write.json)" = true
+
+          post_command() {
+            local key="$1" body="$2" output="$3"
+            curl -fsS -H "$auth" -H "$api" -H "$client" -H 'Content-Type: application/json' -H "Idempotency-Key: $key" -d "$body" "$base/v1/commands" >"$output"
+            grep -q '"readback_verified":true' "$output"
+          }
+
+          category='{"command_id":"smoke-category","command_type":"inventory.category.create","actor_id":"ci","submitted_at":"2000-01-01T00:00:00Z","idempotency_key":"smoke-category","payload":{"name":"Tools"}}'
+          post_command smoke-category "$category" /tmp/category.json
+          category_uuid="$(jq -r '.category.uuid' /tmp/category.json)"
+          test -n "$category_uuid" && test "$category_uuid" != null
+
+          curl -fsS -D /tmp/replay.headers -H "$auth" -H "$api" -H "$client" -H 'Content-Type: application/json' -H 'Idempotency-Key: smoke-category' -d "$category" "$base/v1/commands" >/tmp/category-replay.json
+          grep -qi '^x-mirror-idempotent-replay: true' /tmp/replay.headers
+          cmp /tmp/category.json /tmp/category-replay.json
+
+          location="$(jq -nc '{command_id:"smoke-location",command_type:"inventory.location.create",actor_id:"ci",submitted_at:"2000-01-01T00:00:00Z",idempotency_key:"smoke-location",payload:{name:"Bin 7",location_type:"bin"}}')"
+          post_command smoke-location "$location" /tmp/location.json
+          location_uuid="$(jq -r '.location.uuid' /tmp/location.json)"
+          curl -fsS -H "$auth" "$base/v1/locations/$location_uuid/code" >/tmp/location-code.json
+          location_code="$(jq -r '.code' /tmp/location-code.json)"
+          test "$location_code" = "MIRROR:LOCATION:$location_uuid"
+          curl -fsS -G -H "$auth" --data-urlencode "value=$location_code" "$base/v1/locations/resolve-code" >/tmp/location-resolve.json
+          test "$(jq -r '.location.uuid' /tmp/location-resolve.json)" = "$location_uuid"
+          curl -fsS -H "$auth" "$base/v1/locations/$location_uuid/label.svg" >/tmp/location-label.svg
+          grep -qi '<svg' /tmp/location-label.svg
+
+          asset="$(jq -nc --arg c "$category_uuid" --arg l "$location_uuid" '{command_id:"smoke-asset",command_type:"inventory.asset.create",actor_id:"ci",submitted_at:"2000-01-01T00:00:00Z",idempotency_key:"smoke-asset",payload:{name:"19 mm socket",description:"customer smoke asset",category_uuid:$c,location_uuid:$l,metadata:{brand:"Tekton"}}}')"
+          post_command smoke-asset "$asset" /tmp/asset.json
+          asset_uuid="$(jq -r '.asset.uuid' /tmp/asset.json)"
+          test -n "$asset_uuid" && test "$asset_uuid" != null
+
+          bind="$(jq -nc --arg a "$asset_uuid" '{command_id:"smoke-bind",command_type:"inventory.identifier.assign",actor_id:"ci",submitted_at:"2000-01-01T00:00:00Z",idempotency_key:"smoke-bind",payload:{asset_uuid:$a,namespace:"preprinted",value:"SMOKE-QR-0001"}}')"
+          post_command smoke-bind "$bind" /tmp/bind.json
+
+          scan='{"command_id":"smoke-scan","command_type":"capture.barcode_qr_scan","actor_id":"ci","submitted_at":"2000-01-01T00:00:00Z","idempotency_key":"smoke-scan","payload":{"scan_uuid":"smoke-scan","captured_at":"2000-01-01T00:00:00Z","raw_value":"SMOKE-QR-0001","symbology":"QR_CODE","client_id":"ci","scan_class_candidate":"asset_tag"}}'
+          post_command smoke-scan "$scan" /tmp/scan.json
+          test "$(jq -r '.matched' /tmp/scan.json)" = true
+          test "$(jq -r '.asset.uuid' /tmp/scan.json)" = "$asset_uuid"
+
+          feature='{"title":"RFID smoke feature","request_text":"Prove all-platform durable feature request queue","acceptance":["stored","read back"],"target_surfaces":["android"]}'
+          curl -fsS -H "$auth" -H "$api" -H "$client" -H 'Content-Type: application/json' -d "$feature" "$base/v1/features/requests" >/tmp/feature.json
+          grep -q '"readback_verified":true' /tmp/feature.json
+          feature_uuid="$(jq -r '.request_uuid' /tmp/feature.json)"
+          curl -fsS -H "$auth" "$base/v1/features/requests" >/tmp/features.json
+          jq -e --arg id "$feature_uuid" '.feature_requests[] | select(.request_uuid==$id) | (.target_surfaces | sort) == ["android","linux","web","windows"]' /tmp/features.json >/dev/null
+
+          rfid="$(jq -nc --arg a "$asset_uuid" '{asset_uuid:$a,protocol:"nfc_uid",tag_id:"04A1B2C3D4E5F6"}')"
+          curl -fsS -H "$auth" -H "$api" -H "$client" -H 'Content-Type: application/json' -d "$rfid" "$base/v1/rfid/tags/bind" >/tmp/rfid.json
+          test "$(jq -r '.asset_uuid' /tmp/rfid.json)" = "$asset_uuid"
+          observation='{"observation_uuid":"smoke-rfid-observation","protocol":"nfc_uid","tag_id":"04A1B2C3D4E5F6","observed_at":"2000-01-01T00:00:00Z"}'
+          curl -fsS -H "$auth" -H "$api" -H "$client" -H 'Content-Type: application/json' -d "$observation" "$base/v1/rfid/observations" >/tmp/rfid-observation.json
+          test "$(jq -r '.asset_uuid' /tmp/rfid-observation.json)" = "$asset_uuid"
+          test "$(jq -r '.location_promoted' /tmp/rfid-observation.json)" = false
+
+          printf 'mirror customer evidence smoke\n' >/tmp/evidence.txt
+          curl -fsS -H "$auth" -H "$api" -H "$client" -F "asset_uuid=$asset_uuid" -F 'role=manual' -F 'file=@/tmp/evidence.txt;type=text/plain' "$base/v1/evidence" >/tmp/evidence.json
+          grep -q '"readback_verified":true' /tmp/evidence.json
+          evidence_uuid="$(jq -r '.evidence_uuid' /tmp/evidence.json)"
+          test "$(jq -r '.replication.readback_verified' /tmp/evidence.json)" = true
+
+          evidence_url="$(curl -fsS -G -H "$auth" --data-urlencode "resource=evidence:$evidence_uuid" "$base/v1/access-link" | jq -r '.url')"
+          curl -fsS "$evidence_url" >/tmp/evidence-readback.txt
+          cmp /tmp/evidence.txt /tmp/evidence-readback.txt
+
+          label_url="$(curl -fsS -G -H "$auth" --data-urlencode "resource=label:$asset_uuid:qr" "$base/v1/access-link" | jq -r '.url')"
+          curl -fsS "$label_url" >/tmp/label.svg
+          grep -qi '<svg' /tmp/label.svg
+
+          curl -fsS -H "$auth" "$base/v1/migrations/export" >/tmp/export.json
+          test "$(jq -r '.mirror_export_version' /tmp/export.json)" = 1
+          jq -e --arg id "$asset_uuid" '.assets[] | select(.uuid==$id)' /tmp/export.json >/dev/null
+
+          curl -fsS -H "$auth" "$base/v1/assets/$asset_uuid" >/tmp/readback.json
+          test "$(jq -r '.location_uuid' /tmp/readback.json)" = "$location_uuid"
+          test "$(jq -r '.metadata.brand' /tmp/readback.json)" = Tekton
+          curl -fsS -H "$auth" "$base/v1/integrations/provider-health" | grep -q '"default_provider":"google_workspace"'
+      - name: Container state and logs on failure
+        if: failure()
+        run: |
+          docker inspect mirror-service-test || true
+          docker logs mirror-service-test || true
+      - name: Cleanup container
+        if: always()
+        run: docker rm -f mirror-service-test || true

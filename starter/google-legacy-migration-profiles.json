@@ -1,0 +1,167 @@
+{
+  "schema_version": 1,
+  "contract_id": "mirror-google-legacy-migration-profiles-v1",
+  "privacy_rule": "Profiles contain only schema/header knowledge. Never commit live spreadsheet IDs, record values, Gmail IDs, Drive evidence IDs, account identifiers, or runtime state.",
+  "matching": {
+    "title_is_hint_not_identity": true,
+    "required_headers_are_authoritative": true,
+    "source_file_id_stays_runtime_private": true
+  },
+  "profiles": {
+    "ops_status_register": {
+      "spreadsheet_title_hint": "Ops Status Register",
+      "tabs": {
+        "Tasks": {
+          "required_headers": ["Task ID", "Tier", "Classification", "Task", "Status", "Visibility", "Updated (ET)"],
+          "canonical_target": "ops.tasks",
+          "identity": {"source_field": "Task ID", "mode": "preserve_source_identity_alias"},
+          "notes": "Preserve Done/Removed semantics and state/provenance. Do not regenerate completed tasks as active."
+        },
+        "Routes": {
+          "required_headers": ["Route ID"],
+          "canonical_target": "travel.routes",
+          "identity": {"source_field": "Route ID", "mode": "preserve_source_identity_alias"}
+        },
+        "Trips": {
+          "required_headers": ["Trip ID", "Route ID", "Origin", "Destination", "Status", "Updated (ET)"],
+          "canonical_target": "travel.trips",
+          "identity": {"source_field": "Trip ID", "mode": "preserve_source_identity_alias"},
+          "relationships": [{"source_field": "Route ID", "target": "travel.routes"}]
+        },
+        "Shipments": {
+          "required_headers": [],
+          "canonical_target": "commerce.shipments",
+          "mode": "schema_inspect_before_apply"
+        },
+        "Run Log": {
+          "required_headers": [],
+          "canonical_target": "ops.run_events",
+          "mode": "append_only_history"
+        },
+        "Calendar Projection": {
+          "required_headers": [],
+          "canonical_target": "calendar.projection",
+          "mode": "projection_only_not_authority"
+        }
+      }
+    },
+    "mileage_pay_tracker": {
+      "spreadsheet_title_hint": "Mileage & Pay Tracker",
+      "tabs": {
+        "Mileage Log": {
+          "header_search": {"contains": ["Entry ID", "Week Ending (Thu)", "Trip ID", "Route ID", "Company-Paid Miles", "Rate / Mile", "Gross Pay Estimate"]},
+          "canonical_target": "travel.mileage",
+          "identity": {"source_field": "Entry ID", "mode": "preserve_source_identity_alias"},
+          "relationships": [
+            {"source_field": "Trip ID", "target": "travel.trips"},
+            {"source_field": "Route ID", "target": "travel.routes"}
+          ],
+          "money_rule": "import displayed amount plus normalized decimal value; preserve source text and provenance"
+        },
+        "Weekly Summary": {
+          "canonical_target": "travel.mileage_summary",
+          "mode": "derived_projection_recompute_after_import"
+        },
+        "Settings": {
+          "canonical_target": "travel.settings",
+          "mode": "review_before_apply"
+        }
+      }
+    },
+    "purchase_receipt_archive": {
+      "spreadsheet_title_hint": "Purchase & Receipt Archive",
+      "tabs": {
+        "Orders - Database": {
+          "required_headers": ["Order Date", "Vendor", "Order Number", "Status", "Order Total", "Receipt ID", "Evidence Source", "Lifecycle Updated (ET)", "Schema Version"],
+          "canonical_target": "commerce.orders",
+          "identity": {"source_field": "Receipt ID", "mode": "preserve_receipt_identity_alias"},
+          "money_fields": ["Merchandise", "Shipping", "Tax", "Fees", "Discounts", "Order Total"],
+          "provenance_fields": ["Source Gmail", "Archive Copy", "Evidence Source"],
+          "notes": "One purchase remains one Receipt ID/total; revisions and partial cancellations must reconcile rather than duplicate the purchase."
+        },
+        "Order Events": {
+          "canonical_target": "commerce.order_events",
+          "mode": "append_only_history"
+        },
+        "People & Assets": {
+          "canonical_target": "identity.entities",
+          "mode": "preserve_uuid_when_present"
+        },
+        "Asset Relationships": {
+          "canonical_target": "inventory.asset_relationships",
+          "mode": "preserve_relationship_uuids_and_endpoints"
+        },
+        "Evidence Index": {
+          "canonical_target": "evidence.index",
+          "mode": "preserve_evidence_uuid_hash_and_provenance"
+        },
+        "Asset Identifiers": {
+          "required_headers": ["Identifier UUID", "Entity UUID", "Identifier Type", "Value", "Namespace", "Status", "Evidence UUID", "Source Authority", "Source Record ID", "Updated ET", "Schema Version"],
+          "canonical_target": "inventory.identifiers",
+          "identity": {"source_field": "Identifier UUID", "mode": "preserve_uuid"},
+          "relationships": [
+            {"source_field": "Entity UUID", "target": "inventory.assets"},
+            {"source_field": "Evidence UUID", "target": "evidence.index", "nullable": true}
+          ]
+        },
+        "Knowledge Index": {
+          "canonical_target": "knowledge.items",
+          "mode": "preserve_uuid_provenance_and_applicability"
+        },
+        "Knowledge Relationships": {
+          "canonical_target": "knowledge.relationships",
+          "mode": "preserve_relationship_graph"
+        },
+        "Technical Specifications": {
+          "canonical_target": "knowledge.technical_specifications",
+          "mode": "preserve_applicability_and_provenance"
+        },
+        "Reimbursements": {
+          "canonical_target": "commerce.reimbursements",
+          "mode": "keep_distinct_from_refunds"
+        },
+        "Payment Reconciliation": {
+          "canonical_target": "commerce.payment_reconciliation",
+          "mode": "preserve_expected_open_charges_and_revisions"
+        },
+        "Audit": {
+          "canonical_target": "audit.legacy_events",
+          "mode": "append_only_history"
+        }
+      }
+    },
+    "asset_authority_export": {
+      "spreadsheet_title_hint": "Assets",
+      "tabs": {
+        "Assets": {
+          "required_headers": ["Asset UUID", "Friendly ID", "Name", "Asset Type", "Manufacturer", "Model", "Part Number", "Serial Number", "Quantity", "Owner UUID", "Status", "Receipt Line UUID", "Location UUID", "Created At", "Updated At"],
+          "canonical_target": "inventory.assets",
+          "identity": {"source_field": "Asset UUID", "mode": "preserve_uuid"},
+          "relationships": [
+            {"source_field": "Owner UUID", "target": "identity.entities", "nullable": true},
+            {"source_field": "Receipt Line UUID", "target": "commerce.receipt_lines", "nullable": true},
+            {"source_field": "Location UUID", "target": "inventory.locations", "nullable": true}
+          ]
+        },
+        "Asset Relationships": {"canonical_target": "inventory.asset_relationships", "mode": "preserve_relationship_graph"},
+        "Evidence Index": {"canonical_target": "evidence.index", "mode": "preserve_evidence_uuid_hash_and_provenance"},
+        "Asset Identifiers": {"canonical_target": "inventory.identifiers", "mode": "preserve_uuid_and_namespace"},
+        "Knowledge Index": {"canonical_target": "knowledge.items", "mode": "preserve_uuid_provenance_and_applicability"},
+        "Knowledge Relationships": {"canonical_target": "knowledge.relationships", "mode": "preserve_relationship_graph"},
+        "Technical Specifications": {"canonical_target": "knowledge.technical_specifications", "mode": "preserve_applicability_and_provenance"}
+      }
+    }
+  },
+  "apply_rules": [
+    "stage and hash the source before mapping",
+    "never overwrite canonical state during discovery",
+    "preserve RFC4122 UUIDs exactly when the source already contains them",
+    "retain source authority, source record ID, timestamps, and evidence provenance",
+    "deduplicate by canonical UUID first and supported domain identity second",
+    "validate all relationship endpoints before apply",
+    "perform dry-run counts, rejects, collisions, and unresolved references",
+    "apply in one checkpointed migration batch",
+    "read back counts, UUIDs, hashes, and relationships before source cutover",
+    "retain rollback export until explicit acceptance"
+  ]
+}

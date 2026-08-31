@@ -1,0 +1,86 @@
+name: Security QA
+
+on:
+  pull_request:
+    paths:
+      - "starter/service/**"
+      - "starter/clients/**"
+      - "starter/chatgpt-google-native/**"
+      - "starter/visual-qa/**"
+      - "starter/tests/test_v1_production_security.py"
+      - ".github/workflows/security.yml"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  python-and-config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install vulnerability scanners
+        run: python -m pip install --disable-pip-version-check pip-audit bandit
+      - name: Audit Python runtime dependencies
+        run: pip-audit -r starter/service/requirements.txt
+      - name: Scan Python service for high-severity security defects
+        run: bandit -r starter/service -lll -q
+      - name: Run production security contracts
+        run: python -m unittest starter.tests.test_v1_production_security
+      - name: Re-run repository privacy and public-source audits
+        run: |
+          python3 scripts/audit_public_source.py . --history
+          python3 scripts/audit_starter_privacy.py starter
+
+  rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Resolve exact Rust dependency graph
+        run: cargo generate-lockfile --manifest-path starter/clients/desktop/src-tauri/Cargo.toml
+      - name: Audit Rust dependency advisories
+        run: |
+          cargo install cargo-audit --locked
+          cargo audit --file starter/clients/desktop/src-tauri/Cargo.lock
+
+  javascript-tooling:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Audit committed Node test/tool dependencies
+        working-directory: starter/visual-qa
+        run: |
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+          npm audit --audit-level=high
+
+  secret-patterns:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fail on secret material in distributable source
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Scope the scan to distributable source. Keeping the regex inside this
+          # workflow used to make the scanner detect its own test pattern.
+          if git grep -n -E -- '-----BEGIN (RSA |EC |OPENSSH |ENCRYPTED )?PRIVATE KEY-----|BEGIN PRIVATE KEY' -- starter ':!**/*.md' ':!**/*.txt'; then
+            echo 'Private key material must never be committed to MIRA source.' >&2
+            exit 1
+          fi
+          if git grep -n -E -- '(client_secret|access_token|refresh_token)["'"' ]*[:=]["'"' ][A-Za-z0-9_./+-]{20,}' -- starter ':!**/*.md'; then
+            echo 'A token/secret-like literal was found in distributable source.' >&2
+            exit 1
+          fi

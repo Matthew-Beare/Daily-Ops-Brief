@@ -1,0 +1,110 @@
+name: MIRA Upstream Sync
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: mira-upstream-sync
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    if: github.repository != 'Matthew-Beare/MIRA-Personal-Production'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Configure Git identity
+        run: |
+          git config user.name "MIRA Upstream Sync"
+          git config user.email "mira-upstream-sync@example.com"
+      - name: Reconcile canonical upstream without discarding custom work
+        id: reconcile
+        shell: bash
+        run: |
+          set +e
+          python3 starter/tools/reconcile_upstream.py \
+            --upstream https://github.com/Matthew-Beare/MIRA-Personal-Production.git \
+            --upstream-ref main \
+            --target main \
+            --report /tmp/mira-reconciliation.json >/tmp/mira-branch.txt
+          code=$?
+          set -e
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          echo "status=$(jq -r '.status' /tmp/mira-reconciliation.json)" >> "$GITHUB_OUTPUT"
+          echo "upstream_sha=$(jq -r '.upstream_sha // empty' /tmp/mira-reconciliation.json)" >> "$GITHUB_OUTPUT"
+          echo "target_sha=$(jq -r '.target_sha // empty' /tmp/mira-reconciliation.json)" >> "$GITHUB_OUTPUT"
+          echo "branch=$(jq -r '.branch // empty' /tmp/mira-reconciliation.json)" >> "$GITHUB_OUTPUT"
+          cat /tmp/mira-reconciliation.json
+      - name: Preserve current Personal Production revision for rollback
+        if: steps.reconcile.outputs.status == 'clean_merge'
+        env:
+          TARGET_SHA: ${{ steps.reconcile.outputs.target_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$TARGET_SHA"
+          stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+          tag="mira-rollback/${stamp}-${TARGET_SHA:0:12}"
+          git tag -a "$tag" "$TARGET_SHA" -m "MIRA rollback point before automated upstream update"
+          git push origin "refs/tags/$tag"
+          echo "Preserved $TARGET_SHA as $tag. MIRA never deletes the previous Personal Production revision during an update."
+      - name: Push clean reconciliation branch
+        if: steps.reconcile.outputs.status == 'clean_merge'
+        env:
+          BRANCH: ${{ steps.reconcile.outputs.branch }}
+        run: git push --force-with-lease origin "HEAD:$BRANCH"
+      - name: Open or reuse verified update PR
+        if: steps.reconcile.outputs.status == 'clean_merge'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ steps.reconcile.outputs.branch }}
+          UPSTREAM_SHA: ${{ steps.reconcile.outputs.upstream_sha }}
+        shell: bash
+        run: |
+          number="$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')"
+          if [ -z "$number" ]; then
+            gh pr create \
+              --base main \
+              --head "$BRANCH" \
+              --title "Update MIRA from canonical ${UPSTREAM_SHA:0:12}" \
+              --body "MIRA reconciled this update without overwriting your custom work. The previous main revision was preserved under a mira-rollback tag. Automated repository checks are the remaining gate. If the repository supports GitHub auto-merge, the update can merge when those checks pass."
+            number="$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')"
+          fi
+          test -n "$number"
+          gh pr merge "$number" --auto --squash || {
+            echo "Auto-merge is not enabled for this repository. The verified update PR remains open instead of bypassing repository safety settings."
+          }
+      - name: Render plain-language conflict report
+        if: steps.reconcile.outputs.status == 'conflict'
+        run: python3 starter/tools/render_conflict_report.py /tmp/mira-reconciliation.json /tmp/mira-conflict-body.md
+      - name: Create one conflict issue for this upstream revision
+        if: steps.reconcile.outputs.status == 'conflict'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          UPSTREAM_SHA: ${{ steps.reconcile.outputs.upstream_sha }}
+        shell: bash
+        run: |
+          title="MIRA update paused — decision needed (${UPSTREAM_SHA:0:12})"
+          existing="$(gh issue list --state open --search "${UPSTREAM_SHA:0:12} in:title" --json number --jq '.[0].number // empty')"
+          if [ -z "$existing" ]; then
+            gh issue create --title "$title" --body-file /tmp/mira-conflict-body.md
+          fi
+      - name: Upload reconciliation report for support/audit
+        if: always() && hashFiles('/tmp/mira-reconciliation.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: mira-upstream-reconciliation
+          path: /tmp/mira-reconciliation.json
+          if-no-files-found: ignore
+      - name: Reject unexpected reconciliation failure
+        if: steps.reconcile.outputs.code != '0' && steps.reconcile.outputs.status != 'conflict'
+        run: exit 1

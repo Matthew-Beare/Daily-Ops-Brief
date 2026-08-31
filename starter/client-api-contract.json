@@ -1,52 +1,57 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "contract_id": "mirror-client-api-v1",
+  "api_contract": "1.1",
   "transport": {
     "preferred_remote": "HTTPS_JSON",
     "local_equivalents_allowed": ["HTTPS_JSON", "local_loopback_or_unix_socket_adapter"],
     "database_protocol_is_not_client_api": true
   },
   "versioning": {
+    "single_release_authority": "clients/release.json",
+    "client_preflight_endpoint": "GET /v1/compatibility",
+    "client_version_header": "X-Mirror-Client",
+    "api_version_header": "X-Mirror-Api-Version",
     "path_or_header_version_required": true,
     "backward_compatible_read_models_preferred": true,
-    "breaking_changes_require_versioned_migration": true
+    "breaking_changes_require_new_api_major": true,
+    "incompatible_clients_must_not_mutate": true
   },
   "command_envelope": {
     "required_fields": ["command_id", "command_type", "actor_id", "submitted_at", "idempotency_key", "payload"],
     "server_responsibilities": ["authenticate", "authorize", "dependency_preflight", "validate_schema", "validate_idempotency", "write_canonical_authority", "readback_verify", "append_audit_event"]
   },
   "query_surface": [
-    "system_health",
-    "dependency_health",
-    "integration_registry",
-    "tasks_and_projects",
-    "appointments_and_reminders",
-    "commerce_and_receipts",
-    "assets_inventory_locations_and_knowledge",
-    "asset_media",
-    "financial_views_when_enabled",
-    "feature_versions_and_rollback_status"
+    "system_health", "compatibility", "dependency_health", "integration_registry", "tasks_and_projects",
+    "appointments_and_reminders", "commerce_and_receipts", "assets_inventory_locations_and_knowledge",
+    "inventory_tree", "asset_media", "provider_auth_status", "financial_views_when_enabled", "feature_versions_and_rollback_status"
+  ],
+  "inventory_commands": [
+    "inventory.category.create", "inventory.location.create", "inventory.asset.create", "inventory.asset.update",
+    "inventory.asset.relocate", "inventory.identifier.assign"
   ],
   "capture_surface": [
-    "evidence_upload",
-    "asset_photo_evidence",
-    "barcode_qr_scan_event",
-    "rfid_presence_observation",
-    "owner_correction",
-    "manual_appointment_or_receipt_entry"
+    "evidence_upload", "asset_photo_evidence", "arbitrary_asset_attachment", "barcode_qr_scan_event",
+    "rfid_presence_observation", "owner_correction", "manual_appointment_or_receipt_entry"
   ],
   "http_reference": {
     "health": "GET /v1/health",
+    "compatibility": "GET /v1/compatibility?client_api=1.1&client_version=0.2.0",
     "commands": "POST /v1/commands",
+    "inventory_tree": "GET /v1/inventory/tree",
+    "asset_list": "GET /v1/assets?q=&category_uuid=&location_uuid=",
     "asset_read_model": "GET /v1/assets/{asset_uuid}",
     "evidence_upload": "POST /v1/evidence",
     "evidence_read": "GET /v1/evidence/{evidence_uuid}",
-    "evidence_upload_encoding": "multipart/form-data preferred for GUI/desktop; another bounded adapter encoding may be negotiated by CLI/service",
+    "asset_label": "GET /v1/labels/{asset_uuid}.svg?kind=qr|code128",
+    "provider_auth": "GET /v1/auth/providers plus provider-specific start/callback",
+    "evidence_upload_encoding": "multipart/form-data",
     "asset_photo_relationship": "successful evidence upload returns Evidence UUID and verified asset relationship; clients never write evidence-store locators directly"
   },
   "asset_read_model": {
     "photo_collection_field": "photo_evidence",
-    "photo_fields": ["evidence_uuid", "media_role", "mime_type", "content_hash", "caption", "captured_at", "provenance", "thumbnail_url_when_available", "content_url_when_authorized"]
+    "attachment_collection_field": "evidence",
+    "photo_fields": ["evidence_uuid", "media_role", "mime_type", "content_hash", "filename", "captured_at"]
   },
   "sync": {
     "cursor_based_event_feed": true,
@@ -56,6 +61,9 @@
   },
   "security": {
     "scoped_access_tokens": true,
+    "provider_oauth_uses_pkce": true,
+    "provider_tokens_require_encrypted_server_side_storage": true,
+    "incremental_provider_consent": true,
     "database_credentials_in_clients_prohibited": true,
     "server_side_authorization": true,
     "remote_tls_required": true,

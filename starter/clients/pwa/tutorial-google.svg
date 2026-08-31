@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 360" role="img" aria-labelledby="t d">
+  <title id="t">Connect Google to MIRA</title><desc id="d">Three-step diagram showing Continue with Google, review permissions, and return to MIRA.</desc>
+  <defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="#60a5fa"/><stop offset="1" stop-color="#6ee7b7"/></linearGradient></defs>
+  <rect width="920" height="360" rx="28" fill="#0b0f17"/>
+  <text x="48" y="58" fill="#f8fafc" font-family="system-ui,sans-serif" font-size="28" font-weight="700">Connect Google</text>
+  <text x="48" y="88" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="16">MIRA asks only for the Google surfaces you choose to use.</text>
+  <g font-family="system-ui,sans-serif">
+    <rect x="48" y="126" width="240" height="170" rx="18" fill="#111827" stroke="#334155"/><circle cx="82" cy="160" r="18" fill="url(#g)"/><text x="76" y="166" fill="#07130f" font-size="16" font-weight="800">1</text><text x="112" y="163" fill="#f8fafc" font-size="19" font-weight="700">Continue with Google</text><text x="72" y="205" fill="#cbd5e1" font-size="15">MIRA opens Google's real</text><text x="72" y="228" fill="#cbd5e1" font-size="15">authorization page.</text><rect x="72" y="251" width="160" height="34" rx="17" fill="#2563eb"/><text x="93" y="273" fill="white" font-size="14" font-weight="700">Continue with Google</text>
+    <path d="M305 211h42" stroke="#64748b" stroke-width="3"/><path d="m340 202 12 9-12 9" fill="none" stroke="#64748b" stroke-width="3"/>
+    <rect x="366" y="126" width="240" height="170" rx="18" fill="#111827" stroke="#334155"/><circle cx="400" cy="160" r="18" fill="url(#g)"/><text x="394" y="166" fill="#07130f" font-size="16" font-weight="800">2</text><text x="430" y="163" fill="#f8fafc" font-size="19" font-weight="700">Review access</text><text x="390" y="204" fill="#cbd5e1" font-size="15">Drive → reality & evidence</text><text x="390" y="228" fill="#cbd5e1" font-size="15">Gmail → receipts/orders</text><text x="390" y="252" fill="#cbd5e1" font-size="15">Calendar → appointments</text><text x="390" y="278" fill="#6ee7b7" font-size="14">Optional surfaces stay optional.</text>
+    <path d="M623 211h42" stroke="#64748b" stroke-width="3"/><path d="m658 202 12 9-12 9" fill="none" stroke="#64748b" stroke-width="3"/>
+    <rect x="684" y="126" width="188" height="170" rx="18" fill="#111827" stroke="#334155"/><circle cx="718" cy="160" r="18" fill="url(#g)"/><text x="712" y="166" fill="#07130f" font-size="16" font-weight="800">3</text><text x="748" y="163" fill="#f8fafc" font-size="19" font-weight="700">Return to MIRA</text><text x="708" y="205" fill="#cbd5e1" font-size="15">MIRA verifies access</text><text x="708" y="228" fill="#cbd5e1" font-size="15">and reads it back.</text><text x="708" y="264" fill="#6ee7b7" font-size="15" font-weight="700">No Linux required.</text>
+  </g>
+</svg>

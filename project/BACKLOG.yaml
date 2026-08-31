@@ -1,0 +1,116 @@
+schema_version: 1
+updated_at: "2026-08-26T20:05:00-04:00"
+authority: git
+
+rules:
+  - Exactly one packet may be active; active work is tracked only in project/CURRENT_WORK.yaml.
+  - New ideas, defects, and unrelated discoveries are recorded here rather than expanding an active packet.
+  - The assistant owns packet decomposition, dependency ordering, acceptance drafting, and backlog maintenance unless the user explicitly overrides priority or scope.
+  - Backlog priority does not imply implementation has started.
+  - Windows and Linux implementation items remain deferred until the Native MIRA v1 gate passes.
+  - A human-friendly dashboard may mirror this file one-way, but the dashboard is not an authority.
+
+priority_order: [P0, P1, P2, P3]
+status_values: [ready, backlog, blocked, deferred, done]
+
+items:
+  - id: DEV-001
+    title: Complete canonical feature inventory from PR #31
+    type: engineering_governance
+    priority: P0
+    status: backlog
+    platforms: [cross_platform]
+    dependencies: [MIRROR-GOOGLE-RECON-002]
+    reason: >-
+      PR #31 contains 149 changed files and spans multiple product areas. Before post-#31
+      development, reconcile the branch against project/FEATURES.yaml so every existing
+      behavior is either accepted, partial, backlog, or explicitly deferred.
+    acceptance:
+      - Every Native-v1 feature found in PR #31 maps to a stable feature ID.
+      - Feature statuses are backed by code/test evidence.
+      - Duplicate or obsolete feature concepts are reconciled rather than silently retained.
+
+  - id: DEV-002
+    title: Define and enforce Native MIRA v1 CI gate
+    type: test_release
+    priority: P0
+    status: backlog
+    platforms: [chatgpt, core, android]
+    dependencies: [DEV-001]
+    acceptance:
+      - Required unit, contract, integration, security, and Native-MIRA smoke tests are named.
+      - CI blocks merge when a required gate fails.
+      - Windows/Linux-only implementation gates do not block Phase 1 unless they protect shared platform-neutral contracts.
+
+  - id: OPS-001
+    title: Verify and harden $ops brief as a first-class Native MIRA feature
+    feature_id: MIRA-F009
+    type: feature_verification
+    priority: P0
+    status: backlog
+    platforms: [chatgpt, android]
+    dependencies: [MIRROR-F008]
+    acceptance:
+      - Manual `$ops brief` invokes the canonical brief pipeline.
+      - Scheduled execution is exactly 02:45 and 14:45 America/New_York.
+      - No legacy/duplicate schedules remain.
+      - Authority reads and mode filtering have regression coverage.
+
+  - id: ANDROID-001
+    title: Native Android v1 gap audit and packet plan
+    feature_id: MIRA-F010
+    type: feature_verification
+    priority: P0
+    status: backlog
+    platforms: [android]
+    dependencies: [DEV-001]
+    acceptance:
+      - Existing Android behavior is compared against Native-v1 acceptance criteria.
+      - Missing work is split into small ordered packets.
+      - Build-only evidence is distinguished from physical-device verification.
+
+  - id: CHATGPT-001
+    title: ChatGPT + Google-native stock runtime gap audit
+    feature_id: MIRA-F011
+    type: feature_verification
+    priority: P0
+    status: backlog
+    platforms: [chatgpt, core]
+    dependencies: [MIRROR-GOOGLE-RECON-002, DEV-001]
+    acceptance:
+      - Stock runtime path is proven without requiring self-hosted infrastructure.
+      - Missing onboarding, authority, recovery, or provider-registration work is packetized.
+      - Claims are separated into CI-verifiable versus live-provider/user-verifiable behavior.
+
+  - id: DEV-003
+    title: Add one-way human-readable development dashboard
+    type: tooling
+    priority: P2
+    status: backlog
+    platforms: [project_management]
+    dependencies: [DEV-001]
+    proposal: >-
+      Mirror feature, packet, and backlog state from Git into a sheet/Airtable-style dashboard
+      for browsing. Git remains authoritative and dashboard edits must not silently overwrite Git.
+    acceptance:
+      - Dashboard clearly labels Git as authority.
+      - Sync direction is Git to dashboard unless an explicit reviewed import workflow is later designed.
+      - Stale dashboard data cannot be mistaken for current packet state.
+
+  - id: WIN-001
+    title: Resume Windows client implementation after Native MIRA v1
+    feature_id: MIRA-F012
+    type: platform
+    priority: P3
+    status: deferred
+    platforms: [windows]
+    dependencies: [NATIVE-MIRA-V1-GATE]
+
+  - id: LINUX-001
+    title: Resume Linux client implementation after Native MIRA v1
+    feature_id: MIRA-F013
+    type: platform
+    priority: P3
+    status: deferred
+    platforms: [linux]
+    dependencies: [NATIVE-MIRA-V1-GATE]

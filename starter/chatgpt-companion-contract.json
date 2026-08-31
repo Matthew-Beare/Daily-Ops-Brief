@@ -1,0 +1,199 @@
+{
+  "schema_version": 5,
+  "contract_id": "mira-chatgpt-companion-v5",
+  "purpose": "Run MIRA through ChatGPT and optional MIRA companion apps against one durable MIRROR authority. MIRA has no disposable chat-only deployment mode.",
+  "product_model": {
+    "mira": "The assistant. Users primarily talk to MIRA in ChatGPT for planning, questions, reconciliation, configuration and approved actions.",
+    "mirror": "The user's private data store and evidence record. MIRROR keeps settings, identities, evidence, relationships, history and structured state so every MIRA surface agrees on what is true.",
+    "mira_app": "An optional display and data-ingestion companion. It captures physical-world data into MIRROR and displays MIRROR state written by the app, ChatGPT or other approved MIRA surfaces. It is useful but not required to use MIRA."
+  },
+  "deployment_choices": {
+    "cloud": {
+      "label": "Cloud",
+      "plain_language": "ChatGPT plus Google Workspace or Microsoft 365. Recommended for most people. No Linux or self-hosted server is required.",
+      "durable_authority_required": true,
+      "provider_required": true,
+      "allowed_providers": ["google_workspace", "microsoft_365"],
+      "self_hosted_mirror_required": false,
+      "local_service_bridge_allowed": false
+    },
+    "cloud_plus_self_hosted_services": {
+      "label": "Cloud + local services",
+      "plain_language": "Keep Google Workspace or Microsoft 365 as MIRROR, while an enrolled MIRA app or bridge can reach local services such as Home Assistant, Plex or Paperless.",
+      "durable_authority_required": true,
+      "provider_required": true,
+      "allowed_providers": ["google_workspace", "microsoft_365"],
+      "self_hosted_mirror_required": false,
+      "local_service_bridge_allowed": true
+    },
+    "self_hosted": {
+      "label": "Self-hosted",
+      "plain_language": "ChatGPT plus a user-owned MIRROR deployment. Google Workspace or Microsoft 365 may still be connected, but they are optional.",
+      "durable_authority_required": true,
+      "provider_required": false,
+      "self_hosted_mirror_required": true,
+      "local_service_bridge_allowed": true
+    }
+  },
+  "forbidden_modes": {
+    "chatgpt_only_without_mirror": true,
+    "reason": "MIRA must always have a durable MIRROR authority so state, settings and evidence survive conversation boundaries and remain consistent across surfaces."
+  },
+  "onboarding": {
+    "chatgpt_initialization_interview_is_primary": true,
+    "chatgpt_interview_purpose": "Initialize the user's MIRA profile, choose one of the three MIRROR deployment choices, connect the selected durable authority, and configure requested life domains and preferences conversationally.",
+    "mira_app_first_boot_wizard_is_stock": true,
+    "mira_app_wizard_purpose": "Configure that app/device, connect it to the same MIRROR authority, request device permissions, confirm or edit shared settings and teach capture/display workflows.",
+    "app_is_optional": true,
+    "core_mira_must_not_assume_app_installed": true,
+    "do_not_replace_app_wizard_with_chat_only_onboarding": true,
+    "do_not_repeat_full_life_interview_in_app_when_profile_already_exists": true,
+    "app_can_offer_missing_profile_questions_when_chatgpt_interview_was_skipped": true,
+    "shared_answers_write_to_same_mirror_settings": true,
+    "wizard_settings_remain_editable_later": true,
+    "cloud_mode_requires_google_or_microsoft_connection_before_completion": true,
+    "self_hosted_mode_requires_verified_mirror_connection_before_completion": true,
+    "primary_action_may_never_fail_silently": true
+  },
+  "data_flow": {
+    "app_to_mirror": [
+      "inventory capture and edits",
+      "barcode and QR scans",
+      "photos and files",
+      "receipts",
+      "NFC and BLE observations",
+      "locations",
+      "tasks and settings",
+      "device and kiosk preferences"
+    ],
+    "chatgpt_to_mirror": [
+      "tasks and upcoming items",
+      "plans and structured recommendations",
+      "reconciled receipt and inventory results",
+      "settings",
+      "reminders",
+      "meal plans when enabled",
+      "feature requests",
+      "other approved structured updates"
+    ],
+    "mirror_to_app": [
+      "Upcoming dashboard",
+      "to-do state",
+      "inventory and locations",
+      "photos and evidence",
+      "receipts and reconciliation status",
+      "reminders",
+      "meal plans when enabled",
+      "settings and integration status"
+    ],
+    "mirror_to_chatgpt": "The same verified MIRROR state is available to MIRA for conversation, reasoning and approved actions.",
+    "chatgpt_may_answer_in_chat": true,
+    "chatgpt_may_write_mirror_when_user_intent_requires_durable_state": true,
+    "app_and_chatgpt_must_reference_same_mirror_authority": true
+  },
+  "runtime_modes": {
+    "cloud_provider_native": {
+      "default_for_nontechnical_users": true,
+      "user_managed_server_required": false,
+      "linux_required": false,
+      "docker_required": false,
+      "openai_api_key_required": false,
+      "supported_cloud_authorities": ["google_workspace", "microsoft_365"],
+      "mutable_authority": "user-owned MIRROR records in the selected cloud provider",
+      "evidence_authority": "user-owned cloud files with MIRROR identity and provenance references",
+      "stock_use_requires_github": false,
+      "mira_app_supported": true,
+      "mira_app_required": false,
+      "mira_app_must_use_same_cloud_authority_as_chatgpt": true,
+      "mira_app_must_not_require_hosted_mirror_server": true
+    },
+    "hosted_mirror": {
+      "default_for_nontechnical_users": false,
+      "user_managed_server_required": true,
+      "settings_authority": "MIRROR server settings API",
+      "use_cases": ["advanced self-hosting", "institutional deployment", "offline/local authority", "local-service bridge"]
+    }
+  },
+  "provider_connection": {
+    "stock_app_provider_button_must_launch_real_authorization": true,
+    "hosted_server_oauth_is_not_the_only_supported_transport": true,
+    "missing_provider_registration_or_transport_must_show_plain_language_blocker": true,
+    "no_dead_or_decorative_account_buttons": true,
+    "permission_requests_are_incremental": true,
+    "provider_password_never_enters_mira": true
+  },
+  "ingestion_invariant": {
+    "capture_is_not_success_until_mirror_readback": true,
+    "required_chain": [
+      "receive bytes or structured capture",
+      "create immutable MIRROR evidence or entity record",
+      "link it to the intended asset receipt location or other parent",
+      "store it in the selected MIRROR provider",
+      "verify provider write/readback or content hash",
+      "return the MIRROR relationship",
+      "make the same relationship queryable by both ChatGPT and the MIRA app"
+    ],
+    "silent_local_only_success_is_forbidden": true
+  },
+  "model_access": {
+    "embedded_openai_model_backend": false,
+    "openai_api_key_required_for_companion": false,
+    "chat_surface": "ChatGPT",
+    "preferred_distribution": "MIRA plugin/skill using approved cloud-provider tools where available",
+    "fallback_custom_app_transport": "OpenAI Apps SDK / MCP when a remote application backend is actually required",
+    "no_claim_that_chatgpt_subscription_supplies_external_api_compute": true
+  },
+  "google_native_tools": [
+    "settings.read",
+    "settings.update",
+    "inventory.query",
+    "inventory.asset.read",
+    "inventory.asset.create",
+    "inventory.asset.relocate",
+    "inventory.identifier.bind",
+    "location.resolve",
+    "receipt.capture",
+    "receipt.reconcile",
+    "evidence.link",
+    "feature.requests.list",
+    "feature.requests.create",
+    "migration.discover",
+    "migration.stage",
+    "migration.apply_verified"
+  ],
+  "feature_delivery": {
+    "request_origin": "MIRA app or ChatGPT",
+    "default_target_surfaces": ["web", "windows", "linux", "android"],
+    "all_supported_surfaces_required_by_default": true,
+    "platform_specific_exception_is_engineering_only": true,
+    "stock_configuration_change_requires_github": false,
+    "executable_or_policy_source_change_requires_git": true,
+    "github_account_is_guided_when_first_needed": true,
+    "durable_source_for_executable_code": "Git",
+    "implementation": "branch plus tested code changes",
+    "promotion": "PR, CI, merge, generated distributions",
+    "safe_update_default": "automatic or one press after release verification",
+    "human_intervention": "required only when custom source, policy, identity, or migration ambiguity cannot be reconciled safely",
+    "unreviewed_dynamic_code_execution_in_customer_runtime": false
+  },
+  "settings": {
+    "client_and_chatgpt_bidirectional": true,
+    "single_authority_per_deployment": true,
+    "chatgpt_writes_are_scoped_and_audited": true,
+    "clients_must_read_back_after_change": true
+  },
+  "identity": {
+    "canonical_identity": "immutable asset UUID",
+    "aliases": ["serial", "manufacturer_part_number", "model", "retailer_sku", "gtin", "upc", "ean", "qr", "code128", "nfc_uid", "hf_uid", "uhf_epc", "ble_beacon"],
+    "location_hierarchy": true,
+    "physical_container_can_be_both_asset_and_location": true
+  },
+  "security": {
+    "chatgpt_never_receives_database_passwords": true,
+    "cloud_mode_uses_user_granted_provider_permissions": true,
+    "git_write_requires_explicitly_connected_source_control_capability": true,
+    "feature_requests_never_execute_unreviewed_code": true,
+    "source_control_conflicts_fail_closed": true,
+    "receipt_and_web_enrichment_never_become_canonical_without_provenance": true
+  }
+}

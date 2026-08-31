@@ -1,0 +1,11 @@
+{
+  "name": "mira-visual-qa",
+  "private": true,
+  "version": "1.0.0",
+  "devDependencies": {
+    "@playwright/test": "1.62.1"
+  },
+  "scripts": {
+    "test": "playwright test"
+  }
+}

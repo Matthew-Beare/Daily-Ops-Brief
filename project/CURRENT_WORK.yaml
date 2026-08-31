@@ -1,0 +1,94 @@
+schema_version: 1
+updated_at: "2026-08-26T20:05:00-04:00"
+authority: git
+
+active_packet:
+  packet_id: MIRROR-GOOGLE-RECON-002
+  feature_id: MIRROR-F002
+  title: Harden Google-native reconciliation v2
+  status: active_recovery
+  repository: Matthew-Beare/MIRA-Personal-Production
+  branch: feature/full-client-parity-google-workspace-v1
+  pull_request: 31
+  base_branch: main
+  verified_head_at_bootstrap: ded3d67f0f42913ac8e04b664202328159af50d9
+
+  goal: >-
+    Resume and finish the interrupted hardened Google-native reconciliation v2 work
+    without redoing the reconciliation architecture, Daily Cleanup contracts, hybrid AI
+    routing, manual/no-AI mode, receipt queue changes, UI work, or Control Cycle updates
+    that already landed on PR #31.
+
+  scope:
+    in:
+      - Audit the PR branch to identify the exact interrupted Google-native reconciliation v2 file/write and current surrounding contract state.
+      - Finish only the hardened Google-native reconciliation v2 behavioral slice.
+      - Add or adjust focused tests for deterministic reconciliation, idempotency, ambiguity, and partial-provider failure.
+      - Run the relevant focused regression suite and then the required broader gate for this packet.
+      - Update feature/work state and make durable checkpoint commit(s).
+    out:
+      - New Windows implementation work.
+      - New Linux implementation work.
+      - Unrelated UI redesign.
+      - New feature ideas discovered during recovery.
+      - Broad refactors not required to satisfy this packet's acceptance criteria.
+
+  completed_before_packet_bootstrap:
+    - Core reconciliation architecture landed on PR #31.
+    - Daily Cleanup contracts landed on PR #31.
+    - Hybrid AI routing landed on PR #31.
+    - Manual/no-AI mode landed on PR #31.
+    - Receipt queue changes landed on PR #31.
+    - Existing UI work landed on PR #31.
+    - Existing LyfeOS / MIRROR Control Cycle update landed on PR #31.
+    - PR #31 verified open, unmerged, and mergeable before packet bootstrap.
+
+  current_step: >-
+    Recovery audit. Identify the exact interrupted hardened Google-native reconciliation
+    v2 file/write from branch state and surrounding contracts before making another
+    implementation write. The previous write was interrupted before provider success
+    was confirmed, so absence, partial presence, or full presence must be verified rather
+    than assumed.
+
+  remaining_work:
+    - Determine the exact interrupted file/path and whether any portion of the intended v2 write exists remotely.
+    - Compare current Google-native authority/reconciliation contracts with the intended hardening requirements.
+    - Implement the smallest missing behavioral slice only.
+    - Add focused failure-path and idempotency tests.
+    - Run focused reconciliation tests.
+    - Run required regression/ship-readiness tests affected by the change.
+    - Verify no unintended Windows/Linux scope expansion occurred.
+    - Update project/FEATURES.yaml with verified state.
+    - Update this file with the exact completion/resume point.
+    - Commit and push/check remote branch state before declaring the packet complete.
+
+  tests_required:
+    focused:
+      - starter/tests/test_reconciliation_architecture.py
+      - Any Google-native reconciliation v2 test added by this packet.
+    regression:
+      - starter/tests/test_ship_readiness.py
+      - Other directly affected Native-MIRA contract tests discovered during implementation.
+    properties:
+      - deterministic equivalent-input behavior
+      - duplicate-safe/idempotent retry
+      - ambiguity stops or queues safely
+      - partial-provider failure preserves canonical state
+
+  acceptance_criteria:
+    - The intended Google-native v2 hardening exists remotely on the active branch.
+    - Repeated equivalent reconciliation does not create duplicate canonical mutations.
+    - Ambiguous/conflicting provider state is surfaced safely instead of silently guessed.
+    - Partial provider failure cannot leave corrupted canonical state.
+    - Relevant focused tests pass.
+    - Relevant regression tests pass.
+    - Feature state is updated from evidence, not assumption.
+    - Remote commit and PR head are verified after the final write.
+
+  interruption_recovery:
+    rule: >-
+      On any new coding session, read this file, verify the branch and PR head, inspect
+      the diff since verified_head_at_bootstrap or the last recorded checkpoint, and
+      continue from current_step. Do not reconstruct unfinished work from chat memory.
+    checkpoint_after_each_atomic_step: true
+    unrelated_discoveries_go_to: project/BACKLOG.yaml

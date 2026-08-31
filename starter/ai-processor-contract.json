@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "purpose": "Route MIRROR reconciliation work across any combination of ChatGPT, metered APIs, local models, OpenClaw, and manual review without letting any processor become canonical authority.",
+  "authority_rule": "MIRROR owns state, pending work, corrections, usage, and provenance. AI processors are interchangeable workers.",
+  "processor_kinds": [
+    "chatgpt_scheduled_mira",
+    "openai_api",
+    "anthropic_api",
+    "gemini_api",
+    "local_openai_compatible",
+    "ollama",
+    "vllm",
+    "llama_cpp",
+    "openclaw",
+    "manual"
+  ],
+  "capabilities": [
+    "text_reasoning",
+    "vision",
+    "ocr",
+    "structured_output",
+    "tool_use",
+    "web_research",
+    "large_context",
+    "embeddings",
+    "confidence_reporting"
+  ],
+  "routing": {
+    "hybrid_processors_supported": true,
+    "multiple_processors_per_workload_supported": true,
+    "default_strategy": "Use cached MIRROR knowledge and deterministic processing first, then the least expensive/private capable processor, then escalate only when confidence or capability requires it.",
+    "capability_match_required": true,
+    "feature_specific_routes_supported": true,
+    "escalation_chain_supported": true,
+    "no_silent_cloud_fallback_from_local_only": true,
+    "processor_health_affects_routing": true,
+    "budget_limits_affect_routing": true,
+    "unavailable_processor_may_wait_or_fallback_only_with_policy": true
+  },
+  "cost_accounting": {
+    "metered_usage_recorded_in_mirror": true,
+    "daily_cost_visible_on_home": true,
+    "month_to_date_cost_visible_on_home": true,
+    "price_snapshot_stored_per_usage_event": true,
+    "provider_model_feature_work_uuid_recorded": true,
+    "input_output_cached_usage_supported": true,
+    "monthly_budget_supported": true,
+    "warning_thresholds_supported": [50, 75, 90],
+    "hard_stop_supported": true,
+    "local_processor_label": "$0 API cost",
+    "never_claim_local_compute_has_zero_total_cost": true
+  },
+  "privacy": {
+    "processor_policy_may_be_local_only": true,
+    "sensitive_work_may_prohibit_cloud": true,
+    "local_processor_failure_never_authorizes_cloud_fallback_by_itself": true,
+    "secrets_stay_in_os_or_service_secret_storage": true,
+    "mirror_records_processor_identity_and_result_provenance": true
+  },
+  "openclaw": {
+    "role": "optional processor and orchestration adapter",
+    "canonical_authority": false,
+    "may_claim_mirror_work": true,
+    "may_route_to_local_or_cloud_models": true,
+    "must_write_results_back_to_mirror": true,
+    "must_obey_mirror_allowed_mutations_confidence_budget_and_privacy": true
+  },
+  "optional_api_mode": {
+    "enabled_by_default": false,
+    "user_must_configure_provider_credentials": true,
+    "immediate_processing_supported_when_enabled": true,
+    "unattended_processing_supported_when_enabled": true,
+    "api_spend_must_be_visible": true
+  },
+  "manual_mode": {
+    "basic_inventory_and_evidence_without_ai_supported": true,
+    "uncertain_work_remains_reviewable": true,
+    "later_ai_connection_uses_existing_mirror_without_migration": true
+  }
+}

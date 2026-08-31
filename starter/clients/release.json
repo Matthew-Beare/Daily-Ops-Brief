@@ -1,0 +1,25 @@
+{
+  "product": "mirror",
+  "product_version": "0.2.0",
+  "api_contract": "1.1",
+  "api_major": 1,
+  "schema_epoch": 1,
+  "feature_manifest_version": 3,
+  "clients": {
+    "web": "0.2.0",
+    "windows": "0.2.0",
+    "linux": "0.2.0",
+    "android": "0.2.0",
+    "cli": "0.2.0"
+  },
+  "compatibility": {
+    "supported_api_majors": [1],
+    "minimum_client_version": "0.2.0",
+    "mutation_requires_supported_api_major": true,
+    "mutation_requires_client_identity": true,
+    "server_advertises_minimum_client": true,
+    "clients_must_preflight_before_mutation": true,
+    "breaking_api_change_requires_new_major": true,
+    "feature_contracts_must_declare_required_capabilities": true
+  }
+}

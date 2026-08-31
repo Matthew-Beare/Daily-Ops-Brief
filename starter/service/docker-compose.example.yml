@@ -1,0 +1,30 @@
+services:
+  mirror:
+    build:
+      context: ../..
+      dockerfile: starter/service/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8765:8765"
+    volumes:
+      - mirror_data:/data
+    environment:
+      MIRROR_DATA_DIR: /data
+      MIRROR_AUTH_MODE: required
+      MIRROR_ACCESS_TOKEN: ${MIRROR_ACCESS_TOKEN:?set a long random mirror API access token}
+      MIRROR_TOKEN_KEY: ${MIRROR_TOKEN_KEY:?set a Fernet key for encrypted provider tokens}
+      MIRROR_DEFAULT_PROVIDER: ${MIRROR_DEFAULT_PROVIDER:-google_workspace}
+      MIRROR_EVIDENCE_PROVIDER: ${MIRROR_EVIDENCE_PROVIDER:-auto}
+      MIRROR_PUBLIC_BASE_URL: ${MIRROR_PUBLIC_BASE_URL:-http://localhost:8765}
+      MIRROR_CORS_ORIGINS: ${MIRROR_CORS_ORIGINS:-http://localhost:8765,http://127.0.0.1:8765,http://tauri.localhost,https://tauri.localhost,tauri://localhost,https://appassets.androidplatform.net,null}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-http://localhost:8765/v1/auth/google/callback}
+      GOOGLE_DRIVE_FOLDER_ID: ${GOOGLE_DRIVE_FOLDER_ID:-}
+      MICROSOFT_CLIENT_ID: ${MICROSOFT_CLIENT_ID:-}
+      MICROSOFT_CLIENT_SECRET: ${MICROSOFT_CLIENT_SECRET:-}
+      MICROSOFT_TENANT: ${MICROSOFT_TENANT:-common}
+      MICROSOFT_REDIRECT_URI: ${MICROSOFT_REDIRECT_URI:-http://localhost:8765/v1/auth/microsoft/callback}
+
+volumes:
+  mirror_data:
